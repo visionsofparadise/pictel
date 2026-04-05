@@ -1,0 +1,25 @@
+{
+  "name": "demo",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
+    "unit": "vitest run",
+    "start": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "pictel": "*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "vitest": "latest",
+    "concurrently": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
+}

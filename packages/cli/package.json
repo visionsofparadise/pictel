@@ -1,0 +1,32 @@
+{
+  "name": "@pictel/cli",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "pictel": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
+    "unit": "vitest run",
+    "build": "tsup"
+  },
+  "dependencies": {
+    "pictel": "*",
+    "puppeteer": "latest",
+    "sharp": "latest"
+  },
+  "devDependencies": {
+    "tsup": "latest",
+    "vitest": "latest",
+    "concurrently": "latest",
+    "@types/node": "latest"
+  }
+}

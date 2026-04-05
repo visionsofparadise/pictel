@@ -1,0 +1,21 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "check": {
+      "dependsOn": ["^check"],
+      "inputs": ["src/**", "./tsconfig.json"],
+      "outputs": []
+    },
+    "build": {
+      "dependsOn": ["^build", "check"],
+      "inputs": ["src/**", "./tsconfig.json", "./package.json"],
+      "outputs": ["dist/**"]
+    },
+    "unit": {
+      "dependsOn": ["check"]
+    },
+    "lint": {
+      "dependsOn": []
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "pictel",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
+    "unit": "vitest run",
+    "build": "tsup"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "tsup": "latest",
+    "vitest": "latest",
+    "concurrently": "latest",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
+}

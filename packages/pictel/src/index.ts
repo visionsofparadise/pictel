@@ -36,7 +36,32 @@ export { HueRotate } from "./Components/Effects/HueRotate";
 export { Invert } from "./Components/Effects/Invert";
 export { Opacity } from "./Components/Effects/Opacity";
 export { Saturate } from "./Components/Effects/Saturate";
-export { Sepia } from "./Components/Effects/Sepia";
+export { Sepia } from "./Components/Effects/Sepia"
+
+// Pixel effects
+export { ChannelMixer } from "./Components/Effects/ChannelMixer"
+export { ColorGrade } from "./Components/Effects/ColorGrade"
+export { Duotone } from "./Components/Effects/Duotone"
+export { Posterize } from "./Components/Effects/Posterize"
+export { Threshold } from "./Components/Effects/Threshold"
+export { Grain } from "./Components/Effects/Grain"
+export { Halftone } from "./Components/Effects/Halftone"
+export { Sharpen } from "./Components/Effects/Sharpen"
+export { CubeLUT } from "./Components/Effects/CubeLUT"
+export { ImageLUT } from "./Components/Effects/ImageLUT"
+export { DisplacementMap } from "./Components/Effects/DisplacementMap"
+
+export { applyChannelMix } from "./Components/Effects/ChannelMixer"
+export { applyColorGrade, type ColorGradeAdjustments } from "./Components/Effects/ColorGrade"
+export { applyDuotone } from "./Components/Effects/Duotone"
+export { applyGrain } from "./Components/Effects/Grain"
+export { applyHalftone } from "./Components/Effects/Halftone"
+export { applyPosterize } from "./Components/Effects/Posterize"
+export { applySharpen } from "./Components/Effects/Sharpen"
+export { applyThreshold } from "./Components/Effects/Threshold"
+export { parseCubeFile, applyLut } from "./Components/Effects/CubeLUT"
+export { applyImageLut } from "./Components/Effects/ImageLUT"
+export { applyDisplacement } from "./Components/Effects/DisplacementMap"
 
 // Hooks
 export { useCanvasContext } from "./context/canvas";

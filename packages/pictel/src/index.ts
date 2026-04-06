@@ -26,6 +26,16 @@ export { SoftLight } from "./Components/BlendModes/SoftLight";
 // Blend utilities
 export { blendPixels, type BlendFormula } from "./Components/BlendModes/blend-pixels";
 
+// Generative
+export { ConicGradient } from "./Components/Generative/ConicGradient";
+export { DotPattern } from "./Components/Generative/DotPattern";
+export { GridPattern } from "./Components/Generative/GridPattern";
+export { type GradientStop } from "./Components/Generative/LinearGradient";
+export { LinearGradient } from "./Components/Generative/LinearGradient";
+export { LinePattern } from "./Components/Generative/LinePattern";
+export { ProceduralNoise } from "./Components/Generative/ProceduralNoise";
+export { RadialGradient } from "./Components/Generative/RadialGradient";
+
 // Effects
 export { Blur } from "./Components/Effects/Blur";
 export { Brightness } from "./Components/Effects/Brightness";

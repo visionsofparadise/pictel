@@ -1,228 +1,175 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from "vitest";
-import { applyCutout, createMaskState, setupMasks, teardownMasks, type MaskState } from "./masking";
+import {
+	addCutout,
+	createSvgMask,
+	ensureSharedMask,
+	removeCutouts,
+} from "./masking";
 
 describe("masking", () => {
-	let canvasRoot: HTMLDivElement;
-	let state: MaskState;
+	let defs: SVGDefsElement;
 
 	beforeEach(() => {
-		canvasRoot = document.createElement("div");
-		document.body.appendChild(canvasRoot);
-		state = createMaskState();
+		const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+
+		defs = document.createElementNS("http://www.w3.org/2000/svg", "defs") as SVGDefsElement;
+		svg.appendChild(defs);
+		document.body.appendChild(svg);
 	});
 
-	function addChild(): HTMLDivElement {
-		const child = document.createElement("div");
+	describe("createSvgMask", () => {
+		it("creates mask element with pictel-mask-* ID prefix", () => {
+			const mask = createSvgMask(defs);
 
-		canvasRoot.appendChild(child);
-
-		return child;
-	}
-
-	describe("createMaskState", () => {
-		it("returns empty initial state", () => {
-			expect(state.tracked.size).toBe(0);
-			expect(state.svgContainer).toBeNull();
-			expect(state.canvasRect).toBeNull();
-		});
-	});
-
-	describe("setupMasks", () => {
-		it("creates SVG container on first call", () => {
-			addChild();
-			setupMasks(canvasRoot, state);
-
-			expect(state.svgContainer).not.toBeNull();
-			expect(canvasRoot.querySelector("svg")).not.toBeNull();
-			expect(canvasRoot.querySelector("svg defs")).not.toBeNull();
+			expect(mask.tagName).toBe("mask");
+			expect(mask.getAttribute("id")).toMatch(/^pictel-mask-.+/);
 		});
 
-		it("tracks new elements", () => {
-			const child1 = addChild();
-			const child2 = addChild();
+		it("has maskContentUnits userSpaceOnUse", () => {
+			const mask = createSvgMask(defs);
 
-			setupMasks(canvasRoot, state);
-
-			expect(state.tracked.size).toBe(2);
-			expect(state.tracked.has(child1)).toBe(true);
-			expect(state.tracked.has(child2)).toBe(true);
+			expect(mask.getAttribute("maskContentUnits")).toBe("userSpaceOnUse");
 		});
 
-		it("applies mask style to tracked elements", () => {
-			const child = addChild();
+		it("contains white base rect", () => {
+			const mask = createSvgMask(defs);
+			const baseRect = mask.querySelector("rect");
 
-			setupMasks(canvasRoot, state);
-
-			expect(child.style.maskImage).toContain("pictel-mask-");
+			expect(baseRect).not.toBeNull();
+			expect(baseRect?.getAttribute("fill")).toBe("white");
+			expect(baseRect?.getAttribute("width")).toBe("100%");
+			expect(baseRect?.getAttribute("height")).toBe("100%");
 		});
 
-		it("updates canvasRect", () => {
-			setupMasks(canvasRoot, state);
-			expect(state.canvasRect).not.toBeNull();
-		});
+		it("appends mask to defs element", () => {
+			const mask = createSvgMask(defs);
 
-		it("returns a rects map with entries for each tracked element", () => {
-			const child1 = addChild();
-			const child2 = addChild();
-
-			const { rects } = setupMasks(canvasRoot, state);
-
-			expect(rects.has(child1)).toBe(true);
-			expect(rects.has(child2)).toBe(true);
-			expect(rects.has(canvasRoot)).toBe(true);
-		});
-
-		it("generates mask IDs with pictel-mask- prefix", () => {
-			addChild();
-			setupMasks(canvasRoot, state);
-
-			const defs = canvasRoot.querySelector("svg defs");
-			const mask = defs?.querySelector("mask");
-
-			expect(mask).not.toBeNull();
-			expect(mask?.getAttribute("id")).toMatch(/^pictel-mask-.+/);
-		});
-
-		it("does not track SVG container or its children", () => {
-			addChild();
-			setupMasks(canvasRoot, state);
-
-			const svgContainer = state.svgContainer;
-
-			expect(svgContainer).not.toBeNull();
-			expect(state.tracked.has(svgContainer as unknown as HTMLElement)).toBe(false);
+			expect(defs.contains(mask)).toBe(true);
 		});
 	});
 
-	describe("teardownMasks", () => {
-		it("strips mask styles from all tracked elements", () => {
-			const child = addChild();
+	describe("ensureSharedMask", () => {
+		it("creates a new mask and applies maskImage on first call", () => {
+			const element = document.createElement("div");
 
-			setupMasks(canvasRoot, state);
-			expect(child.style.maskImage).toContain("pictel-mask-");
+			document.body.appendChild(element);
 
-			teardownMasks(state);
+			const mask = ensureSharedMask(element, defs);
 
-			expect(child.style.maskImage).toBe("");
+			expect(mask.tagName).toBe("mask");
+			expect(element.style.maskImage).toContain("pictel-mask-");
 		});
 
-		it("removes SVG container from DOM", () => {
-			addChild();
-			setupMasks(canvasRoot, state);
+		it("returns existing mask on subsequent calls", () => {
+			const element = document.createElement("div");
 
-			expect(canvasRoot.querySelector("svg")).not.toBeNull();
+			document.body.appendChild(element);
 
-			teardownMasks(state);
+			const first = ensureSharedMask(element, defs);
+			const second = ensureSharedMask(element, defs);
 
-			expect(canvasRoot.querySelector("svg")).toBeNull();
+			expect(first).toBe(second);
 		});
 
-		it("clears tracked map", () => {
-			addChild();
-			setupMasks(canvasRoot, state);
+		it("appends to existing maskImage and fills maskComposite with defaults", () => {
+			const element = document.createElement("div");
 
-			expect(state.tracked.size).toBeGreaterThan(0);
+			document.body.appendChild(element);
 
-			teardownMasks(state);
+			element.style.maskImage = "url(#user-mask)";
+			element.style.maskComposite = "subtract";
 
-			expect(state.tracked.size).toBe(0);
+			ensureSharedMask(element, defs);
+
+			expect(element.style.maskImage).toContain("user-mask");
+			expect(element.style.maskImage).toContain("pictel-mask-");
+
+			const compositeLayers = element.style.maskComposite.split(",").map((layer) => layer.trim());
+
+			expect(compositeLayers).toEqual(["subtract", "intersect"]);
 		});
 
-		it("resets svgContainer and canvasRect to null", () => {
-			addChild();
-			setupMasks(canvasRoot, state);
+		it("fills missing maskComposite values with add before appending intersect", () => {
+			const element = document.createElement("div");
 
-			expect(state.svgContainer).not.toBeNull();
-			expect(state.canvasRect).not.toBeNull();
+			document.body.appendChild(element);
 
-			teardownMasks(state);
+			element.style.maskImage = "url(#a), url(#b), url(#c)";
 
-			expect(state.svgContainer).toBeNull();
-			expect(state.canvasRect).toBeNull();
+			ensureSharedMask(element, defs);
+
+			const compositeLayers = element.style.maskComposite.split(",").map((layer) => layer.trim());
+
+			expect(compositeLayers).toEqual(["add", "add", "add", "intersect"]);
 		});
 
-		it("preserves user mask layers when stripping", () => {
-			const child = addChild();
+		it("does not set maskComposite when element has no existing maskImage", () => {
+			const element = document.createElement("div");
 
-			child.style.maskImage = "url(#user-mask)";
-			child.style.maskComposite = "subtract";
+			document.body.appendChild(element);
 
-			setupMasks(canvasRoot, state);
+			ensureSharedMask(element, defs);
 
-			teardownMasks(state);
-
-			expect(child.style.maskImage).toContain("user-mask");
-			expect(child.style.maskImage).not.toContain("pictel-mask-");
-			expect(child.style.maskComposite).toBe("subtract");
-		});
-	});
-
-	describe("mask style preservation", () => {
-		it("appends to existing maskImage", () => {
-			const child = addChild();
-
-			child.style.maskImage = "url(#user-mask)";
-
-			setupMasks(canvasRoot, state);
-
-			expect(child.style.maskImage).toContain("user-mask");
-			expect(child.style.maskImage).toContain("pictel-mask-");
-		});
-
-		it("appends intersect to maskComposite when existing maskImage", () => {
-			const child = addChild();
-
-			child.style.maskImage = "url(#user-mask)";
-			child.style.maskComposite = "subtract";
-
-			setupMasks(canvasRoot, state);
-
-			expect(child.style.maskComposite).toContain("subtract");
-			expect(child.style.maskComposite).toContain("intersect");
+			expect(element.style.maskComposite).toBe("");
 		});
 	});
 
-	describe("applyCutout", () => {
-		it("adds black rect to element SVG mask", () => {
-			const child = addChild();
+	describe("addCutout", () => {
+		it("adds black rect to SVG mask at correct position", () => {
+			const mask = createSvgMask(defs);
 
-			setupMasks(canvasRoot, state);
+			const sourceRect = new DOMRect(110, 220, 100, 50);
+			const canvasRect = new DOMRect(10, 20, 800, 600);
 
-			const sourceRect = new DOMRect(10, 20, 100, 50);
-
-			applyCutout(child, sourceRect, state);
-
-			const entry = state.tracked.get(child)!;
-
-			expect(entry.svgMask.children.length).toBe(2); // white base + cutout
-
-			const cutout = entry.svgMask.children[1]!;
+			const cutout = addCutout(mask, sourceRect, canvasRect);
 
 			expect(cutout.getAttribute("fill")).toBe("black");
+			expect(cutout.getAttribute("x")).toBe("100"); // 110 - 10
+			expect(cutout.getAttribute("y")).toBe("200"); // 220 - 20
 			expect(cutout.getAttribute("width")).toBe("100");
 			expect(cutout.getAttribute("height")).toBe("50");
+			expect(mask.contains(cutout)).toBe(true);
 		});
 
-		it("does nothing for untracked elements", () => {
-			const untracked = document.createElement("div");
-			const sourceRect = new DOMRect(0, 0, 100, 100);
+		it("supports multiple cutouts on same mask", () => {
+			const mask = createSvgMask(defs);
 
-			// Should not throw
-			applyCutout(untracked, sourceRect, state);
+			addCutout(mask, new DOMRect(10, 10, 50, 50), new DOMRect(0, 0, 800, 600));
+			addCutout(mask, new DOMRect(60, 10, 50, 50), new DOMRect(0, 0, 800, 600));
+
+			const rects = mask.querySelectorAll("rect");
+
+			expect(rects.length).toBe(3); // white base + 2 cutouts
+		});
+	});
+
+	describe("removeCutouts", () => {
+		it("removes specific cutout rects from their masks", () => {
+			const mask = createSvgMask(defs);
+
+			const cutout1 = addCutout(mask, new DOMRect(10, 10, 50, 50), new DOMRect(0, 0, 800, 600));
+			const cutout2 = addCutout(mask, new DOMRect(60, 10, 50, 50), new DOMRect(0, 0, 800, 600));
+
+			removeCutouts([cutout1]);
+
+			expect(mask.contains(cutout1)).toBe(false);
+			expect(mask.contains(cutout2)).toBe(true);
+
+			// white base rect still present
+			expect(mask.querySelectorAll("rect").length).toBe(2);
 		});
 
-		it("supports multiple cutouts on same element", () => {
-			const child = addChild();
+		it("leaves mask intact when all cutouts removed", () => {
+			const mask = createSvgMask(defs);
 
-			setupMasks(canvasRoot, state);
+			const cutout = addCutout(mask, new DOMRect(10, 10, 50, 50), new DOMRect(0, 0, 800, 600));
 
-			applyCutout(child, new DOMRect(0, 0, 50, 50), state);
-			applyCutout(child, new DOMRect(60, 0, 50, 50), state);
+			removeCutouts([cutout]);
 
-			const entry = state.tracked.get(child)!;
-
-			expect(entry.svgMask.children.length).toBe(3); // white base + 2 cutouts
+			// Mask still exists with white base rect — visual no-op
+			expect(mask.querySelectorAll("rect").length).toBe(1);
+			expect(mask.querySelector("rect")?.getAttribute("fill")).toBe("white");
 		});
 	});
 });

@@ -79,9 +79,9 @@ export async function captureBehind(
 
 		return imageData;
 	} finally {
-		for (let ix = 0; ix < allToHide.length; ix++) {
-			const hidden = allToHide[ix];
-			const previous = previousVisibilities[ix];
+		for (let elementIndex = 0; elementIndex < allToHide.length; elementIndex++) {
+			const hidden = allToHide[elementIndex];
+			const previous = previousVisibilities[elementIndex];
 
 			if (hidden && previous !== undefined) {
 				hidden.style.visibility = previous;

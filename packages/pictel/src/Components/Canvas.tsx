@@ -1,8 +1,9 @@
-import type { CSSProperties, ComponentPropsWithoutRef, ReactNode } from "react";
+import { useCallback, useRef, useState, type CSSProperties, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { CanvasContext, type CanvasContextValue, type CanvasDimensions } from "../context/canvas";
 import { useContainerSize } from "../hooks/useContainerSize";
+import { useDomSnapshot } from "../hooks/useDomSnapshot";
 import { useMode } from "../hooks/useMode";
-import { useRasterPipeline } from "../hooks/useRasterPipeline";
+import type { PipelineError } from "../pipeline/errors";
 import { ErrorOverlay } from "./ErrorOverlay";
 import { Frame } from "./Frame";
 
@@ -15,7 +16,15 @@ interface CanvasProps extends ComponentPropsWithoutRef<"div"> {
 export function Canvas({ name, dimensions, children, style, ...rest }: CanvasProps) {
 	const mode = useMode();
 	const { ref, width, height } = useContainerSize();
-	const { register, errors } = useRasterPipeline(ref, dimensions);
+	const domSnapshot = useDomSnapshot(ref);
+	const maskDefsRef = useRef<SVGDefsElement>(null);
+	const [errors, setErrors] = useState<Array<PipelineError>>([]);
+
+	const reportError = useCallback((error: PipelineError) => {
+		setErrors((prev) => [...prev, error]);
+	}, []);
+
+	const captureDimensions = "reference" in dimensions ? { width: dimensions.reference.width, height: dimensions.reference.height } : null;
 
 	const outerStyle: CSSProperties = {
 		position: "relative",
@@ -33,7 +42,11 @@ export function Canvas({ name, dimensions, children, style, ...rest }: CanvasPro
 		mode,
 		dimensions,
 		viewport: { width, height },
-		rasterPipeline: { register, errors },
+		domSnapshot,
+		maskDefs: maskDefsRef,
+		canvasRoot: ref,
+		captureDimensions,
+		reportError,
 	};
 
 	return (
@@ -41,13 +54,19 @@ export function Canvas({ name, dimensions, children, style, ...rest }: CanvasPro
 			<div
 				ref={ref}
 				aria-label={name}
-				data-ready="false"
 				style={outerStyle}
 				{...rest}
 			>
 				<Frame>{children}</Frame>
-				<ErrorOverlay />
+				<ErrorOverlay errors={errors} />
 			</div>
+			<svg
+				width="0"
+				height="0"
+				style={{ position: "absolute", pointerEvents: "none" }}
+			>
+				<defs ref={maskDefsRef} />
+			</svg>
 		</CanvasContext.Provider>
 	);
 }

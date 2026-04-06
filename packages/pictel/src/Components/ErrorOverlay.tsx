@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { type CSSProperties, useState } from "react";
-import { useCanvasContext } from "../context/canvas";
 import { useMode } from "../hooks/useMode";
+import type { PipelineError } from "../pipeline/errors";
 
 const containerStyle: CSSProperties = {
 	position: "absolute",
@@ -54,8 +54,11 @@ const errorMessageStyle: CSSProperties = {
 	wordBreak: "break-word",
 };
 
-export function ErrorOverlay() {
-	const { rasterPipeline: { errors } } = useCanvasContext();
+interface ErrorOverlayProps {
+	errors: Array<PipelineError>;
+}
+
+export function ErrorOverlay({ errors }: ErrorOverlayProps) {
 	const mode = useMode();
 
 	const [open, setOpen] = useState(false);

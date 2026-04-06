@@ -2,7 +2,6 @@
 export { Canvas } from "./Components/Canvas";
 export { CompositeEffect } from "./Components/CompositeEffect";
 export { ErrorOverlay } from "./Components/ErrorOverlay";
-export { PixelCanvas } from "./Components/PixelCanvas";
 export { RasterEffect } from "./Components/RasterEffect";
 export { Viewer } from "./Components/Viewer";
 
@@ -41,15 +40,14 @@ export { Sepia } from "./Components/Effects/Sepia";
 
 // Hooks
 export { useCanvasContext } from "./context/canvas";
-export { useComposite } from "./hooks/useComposite";
 export { useContainerSize } from "./hooks/useContainerSize";
 export { useMode } from "./hooks/useMode";
-export { useRaster } from "./hooks/useRaster";
 export { useSearchParam } from "./hooks/useSearchParam";
 
 // Pipeline types
 export { type PipelineError } from "./pipeline/errors";
-export { type CompositeEffectCallback, type RasterEffectCallback } from "./pipeline/graph";
+export { type CompositeEffectCallback } from "./Components/CompositeEffect";
+export { type RasterEffectCallback } from "./Components/RasterEffect";
 
 // Types
-export { type AspectRatioDimensions, type CanvasContextValue, type CanvasDimensions, type RasterPipelineContext, type ReferenceDimensions, type Viewport } from "./context/canvas";
+export { type AspectRatioDimensions, type CanvasContextValue, type CanvasDimensions, type CanvasSnapshot, type ReferenceDimensions, type Viewport } from "./context/canvas";

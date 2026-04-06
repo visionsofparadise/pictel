@@ -23,8 +23,30 @@ export { Saturation } from "./Components/BlendModes/Saturation";
 export { Screen } from "./Components/BlendModes/Screen";
 export { SoftLight } from "./Components/BlendModes/SoftLight";
 
+// Photoshop blend modes
+export { LinearBurn } from "./Components/BlendModes/LinearBurn";
+export { LinearDodge } from "./Components/BlendModes/LinearDodge";
+export { VividLight } from "./Components/BlendModes/VividLight";
+export { LinearLight } from "./Components/BlendModes/LinearLight";
+export { PinLight } from "./Components/BlendModes/PinLight";
+export { HardMix } from "./Components/BlendModes/HardMix";
+export { Subtract } from "./Components/BlendModes/Subtract";
+export { Divide } from "./Components/BlendModes/Divide";
+export { DarkerColor } from "./Components/BlendModes/DarkerColor";
+export { LighterColor } from "./Components/BlendModes/LighterColor";
+
 // Blend utilities
 export { blendPixels, type BlendFormula } from "./Components/BlendModes/blend-pixels";
+export { linearBurn } from "./Components/BlendModes/LinearBurn";
+export { linearDodge } from "./Components/BlendModes/LinearDodge";
+export { vividLight } from "./Components/BlendModes/VividLight";
+export { linearLight } from "./Components/BlendModes/LinearLight";
+export { pinLight } from "./Components/BlendModes/PinLight";
+export { hardMix } from "./Components/BlendModes/HardMix";
+export { subtract } from "./Components/BlendModes/Subtract";
+export { divide } from "./Components/BlendModes/Divide";
+export { darkerColor } from "./Components/BlendModes/DarkerColor";
+export { lighterColor } from "./Components/BlendModes/LighterColor";
 
 // Effects
 export { Blur } from "./Components/Effects/Blur";

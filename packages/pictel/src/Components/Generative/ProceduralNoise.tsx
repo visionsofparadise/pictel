@@ -69,7 +69,9 @@ export function ProceduralNoise({
 		// with a seed offset to produce a visually distinct but structurally
 		// equivalent noise field.
 		const noiseSeed = type === "perlin" ? seed + 0.5 : seed
-		const noise2D = createNoise2D(alea(noiseSeed))
+		// alea's type declaration uses `any` args, requiring a cast for strict TS
+		const prng: () => number = alea(noiseSeed)
+		const noise2D = createNoise2D(prng)
 
 		const imageData = context.createImageData(width, height)
 		const data = imageData.data

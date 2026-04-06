@@ -1,4 +1,6 @@
 import { createContext, useContext } from "react";
+import type { PipelineError } from "../pipeline/errors";
+import type { Registration } from "../pipeline/graph";
 
 export interface ReferenceDimensions {
 	reference: { width: number; height: number };
@@ -10,13 +12,21 @@ export interface AspectRatioDimensions {
 
 export type CanvasDimensions = ReferenceDimensions | AspectRatioDimensions;
 
+export interface RasterPipelineContext {
+	register: (registration: Registration) => () => void;
+	errors: Array<PipelineError>;
+}
+
+export interface Viewport {
+	width: number;
+	height: number;
+}
+
 export interface CanvasContextValue {
 	mode: string;
 	dimensions: CanvasDimensions;
-	viewportWidth: number;
-	viewportHeight: number;
-	registerRaster: (ref: React.RefObject<HTMLElement | null>, callback: (pixels: ImageData) => void) => () => void;
-	registerComposite: (ref: React.RefObject<HTMLElement | null>, callback: (selfPixels: ImageData, behindPixels: ImageData) => void) => () => void;
+	viewport: Viewport;
+	rasterPipeline: RasterPipelineContext;
 }
 
 export const CanvasContext = createContext<CanvasContextValue | null>(null);

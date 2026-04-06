@@ -6,7 +6,7 @@ interface FrameProps {
 }
 
 export function Frame({ children }: FrameProps) {
-	const { mode, dimensions, viewportWidth, viewportHeight } = useCanvasContext();
+	const { mode, dimensions, viewport } = useCanvasContext();
 	const isPreview = mode === "preview";
 	const checkerboard = isPreview ? "repeating-conic-gradient(#e0e0e0 0% 25%, #ffffff 0% 50%) 0 0 / 16px 16px" : "transparent";
 
@@ -15,7 +15,7 @@ export function Frame({ children }: FrameProps) {
 		const referenceHeight = dimensions.reference.height;
 
 		if (isPreview) {
-			const scaleFactor = viewportWidth === 0 || viewportHeight === 0 ? 1 : Math.min(viewportWidth / referenceWidth, viewportHeight / referenceHeight, 1);
+			const scaleFactor = viewport.width === 0 || viewport.height === 0 ? 1 : Math.min(viewport.width / referenceWidth, viewport.height / referenceHeight, 1);
 
 			return (
 				<div

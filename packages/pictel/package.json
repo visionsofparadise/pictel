@@ -9,24 +9,31 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
     "unit": "vitest run",
     "build": "tsup"
   },
+  "dependencies": {
+    "@zumer/snapdom": "latest",
+    "lucide-react": "latest",
+    "stacking-order": "latest"
+  },
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "tsup": "latest",
-    "vitest": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
     "concurrently": "latest",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@types/react": "latest",
-    "@types/react-dom": "latest"
+    "tsup": "latest",
+    "vitest": "latest"
   }
 }

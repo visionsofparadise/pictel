@@ -1,5 +1,6 @@
 // Components
 export { Canvas } from "./Components/Canvas";
+export { ErrorOverlay } from "./Components/ErrorOverlay";
 export { Viewer } from "./Components/Viewer";
 
 // Blend modes
@@ -40,5 +41,9 @@ export { useMode } from "./hooks/useMode";
 export { useRaster } from "./hooks/useRaster";
 export { useSearchParam } from "./hooks/useSearchParam";
 
+// Pipeline types
+export { type PipelineError } from "./pipeline/errors";
+export { type CompositeEffectCallback, type RasterEffectCallback } from "./pipeline/graph";
+
 // Types
-export { type AspectRatioDimensions, type CanvasContextValue, type CanvasDimensions, type ReferenceDimensions } from "./context/canvas";
+export { type AspectRatioDimensions, type CanvasContextValue, type CanvasDimensions, type RasterPipelineContext, type ReferenceDimensions, type Viewport } from "./context/canvas";

@@ -1,3 +1,4 @@
+import stylistic from "@stylistic/eslint-plugin";
 import js from "@eslint/js";
 import barrelFiles from "eslint-plugin-barrel-files";
 import checkFile from "eslint-plugin-check-file";
@@ -49,6 +50,7 @@ export default tseslint.config(
       },
     },
     plugins: {
+      "@stylistic": stylistic,
       react,
       "react-hooks": reactHooks,
       "import-x": importX,
@@ -63,6 +65,15 @@ export default tseslint.config(
     rules: {
       "prefer-arrow-callback": "error",
       "arrow-body-style": ["error", "as-needed"],
+
+      "@stylistic/padding-line-between-statements": [
+        "error",
+        { blankLine: "always", prev: "import", next: "*" },
+        { blankLine: "any", prev: "import", next: "import" },
+        { blankLine: "always", prev: "*", next: ["if", "for", "while", "try", "switch"] },
+        { blankLine: "always", prev: ["if", "for", "while", "try", "switch"], next: "*" },
+        { blankLine: "always", prev: "*", next: "return" },
+      ],
 
       "@typescript-eslint/naming-convention": [
         "error",

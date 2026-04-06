@@ -3,7 +3,10 @@
   "name": "pictel",
   "type": "module",
   "packageManager": "npm@10.9.3",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "check": "turbo check",
     "lint": "turbo lint",
@@ -11,11 +14,10 @@
     "build": "turbo build"
   },
   "devDependencies": {
-    "turbo": "latest",
-    "concurrently": "latest",
-    "check-dependency-version-consistency": "latest",
-    "typescript": "^5.0.0",
     "@eslint/js": "^9.0.0",
+    "@stylistic/eslint-plugin": "latest",
+    "check-dependency-version-consistency": "latest",
+    "concurrently": "latest",
     "eslint": "^9.0.0",
     "eslint-plugin-barrel-files": "latest",
     "eslint-plugin-check-file": "latest",
@@ -23,6 +25,9 @@
     "eslint-plugin-react": "latest",
     "eslint-plugin-react-hooks": "latest",
     "globals": "latest",
+    "jsdom": "^29.0.1",
+    "turbo": "latest",
+    "typescript": "^5.0.0",
     "typescript-eslint": "latest"
   }
 }

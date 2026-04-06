@@ -1,12 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useId, useLayoutEffect, useRef } from "react";
 import { useCanvasContext } from "../context/canvas";
+import type { RasterEffectCallback } from "../pipeline/graph";
 
-export function useRaster(callback: (childPixels: ImageData) => void): React.RefObject<HTMLDivElement | null> {
+export function useRaster(effect: RasterEffectCallback): React.RefObject<HTMLDivElement | null> {
 	const divRef = useRef<HTMLDivElement>(null);
+	const id = useId();
 
-	const { registerRaster } = useCanvasContext();
+	const { rasterPipeline: { register } } = useCanvasContext();
 
-	useEffect(() => registerRaster(divRef, callback), [registerRaster, callback]);
+	useLayoutEffect(() => register({ id, ref: divRef, type: "raster" as const, effect }), [register, id, effect]);
 
 	return divRef;
 }

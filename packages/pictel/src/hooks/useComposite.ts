@@ -1,12 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useId, useLayoutEffect, useRef } from "react";
 import { useCanvasContext } from "../context/canvas";
+import type { CompositeEffectCallback } from "../pipeline/graph";
 
-export function useComposite(callback: (selfPixels: ImageData, behindPixels: ImageData) => void): React.RefObject<HTMLDivElement | null> {
+export function useComposite(effect: CompositeEffectCallback): React.RefObject<HTMLDivElement | null> {
 	const divRef = useRef<HTMLDivElement>(null);
+	const id = useId();
 
-	const { registerComposite } = useCanvasContext();
+	const { rasterPipeline: { register } } = useCanvasContext();
 
-	useEffect(() => registerComposite(divRef, callback), [registerComposite, callback]);
+	useLayoutEffect(() => register({ id, ref: divRef, type: "composite" as const, effect }), [register, id, effect]);
 
 	return divRef;
 }

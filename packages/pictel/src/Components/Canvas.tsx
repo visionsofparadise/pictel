@@ -2,6 +2,8 @@ import type { CSSProperties, ComponentPropsWithoutRef, ReactNode } from "react";
 import { CanvasContext, type CanvasContextValue, type CanvasDimensions } from "../context/canvas";
 import { useContainerSize } from "../hooks/useContainerSize";
 import { useMode } from "../hooks/useMode";
+import { useRasterPipeline } from "../hooks/useRasterPipeline";
+import { ErrorOverlay } from "./ErrorOverlay";
 import { Frame } from "./Frame";
 
 interface CanvasProps extends ComponentPropsWithoutRef<"div"> {
@@ -13,6 +15,7 @@ interface CanvasProps extends ComponentPropsWithoutRef<"div"> {
 export function Canvas({ name, dimensions, children, style, ...rest }: CanvasProps) {
 	const mode = useMode();
 	const { ref, width, height } = useContainerSize();
+	const { register, errors } = useRasterPipeline(ref, dimensions);
 
 	const outerStyle: CSSProperties = {
 		position: "relative",
@@ -29,10 +32,8 @@ export function Canvas({ name, dimensions, children, style, ...rest }: CanvasPro
 	const contextValue: CanvasContextValue = {
 		mode,
 		dimensions,
-		viewportWidth: width,
-		viewportHeight: height,
-		registerRaster: (_ref, _callback) => () => {},
-		registerComposite: (_ref, _callback) => () => {},
+		viewport: { width, height },
+		rasterPipeline: { register, errors },
 	};
 
 	return (
@@ -40,10 +41,12 @@ export function Canvas({ name, dimensions, children, style, ...rest }: CanvasPro
 			<div
 				ref={ref}
 				aria-label={name}
+				data-ready="false"
 				style={outerStyle}
 				{...rest}
 			>
 				<Frame>{children}</Frame>
+				<ErrorOverlay />
 			</div>
 		</CanvasContext.Provider>
 	);

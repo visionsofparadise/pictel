@@ -1,6 +1,9 @@
 // Components
 export { Canvas } from "./Components/Canvas";
+export { CompositeEffect } from "./Components/CompositeEffect";
 export { ErrorOverlay } from "./Components/ErrorOverlay";
+export { PixelCanvas } from "./Components/PixelCanvas";
+export { RasterEffect } from "./Components/RasterEffect";
 export { Viewer } from "./Components/Viewer";
 
 // Blend modes
@@ -20,6 +23,9 @@ export { Overlay } from "./Components/BlendModes/Overlay";
 export { Saturation } from "./Components/BlendModes/Saturation";
 export { Screen } from "./Components/BlendModes/Screen";
 export { SoftLight } from "./Components/BlendModes/SoftLight";
+
+// Blend utilities
+export { blendPixels, type BlendFormula } from "./Components/BlendModes/blend-pixels";
 
 // Effects
 export { Blur } from "./Components/Effects/Blur";

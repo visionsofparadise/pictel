@@ -21,6 +21,7 @@
   "dependencies": {
     "@zumer/snapdom": "latest",
     "lucide-react": "latest",
+    "simplex-noise": "latest",
     "stacking-order": "latest"
   },
   "peerDependencies": {

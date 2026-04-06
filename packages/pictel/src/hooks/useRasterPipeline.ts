@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CanvasDimensions } from "../context/canvas";
 import type { PipelineError } from "../pipeline/errors";
-import { executePipeline, type ObserverControl } from "../pipeline/executor";
+import { executePipeline } from "../pipeline/executor";
 import { buildExecutionOrder, type Registration } from "../pipeline/graph";
 import { createMaskState } from "../pipeline/masking";
 import { buildPipelineState, teardownPipelineState } from "../pipeline/state";
@@ -63,35 +63,30 @@ export function useRasterPipeline(canvasRef: React.RefObject<HTMLDivElement | nu
 		const regs = Array.from(registrations.current.values());
 		const captureDimensions = "reference" in dimensions ? { width: dimensions.reference.width, height: dimensions.reference.height } : null;
 
-		const observerControl: ObserverControl = {
-			disconnect: () => {
-				observerRef.current?.disconnect();
-			},
-			reconnect: () => {
-				if (observerRef.current) {
-					observerRef.current.observe(outerDiv, { childList: true, attributes: true, subtree: true, characterData: true });
-				}
-			},
-		};
+		// Disconnect observer for entire pipeline run — pipeline and effect
+		// components mutate the DOM, which would retrigger the observer.
+		// Reconnect after pipeline completes. Mutations during async execution
+		// are missed — known gap until we solve double-buffering.
+		observerRef.current?.disconnect();
 
-		observerControl.disconnect();
 		const pipelineState = buildPipelineState(outerDiv, maskState.current);
-		observerControl.reconnect();
-
 		const { rects, stackingOrder } = pipelineState;
 		const levels = buildExecutionOrder(regs, stackingOrder, rects);
 
-		void executePipeline(levels, pipelineState, { canvasRoot: outerDiv, captureDimensions, cache: captureCache.current }, observerControl).then((pipelineErrors) => {
+		void executePipeline(levels, pipelineState, { canvasRoot: outerDiv, captureDimensions, cache: captureCache.current }).then((pipelineErrors) => {
 			if (aborted) return;
 
 			setErrors(pipelineErrors);
 			outerDiv.setAttribute("data-ready", "true");
+
+			if (observerRef.current) {
+				observerRef.current.observe(outerDiv, { childList: true, attributes: true, subtree: true, characterData: true });
+			}
 		});
 
 		return () => {
-			observerControl.disconnect();
+			observerRef.current?.disconnect();
 			teardownPipelineState(pipelineState);
-			observerControl.reconnect();
 
 			aborted = true;
 		};

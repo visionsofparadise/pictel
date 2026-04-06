@@ -6,11 +6,6 @@ import { applyCutout } from "./masking";
 import { getElementsBehind } from "./stacking";
 import type { PipelineState } from "./state";
 
-export interface ObserverControl {
-	readonly disconnect: () => void;
-	readonly reconnect: () => void;
-}
-
 export interface CaptureContext {
 	readonly canvasRoot: HTMLElement;
 	readonly captureDimensions: { width: number; height: number } | null;
@@ -21,7 +16,6 @@ export async function executePipeline(
 	levels: Array<Array<EffectNode>>,
 	state: PipelineState,
 	capture: CaptureContext,
-	observer: ObserverControl,
 ): Promise<Array<PipelineError>> {
 	const errors: Array<PipelineError> = [];
 	const failed = new Set<string>();
@@ -55,13 +49,9 @@ export async function executePipeline(
 						const sourceRect = element.getBoundingClientRect();
 						const behindElements = getElementsBehind(element, stackingOrder, rects);
 
-						observer.disconnect();
-
 						for (const behindElement of behindElements) {
 							applyCutout(behindElement, sourceRect, maskState);
 						}
-
-						observer.reconnect();
 					}
 				} catch (error) {
 					errors.push(createPipelineError(registration.id, error));

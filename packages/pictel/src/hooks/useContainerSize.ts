@@ -15,23 +15,23 @@ export function useContainerSize(): ContainerSize {
 
 		if (!element) return;
 
-		let frameId = 0;
+		let timeoutId: ReturnType<typeof setTimeout>;
 
 		const observer = new ResizeObserver((entries) => {
-			cancelAnimationFrame(frameId);
+			clearTimeout(timeoutId);
 
-			frameId = requestAnimationFrame(() => {
+			timeoutId = setTimeout(() => {
 				for (const entry of entries) {
 					const { width, height } = entry.contentRect;
 					setSize({ width, height });
 				}
-			});
+			}, 150);
 		});
 
 		observer.observe(element);
 
 		return () => {
-			cancelAnimationFrame(frameId);
+			clearTimeout(timeoutId);
 
 			observer.disconnect();
 		};

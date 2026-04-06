@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { executePipeline, type ObserverControl, type CaptureContext } from "./executor";
+import { executePipeline, type CaptureContext } from "./executor";
 import type { EffectNode } from "./graph";
 import type { CaptureCache } from "./capture";
 import type { MaskState } from "./masking";
@@ -72,7 +72,6 @@ function createMockCaptureContext(): CaptureContext {
 describe("executePipeline", () => {
 	let state: PipelineState;
 	let capture: CaptureContext;
-	let mockObserver: ObserverControl;
 	const childrenData = createMockImageData("children");
 	const behindData = createMockImageData("behind");
 
@@ -80,7 +79,6 @@ describe("executePipeline", () => {
 		vi.clearAllMocks();
 		state = createMockPipelineState();
 		capture = createMockCaptureContext();
-		mockObserver = { disconnect: vi.fn(), reconnect: vi.fn() };
 		mockCaptureChildren.mockResolvedValue(childrenData);
 		mockCaptureBehind.mockResolvedValue(behindData);
 		mockGetElementsBehind.mockReturnValue([]);
@@ -90,7 +88,7 @@ describe("executePipeline", () => {
 		const effect = vi.fn();
 		const node = createNode("r1", "raster", effect);
 
-		const errors = await executePipeline([[node]], state, capture, mockObserver);
+		const errors = await executePipeline([[node]], state, capture);
 
 		expect(errors).toHaveLength(0);
 		expect(effect).toHaveBeenCalledWith(childrenData);
@@ -100,7 +98,7 @@ describe("executePipeline", () => {
 		const effect = vi.fn();
 		const node = createNode("c1", "composite", effect);
 
-		const errors = await executePipeline([[node]], state, capture, mockObserver);
+		const errors = await executePipeline([[node]], state, capture);
 
 		expect(errors).toHaveLength(0);
 		expect(effect).toHaveBeenCalledWith(childrenData, behindData);
@@ -122,7 +120,7 @@ describe("executePipeline", () => {
 		const node1 = createNode("r1", "raster", effect1);
 		const node2 = createNode("r2", "raster", effect2);
 
-		await executePipeline([[node1, node2]], state, capture, mockObserver);
+		await executePipeline([[node1, node2]], state, capture);
 
 		// Both start before either ends (concurrent execution via Promise.all)
 		expect(order.indexOf("start-1")).toBeLessThan(order.indexOf("end-2"));
@@ -138,7 +136,7 @@ describe("executePipeline", () => {
 		const upstreamNode = createNode("r1", "raster", failEffect);
 		const downstreamNode = createNode("r2", "raster", downstreamEffect, ["r1"]);
 
-		const errors = await executePipeline([[upstreamNode], [downstreamNode]], state, capture, mockObserver);
+		const errors = await executePipeline([[upstreamNode], [downstreamNode]], state, capture);
 
 		expect(errors).toHaveLength(1);
 		expect(errors[0]!.id).toBe("r1");
@@ -149,7 +147,7 @@ describe("executePipeline", () => {
 		const node1 = createNode("r1", "raster", vi.fn());
 		const node2 = createNode("r2", "raster", vi.fn());
 
-		const errors = await executePipeline([[node1, node2]], state, capture, mockObserver);
+		const errors = await executePipeline([[node1, node2]], state, capture);
 
 		expect(errors).toEqual([]);
 	});

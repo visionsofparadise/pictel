@@ -1,14 +1,23 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { BlendFormula } from "./utils/blend-pixels"
+import { RasterBlend } from "../RasterBlend"
+
+export const screen: BlendFormula = (sr, sg, sb, dr, dg, db) => [
+	sr + dr - sr * dr,
+	sg + dg - sg * dg,
+	sb + db - sb * db,
+]
 
 interface ScreenProps extends ComponentPropsWithoutRef<"div"> {
 	opacity?: number
+	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Screen({ opacity, children, style, ...rest }: ScreenProps) {
+export function Screen({ opacity, flatten, children, ...rest }: ScreenProps) {
 	return (
-		<div {...rest} style={{ ...style, mixBlendMode: "screen", opacity }}>
+		<RasterBlend blend={screen} opacity={opacity} flatten={flatten} {...rest}>
 			{children}
-		</div>
+		</RasterBlend>
 	)
 }

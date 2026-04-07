@@ -58,7 +58,6 @@ export function applyColorGrade(pixels: ImageData, adjustments: ColorGradeAdjust
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface ColorGradeProps extends ColorGradeAdjustments, ComponentPropsWithoutRef<"div"> {
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
@@ -70,7 +69,6 @@ export function ColorGrade({
 	saturation,
 	temperature,
 	tint,
-	mode = "mix",
 	backdrop,
 	flatten,
 	children,
@@ -83,7 +81,7 @@ export function ColorGrade({
 	)
 
 	return (
-		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

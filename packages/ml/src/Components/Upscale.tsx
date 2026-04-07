@@ -19,7 +19,6 @@ export async function upscale(pixels: ImageData, pipe: Pipeline): Promise<ImageD
 interface UpscaleProps extends ComponentPropsWithoutRef<"div"> {
 	model?: string
 	revision?: string
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
@@ -28,7 +27,6 @@ interface UpscaleProps extends ComponentPropsWithoutRef<"div"> {
 export function Upscale({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
-	mode = "mix",
 	backdrop,
 	flatten,
 	children,
@@ -53,7 +51,7 @@ export function Upscale({
 	)
 
 	return (
-		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

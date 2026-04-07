@@ -43,13 +43,12 @@ export function applyMappedThreshold(pixels: ImageData, map: ImageData, level: n
 
 interface ThresholdProps extends ComponentPropsWithoutRef<"div"> {
 	threshold: number
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Threshold({ threshold, mode = "parameter", backdrop, flatten, children, ...rest }: ThresholdProps) {
+export function Threshold({ threshold, backdrop, flatten, children, ...rest }: ThresholdProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyThreshold(pixels, threshold),
 		[threshold],
@@ -61,7 +60,7 @@ export function Threshold({ threshold, mode = "parameter", backdrop, flatten, ch
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

@@ -20,7 +20,6 @@ export async function estimateDepth(pixels: ImageData, pipe: Pipeline): Promise<
 interface DepthMapProps extends ComponentPropsWithoutRef<"div"> {
 	model?: string
 	revision?: string
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	compose?: MapCompose
 	flatten?: boolean
@@ -30,7 +29,6 @@ interface DepthMapProps extends ComponentPropsWithoutRef<"div"> {
 export function DepthMap({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
-	mode = "mix",
 	backdrop,
 	compose = "intersect",
 	flatten,
@@ -57,7 +55,7 @@ export function DepthMap({
 
 	return (
 		<Map compose={compose}>
-			<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+			<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 				{children}
 			</RasterEffect>
 		</Map>

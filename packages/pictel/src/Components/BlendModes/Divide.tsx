@@ -1,8 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { useCallback } from "react";
-import { CompositeEffect } from "../CompositeEffect";
+import { RasterBlend } from "../RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
-import { blendPixels } from "./utils/blend-pixels";
 
 export const divide: BlendFormula = (sr, sg, sb, dr, dg, db) => [sr === 0 ? 1 : Math.min(1, dr / sr), sg === 0 ? 1 : Math.min(1, dg / sg), sb === 0 ? 1 : Math.min(1, db / sb)];
 
@@ -12,17 +10,10 @@ interface DivideProps extends ComponentPropsWithoutRef<"div"> {
 	children?: ReactNode;
 }
 
-export function Divide({ opacity = 1, flatten, children, style, ...rest }: DivideProps) {
-	const effect = useCallback((self: ImageData, behind: ImageData) => blendPixels(self, behind, divide), []);
-
+export function Divide({ opacity, flatten, children, ...rest }: DivideProps) {
 	return (
-		<CompositeEffect
-			effect={effect}
-			flatten={flatten}
-			{...rest}
-			style={{ ...style, opacity }}
-		>
+		<RasterBlend blend={divide} opacity={opacity} flatten={flatten} {...rest}>
 			{children}
-		</CompositeEffect>
+		</RasterBlend>
 	);
 }

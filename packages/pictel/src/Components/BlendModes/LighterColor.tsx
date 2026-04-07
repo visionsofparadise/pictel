@@ -1,8 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { useCallback } from "react";
-import { CompositeEffect } from "../CompositeEffect";
+import { RasterBlend } from "../RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
-import { blendPixels } from "./utils/blend-pixels";
 import { luminance } from "./utils/luminance";
 
 export const lighterColor: BlendFormula = (sr, sg, sb, dr, dg, db) => {
@@ -18,17 +16,10 @@ interface LighterColorProps extends ComponentPropsWithoutRef<"div"> {
 	children?: ReactNode;
 }
 
-export function LighterColor({ opacity = 1, flatten, children, style, ...rest }: LighterColorProps) {
-	const effect = useCallback((self: ImageData, behind: ImageData) => blendPixels(self, behind, lighterColor), []);
-
+export function LighterColor({ opacity, flatten, children, ...rest }: LighterColorProps) {
 	return (
-		<CompositeEffect
-			effect={effect}
-			flatten={flatten}
-			{...rest}
-			style={{ ...style, opacity }}
-		>
+		<RasterBlend blend={lighterColor} opacity={opacity} flatten={flatten} {...rest}>
 			{children}
-		</CompositeEffect>
+		</RasterBlend>
 	);
 }

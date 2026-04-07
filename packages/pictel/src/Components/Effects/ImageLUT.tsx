@@ -71,13 +71,12 @@ export function applyImageLut(pixels: ImageData, lutImage: ImageData, size: numb
 interface ImageLUTProps extends ComponentPropsWithoutRef<"div"> {
 	src: string
 	size: number
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function ImageLUT({ src, size, mode = "mix", backdrop, flatten, children, ...rest }: ImageLUTProps) {
+export function ImageLUT({ src, size, backdrop, flatten, children, ...rest }: ImageLUTProps) {
 	const [lutImage, setLutImage] = useState<ImageData | null>(null)
 
 	useEffect(() => {
@@ -114,7 +113,7 @@ export function ImageLUT({ src, size, mode = "mix", backdrop, flatten, children,
 	)
 
 	return (
-		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

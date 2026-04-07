@@ -1,8 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { useCallback } from "react";
-import { CompositeEffect } from "../CompositeEffect";
+import { RasterBlend } from "../RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
-import { blendPixels } from "./utils/blend-pixels";
 
 function pinLightChannel(dst: number, src: number): number {
 	return src <= 0.5 ? Math.min(dst, 2 * src) : Math.max(dst, 2 * src - 1);
@@ -16,17 +14,10 @@ interface PinLightProps extends ComponentPropsWithoutRef<"div"> {
 	children?: ReactNode;
 }
 
-export function PinLight({ opacity = 1, flatten, children, style, ...rest }: PinLightProps) {
-	const effect = useCallback((self: ImageData, behind: ImageData) => blendPixels(self, behind, pinLight), []);
-
+export function PinLight({ opacity, flatten, children, ...rest }: PinLightProps) {
 	return (
-		<CompositeEffect
-			effect={effect}
-			flatten={flatten}
-			{...rest}
-			style={{ ...style, opacity }}
-		>
+		<RasterBlend blend={pinLight} opacity={opacity} flatten={flatten} {...rest}>
 			{children}
-		</CompositeEffect>
+		</RasterBlend>
 	);
 }

@@ -185,20 +185,19 @@ interface DropShadowProps extends ComponentPropsWithoutRef<"div"> {
 	offsetY: number
 	blurRadius: number
 	color: string
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function DropShadow({ offsetX, offsetY, blurRadius, color, mode = "mix", backdrop, flatten, children, ...rest }: DropShadowProps) {
+export function DropShadow({ offsetX, offsetY, blurRadius, color, backdrop, flatten, children, ...rest }: DropShadowProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyDropShadow(pixels, offsetX, offsetY, blurRadius, color),
 		[offsetX, offsetY, blurRadius, color],
 	)
 
 	return (
-		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

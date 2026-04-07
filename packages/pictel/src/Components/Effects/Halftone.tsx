@@ -88,20 +88,19 @@ export function applyHalftone(pixels: ImageData, dotSize: number, angle = 0): Im
 interface HalftoneProps extends ComponentPropsWithoutRef<"div"> {
 	dotSize: number
 	angle?: number
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Halftone({ dotSize, angle, mode = "mix", backdrop, flatten, children, ...rest }: HalftoneProps) {
+export function Halftone({ dotSize, angle, backdrop, flatten, children, ...rest }: HalftoneProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyHalftone(pixels, dotSize, angle),
 		[dotSize, angle],
 	)
 
 	return (
-		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

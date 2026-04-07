@@ -43,7 +43,6 @@ export function applyDisplacement(
 interface DisplacementMapProps extends ComponentPropsWithoutRef<"div"> {
 	scaleX?: number
 	scaleY?: number
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
@@ -52,7 +51,6 @@ interface DisplacementMapProps extends ComponentPropsWithoutRef<"div"> {
 export function DisplacementMap({
 	scaleX = 20,
 	scaleY = 20,
-	mode = "parameter",
 	backdrop,
 	flatten,
 	children,
@@ -69,7 +67,7 @@ export function DisplacementMap({
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

@@ -39,20 +39,19 @@ export function applyGrain(pixels: ImageData, intensity: number, seed: number): 
 interface GrainProps extends ComponentPropsWithoutRef<"div"> {
 	intensity: number
 	seed: number
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Grain({ intensity, seed, mode = "mix", backdrop, flatten, children, ...rest }: GrainProps) {
+export function Grain({ intensity, seed, backdrop, flatten, children, ...rest }: GrainProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyGrain(pixels, intensity, seed),
 		[intensity, seed],
 	)
 
 	return (
-		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

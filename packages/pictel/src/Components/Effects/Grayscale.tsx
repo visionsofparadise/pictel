@@ -26,20 +26,19 @@ export function applyGrayscale(pixels: ImageData, amount: number): ImageData {
 
 interface GrayscaleProps extends ComponentPropsWithoutRef<"div"> {
 	amount?: number
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Grayscale({ amount = 1, mode = "mix", backdrop, flatten, children, ...rest }: GrayscaleProps) {
+export function Grayscale({ amount = 1, backdrop, flatten, children, ...rest }: GrayscaleProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyGrayscale(pixels, amount),
 		[amount],
 	)
 
 	return (
-		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

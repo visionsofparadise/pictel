@@ -32,20 +32,19 @@ interface ChannelMixerProps extends ComponentPropsWithoutRef<"div"> {
 	 * array literal on every render will invalidate the effect callback.
 	 */
 	matrix: Array<Array<number>>
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function ChannelMixer({ matrix, mode = "mix", backdrop, flatten, children, ...rest }: ChannelMixerProps) {
+export function ChannelMixer({ matrix, backdrop, flatten, children, ...rest }: ChannelMixerProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyChannelMix(pixels, matrix),
 		[matrix],
 	)
 
 	return (
-		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

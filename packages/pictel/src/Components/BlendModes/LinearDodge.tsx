@@ -1,8 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { useCallback } from "react";
-import { CompositeEffect } from "../CompositeEffect";
+import { RasterBlend } from "../RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
-import { blendPixels } from "./utils/blend-pixels";
 
 export const linearDodge: BlendFormula = (sr, sg, sb, dr, dg, db) => [Math.min(1, sr + dr), Math.min(1, sg + dg), Math.min(1, sb + db)];
 
@@ -12,17 +10,10 @@ interface LinearDodgeProps extends ComponentPropsWithoutRef<"div"> {
 	children?: ReactNode;
 }
 
-export function LinearDodge({ opacity = 1, flatten, children, style, ...rest }: LinearDodgeProps) {
-	const effect = useCallback((self: ImageData, behind: ImageData) => blendPixels(self, behind, linearDodge), []);
-
+export function LinearDodge({ opacity, flatten, children, ...rest }: LinearDodgeProps) {
 	return (
-		<CompositeEffect
-			effect={effect}
-			flatten={flatten}
-			{...rest}
-			style={{ ...style, opacity }}
-		>
+		<RasterBlend blend={linearDodge} opacity={opacity} flatten={flatten} {...rest}>
 			{children}
-		</CompositeEffect>
+		</RasterBlend>
 	);
 }

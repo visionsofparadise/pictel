@@ -23,20 +23,19 @@ export function applyInvert(pixels: ImageData, amount: number): ImageData {
 
 interface InvertProps extends ComponentPropsWithoutRef<"div"> {
 	amount?: number
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Invert({ amount = 1, mode = "mix", backdrop, flatten, children, ...rest }: InvertProps) {
+export function Invert({ amount = 1, backdrop, flatten, children, ...rest }: InvertProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyInvert(pixels, amount),
 		[amount],
 	)
 
 	return (
-		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

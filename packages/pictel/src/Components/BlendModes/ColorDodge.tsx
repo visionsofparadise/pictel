@@ -1,14 +1,24 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { BlendFormula } from "./utils/blend-pixels"
+import { colorDodge as colorDodgeChannel } from "./utils/color-dodge"
+import { RasterBlend } from "../RasterBlend"
+
+export const colorDodge: BlendFormula = (sr, sg, sb, dr, dg, db) => [
+	colorDodgeChannel(dr, sr),
+	colorDodgeChannel(dg, sg),
+	colorDodgeChannel(db, sb),
+]
 
 interface ColorDodgeProps extends ComponentPropsWithoutRef<"div"> {
 	opacity?: number
+	flatten?: boolean
 	children?: ReactNode
 }
 
-export function ColorDodge({ opacity, children, style, ...rest }: ColorDodgeProps) {
+export function ColorDodge({ opacity, flatten, children, ...rest }: ColorDodgeProps) {
 	return (
-		<div {...rest} style={{ ...style, mixBlendMode: "color-dodge", opacity }}>
+		<RasterBlend blend={colorDodge} opacity={opacity} flatten={flatten} {...rest}>
 			{children}
-		</div>
+		</RasterBlend>
 	)
 }

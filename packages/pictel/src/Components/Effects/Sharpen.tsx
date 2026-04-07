@@ -85,13 +85,12 @@ export function applyMappedSharpen(pixels: ImageData, map: ImageData, amount: nu
 
 interface SharpenProps extends ComponentPropsWithoutRef<"div"> {
 	amount: number
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Sharpen({ amount, mode = "parameter", backdrop, flatten, children, ...rest }: SharpenProps) {
+export function Sharpen({ amount, backdrop, flatten, children, ...rest }: SharpenProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applySharpen(pixels, amount),
 		[amount],
@@ -103,7 +102,7 @@ export function Sharpen({ amount, mode = "parameter", backdrop, flatten, childre
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

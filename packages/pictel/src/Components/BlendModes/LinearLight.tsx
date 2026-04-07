@@ -1,8 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { useCallback } from "react";
-import { CompositeEffect } from "../CompositeEffect";
+import { RasterBlend } from "../RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
-import { blendPixels } from "./utils/blend-pixels";
 
 function linearLightChannel(dst: number, src: number): number {
 	return src <= 0.5 ? Math.max(0, dst + 2 * src - 1) : Math.min(1, dst + 2 * src - 1);
@@ -16,17 +14,10 @@ interface LinearLightProps extends ComponentPropsWithoutRef<"div"> {
 	children?: ReactNode;
 }
 
-export function LinearLight({ opacity = 1, flatten, children, style, ...rest }: LinearLightProps) {
-	const effect = useCallback((self: ImageData, behind: ImageData) => blendPixels(self, behind, linearLight), []);
-
+export function LinearLight({ opacity, flatten, children, ...rest }: LinearLightProps) {
 	return (
-		<CompositeEffect
-			effect={effect}
-			flatten={flatten}
-			{...rest}
-			style={{ ...style, opacity }}
-		>
+		<RasterBlend blend={linearLight} opacity={opacity} flatten={flatten} {...rest}>
 			{children}
-		</CompositeEffect>
+		</RasterBlend>
 	);
 }

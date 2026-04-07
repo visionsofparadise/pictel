@@ -43,13 +43,12 @@ export function applyMappedPosterize(pixels: ImageData, map: ImageData, levels: 
 
 interface PosterizeProps extends ComponentPropsWithoutRef<"div"> {
 	levels: number
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Posterize({ levels, mode = "parameter", backdrop, flatten, children, ...rest }: PosterizeProps) {
+export function Posterize({ levels, backdrop, flatten, children, ...rest }: PosterizeProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyPosterize(pixels, levels),
 		[levels],
@@ -61,7 +60,7 @@ export function Posterize({ levels, mode = "parameter", backdrop, flatten, child
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

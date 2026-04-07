@@ -130,7 +130,6 @@ interface Sam2Props extends ComponentPropsWithoutRef<"div"> {
 	revision?: string
 	points?: Array<Point>
 	negativePoints?: Array<Point>
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	compose?: MapCompose
 	flatten?: boolean
@@ -142,7 +141,6 @@ export function Sam2({
 	revision = DEFAULT_REVISION,
 	points = [],
 	negativePoints = [],
-	mode = "mix",
 	backdrop,
 	compose = "intersect",
 	flatten,
@@ -167,7 +165,7 @@ export function Sam2({
 
 	return (
 		<PictelMap compose={compose}>
-			<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+			<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 				{children}
 			</RasterEffect>
 		</PictelMap>

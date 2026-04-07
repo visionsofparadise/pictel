@@ -30,20 +30,19 @@ export function applyDuotone(
 interface DuotoneProps extends ComponentPropsWithoutRef<"div"> {
 	dark: [number, number, number]
 	light: [number, number, number]
-	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Duotone({ dark, light, mode = "mix", backdrop, flatten, children, ...rest }: DuotoneProps) {
+export function Duotone({ dark, light, backdrop, flatten, children, ...rest }: DuotoneProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyDuotone(pixels, dark, light),
 		[dark, light],
 	)
 
 	return (
-		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
 		</RasterEffect>
 	)

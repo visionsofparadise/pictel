@@ -1,8 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { useCallback } from "react";
-import { CompositeEffect } from "../CompositeEffect";
+import { RasterBlend } from "../RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
-import { blendPixels } from "./utils/blend-pixels";
 import { vividLightChannel } from "./utils/vivid-light-channel";
 
 export const hardMix: BlendFormula = (sr, sg, sb, dr, dg, db) => [vividLightChannel(dr, sr) >= 0.5 ? 1 : 0, vividLightChannel(dg, sg) >= 0.5 ? 1 : 0, vividLightChannel(db, sb) >= 0.5 ? 1 : 0];
@@ -13,17 +11,10 @@ interface HardMixProps extends ComponentPropsWithoutRef<"div"> {
 	children?: ReactNode;
 }
 
-export function HardMix({ opacity = 1, flatten, children, style, ...rest }: HardMixProps) {
-	const effect = useCallback((self: ImageData, behind: ImageData) => blendPixels(self, behind, hardMix), []);
-
+export function HardMix({ opacity, flatten, children, ...rest }: HardMixProps) {
 	return (
-		<CompositeEffect
-			effect={effect}
-			flatten={flatten}
-			{...rest}
-			style={{ ...style, opacity }}
-		>
+		<RasterBlend blend={hardMix} opacity={opacity} flatten={flatten} {...rest}>
 			{children}
-		</CompositeEffect>
+		</RasterBlend>
 	);
 }

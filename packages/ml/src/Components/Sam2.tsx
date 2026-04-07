@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
-import { TargetEffect } from "pictel"
+import { RasterEffect, Map as PictelMap, type MapCompose } from "pictel"
 import { Sam2Model, AutoProcessor, Tensor, RawImage } from "@huggingface/transformers"
 import type { Processor } from "@huggingface/transformers"
 import { requireWebGPU } from "../webgpu"
@@ -130,6 +130,9 @@ interface Sam2Props extends ComponentPropsWithoutRef<"div"> {
 	revision?: string
 	points?: Array<Point>
 	negativePoints?: Array<Point>
+	mode?: "parameter" | "mix"
+	backdrop?: boolean
+	compose?: MapCompose
 	flatten?: boolean
 	children?: ReactNode
 }
@@ -139,6 +142,9 @@ export function Sam2({
 	revision = DEFAULT_REVISION,
 	points = [],
 	negativePoints = [],
+	mode = "mix",
+	backdrop,
+	compose = "intersect",
 	flatten,
 	children,
 	...rest
@@ -160,8 +166,10 @@ export function Sam2({
 	)
 
 	return (
-		<TargetEffect effect={effect} flatten={flatten} {...rest}>
-			{children}
-		</TargetEffect>
+		<PictelMap compose={compose}>
+			<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+				{children}
+			</RasterEffect>
+		</PictelMap>
 	)
 }

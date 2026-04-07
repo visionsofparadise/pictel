@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
 import { useCallback } from "react"
-import { TargetEffect } from "../TargetEffect"
+import { RasterEffect } from "../RasterEffect"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function applyChannelMix(pixels: ImageData, matrix: Array<Array<number>>): ImageData {
@@ -32,19 +32,21 @@ interface ChannelMixerProps extends ComponentPropsWithoutRef<"div"> {
 	 * array literal on every render will invalidate the effect callback.
 	 */
 	matrix: Array<Array<number>>
+	mode?: "parameter" | "mix"
+	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function ChannelMixer({ matrix, flatten, children, ...rest }: ChannelMixerProps) {
+export function ChannelMixer({ matrix, mode = "mix", backdrop, flatten, children, ...rest }: ChannelMixerProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyChannelMix(pixels, matrix),
 		[matrix],
 	)
 
 	return (
-		<TargetEffect effect={effect} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
-		</TargetEffect>
+		</RasterEffect>
 	)
 }

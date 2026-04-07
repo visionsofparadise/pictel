@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState, type ComponentPropsWithoutRef, type ReactNode } from "react"
-import { TargetEffect } from "../TargetEffect"
+import { useCallback, type ComponentPropsWithoutRef, type ReactNode } from "react"
+import { RasterEffect } from "../RasterEffect"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function applyDisplacement(
@@ -41,58 +41,36 @@ export function applyDisplacement(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface DisplacementMapProps extends ComponentPropsWithoutRef<"div"> {
-	map: string
 	scaleX?: number
 	scaleY?: number
+	mode?: "parameter" | "mix"
+	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
 export function DisplacementMap({
-	map: mapSrc,
 	scaleX = 20,
 	scaleY = 20,
+	mode = "parameter",
+	backdrop,
 	flatten,
 	children,
 	...rest
 }: DisplacementMapProps) {
-	const [mapData, setMapData] = useState<ImageData | null>(null)
-
-	useEffect(() => {
-		let cancelled = false
-		const img = new Image()
-		img.crossOrigin = "anonymous"
-		img.onload = () => {
-			if (cancelled) return
-
-			const canvas = document.createElement("canvas")
-			canvas.width = img.width
-			canvas.height = img.height
-			const context = canvas.getContext("2d")
-
-			if (!context) return
-
-			context.drawImage(img, 0, 0)
-			setMapData(context.getImageData(0, 0, img.width, img.height))
-		}
-		img.onerror = () => {
-			if (!cancelled) setMapData(null)
-		}
-		img.src = mapSrc
-
-		return () => {
-			cancelled = true
-		}
-	}, [mapSrc])
-
 	const effect = useCallback(
-		(pixels: ImageData) => (mapData ? applyDisplacement(pixels, mapData, scaleX, scaleY) : pixels),
-		[mapData, scaleX, scaleY],
+		(pixels: ImageData) => pixels,
+		[],
+	)
+
+	const mappedEffect = useCallback(
+		(pixels: ImageData, map: ImageData) => applyDisplacement(pixels, map, scaleX, scaleY),
+		[scaleX, scaleY],
 	)
 
 	return (
-		<TargetEffect effect={effect} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
-		</TargetEffect>
+		</RasterEffect>
 	)
 }

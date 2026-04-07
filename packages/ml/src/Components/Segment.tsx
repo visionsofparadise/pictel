@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { MapCompose } from "pictel";
 import { Sam2, type Point } from "./Sam2";
 import { SegFormer } from "./SegFormer";
 
@@ -7,6 +8,9 @@ interface Sam2SegmentProps extends ComponentPropsWithoutRef<"div"> {
 	points?: Array<Point>;
 	negativePoints?: Array<Point>;
 	revision?: string;
+	mode?: "parameter" | "mix";
+	backdrop?: boolean;
+	compose?: MapCompose;
 	flatten?: boolean;
 	children?: ReactNode;
 }
@@ -14,6 +18,9 @@ interface Sam2SegmentProps extends ComponentPropsWithoutRef<"div"> {
 interface SegFormerSegmentProps extends ComponentPropsWithoutRef<"div"> {
 	model: "segformer";
 	revision?: string;
+	mode?: "parameter" | "mix";
+	backdrop?: boolean;
+	compose?: MapCompose;
 	flatten?: boolean;
 	children?: ReactNode;
 }

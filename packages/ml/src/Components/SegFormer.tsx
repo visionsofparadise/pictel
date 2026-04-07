@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
 import type { Pipeline } from "@huggingface/transformers"
-import { TargetEffect } from "pictel"
+import { RasterEffect, Map, type MapCompose } from "pictel"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
 import { getOrLoadPipeline } from "../registry"
 import { requireWebGPU } from "../webgpu"
@@ -66,6 +66,9 @@ function segmentColor(index: number): [number, number, number] {
 interface SegFormerProps extends ComponentPropsWithoutRef<"div"> {
 	model?: string
 	revision?: string
+	mode?: "parameter" | "mix"
+	backdrop?: boolean
+	compose?: MapCompose
 	flatten?: boolean
 	children?: ReactNode
 }
@@ -73,6 +76,9 @@ interface SegFormerProps extends ComponentPropsWithoutRef<"div"> {
 export function SegFormer({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
+	mode = "mix",
+	backdrop,
+	compose = "intersect",
 	flatten,
 	children,
 	...rest
@@ -96,8 +102,10 @@ export function SegFormer({
 	)
 
 	return (
-		<TargetEffect effect={effect} flatten={flatten} {...rest}>
-			{children}
-		</TargetEffect>
+		<Map compose={compose}>
+			<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+				{children}
+			</RasterEffect>
+		</Map>
 	)
 }

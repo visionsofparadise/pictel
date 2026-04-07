@@ -1,4 +1,18 @@
-import { Blur, Canvas, Grayscale, Map, Multiply, Screen, Viewer } from "pictel";
+import {
+  Blur,
+  Brightness,
+  Canvas,
+  ColorGrade,
+  Contrast,
+  DisplacementMap,
+  Duotone,
+  Grayscale,
+  Map,
+  Multiply,
+  ProceduralNoise,
+  Screen,
+  Viewer,
+} from "pictel";
 import { DepthMap, RemoveBackground, Sam2, SegFormer, Upscale } from "@pictel/ml";
 
 const sampleImage = "https://picsum.photos/id/237/256/256";
@@ -177,6 +191,165 @@ export function App() {
               <img src={sampleImage} crossOrigin="anonymous" />
             </Blur>
           </div>
+        </div>
+      </Canvas>
+      <Canvas
+        name="Backdrop Duotone Demo"
+        dimensions={{ reference: { width: 1080, height: 1080 } }}
+      >
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 24,
+          }}
+        >
+          <img
+            src={sampleImage}
+            crossOrigin="anonymous"
+            style={{ width: 400, height: 400 }}
+          />
+          <Duotone
+            dark={[20, 0, 80]}
+            light={[255, 200, 50]}
+            backdrop
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              width: "100%",
+              height: "50%",
+            }}
+          />
+        </div>
+      </Canvas>
+      <Canvas
+        name="Map-driven ColorGrade Demo"
+        dimensions={{ reference: { width: 1080, height: 1080 } }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%",
+            gap: 24,
+          }}
+        >
+          <p style={{ color: "white", marginBottom: 8 }}>
+            SegFormer mask controlling ColorGrade
+          </p>
+          <ColorGrade temperature={1} saturation={1.8}>
+            <Map>
+              <SegFormer>
+                <img src={sampleImage} crossOrigin="anonymous" />
+              </SegFormer>
+            </Map>
+            <img src={sampleImage} crossOrigin="anonymous" />
+          </ColorGrade>
+        </div>
+      </Canvas>
+      <Canvas
+        name="Pixel-Level Filters Demo"
+        dimensions={{ reference: { width: 1080, height: 1080 } }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 24,
+            padding: 24,
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>
+              Brightness (1.5x)
+            </p>
+            <Brightness amount={1.5}>
+              <img src={sampleImage} crossOrigin="anonymous" />
+            </Brightness>
+          </div>
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>Contrast (1.8x)</p>
+            <Contrast amount={1.8}>
+              <img src={sampleImage} crossOrigin="anonymous" />
+            </Contrast>
+          </div>
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>
+              Brightness + Map
+            </p>
+            <Brightness amount={2}>
+              <Map>
+                <div
+                  style={{
+                    width: 256,
+                    height: 256,
+                    background: "linear-gradient(to bottom, black, white)",
+                  }}
+                />
+              </Map>
+              <img src={sampleImage} crossOrigin="anonymous" />
+            </Brightness>
+          </div>
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>
+              Contrast + Map
+            </p>
+            <Contrast amount={2}>
+              <Map>
+                <div
+                  style={{
+                    width: 256,
+                    height: 256,
+                    background:
+                      "radial-gradient(circle, white, black)",
+                  }}
+                />
+              </Map>
+              <img src={sampleImage} crossOrigin="anonymous" />
+            </Contrast>
+          </div>
+        </div>
+      </Canvas>
+      <Canvas
+        name="DisplacementMap Demo"
+        dimensions={{ reference: { width: 1080, height: 1080 } }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%",
+            gap: 24,
+          }}
+        >
+          <p style={{ color: "white", marginBottom: 8 }}>
+            DisplacementMap with noise Map child
+          </p>
+          <DisplacementMap scaleX={30} scaleY={30}>
+            <Map>
+              <ProceduralNoise
+                type="simplex"
+                seed={42}
+                style={{ width: 256, height: 256 }}
+                scale={0.02}
+              />
+            </Map>
+            <img src={sampleImage} crossOrigin="anonymous" />
+          </DisplacementMap>
         </div>
       </Canvas>
     </Viewer>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
-import { TargetEffect } from "pictel"
+import { RasterEffect } from "pictel"
 import type { Pipeline } from "@huggingface/transformers"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
 import { getOrLoadPipeline } from "../registry"
@@ -20,6 +20,8 @@ export async function removeBackground(pixels: ImageData, pipe: Pipeline): Promi
 interface RemoveBackgroundProps extends ComponentPropsWithoutRef<"div"> {
 	model?: string
 	revision?: string
+	mode?: "parameter" | "mix"
+	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
@@ -27,6 +29,8 @@ interface RemoveBackgroundProps extends ComponentPropsWithoutRef<"div"> {
 export function RemoveBackground({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
+	mode = "mix",
+	backdrop,
 	flatten,
 	children,
 	...rest
@@ -50,8 +54,8 @@ export function RemoveBackground({
 	)
 
 	return (
-		<TargetEffect effect={effect} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
-		</TargetEffect>
+		</RasterEffect>
 	)
 }

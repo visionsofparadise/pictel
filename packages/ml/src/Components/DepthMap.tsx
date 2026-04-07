@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
 import type { Pipeline } from "@huggingface/transformers"
-import { TargetEffect } from "pictel"
+import { RasterEffect, Map, type MapCompose } from "pictel"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
 import { getOrLoadPipeline } from "../registry"
 import { requireWebGPU } from "../webgpu"
@@ -20,6 +20,9 @@ export async function estimateDepth(pixels: ImageData, pipe: Pipeline): Promise<
 interface DepthMapProps extends ComponentPropsWithoutRef<"div"> {
 	model?: string
 	revision?: string
+	mode?: "parameter" | "mix"
+	backdrop?: boolean
+	compose?: MapCompose
 	flatten?: boolean
 	children?: ReactNode
 }
@@ -27,6 +30,9 @@ interface DepthMapProps extends ComponentPropsWithoutRef<"div"> {
 export function DepthMap({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
+	mode = "mix",
+	backdrop,
+	compose = "intersect",
 	flatten,
 	children,
 	...rest
@@ -50,8 +56,10 @@ export function DepthMap({
 	)
 
 	return (
-		<TargetEffect effect={effect} flatten={flatten} {...rest}>
-			{children}
-		</TargetEffect>
+		<Map compose={compose}>
+			<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
+				{children}
+			</RasterEffect>
+		</Map>
 	)
 }

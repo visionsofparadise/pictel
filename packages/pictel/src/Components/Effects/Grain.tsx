@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
 import { useCallback } from "react"
-import { TargetEffect } from "../TargetEffect"
+import { RasterEffect } from "../RasterEffect"
 
 function mulberry32(seed: number): () => number {
 	let state = seed | 0
@@ -39,19 +39,21 @@ export function applyGrain(pixels: ImageData, intensity: number, seed: number): 
 interface GrainProps extends ComponentPropsWithoutRef<"div"> {
 	intensity: number
 	seed: number
+	mode?: "parameter" | "mix"
+	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Grain({ intensity, seed, flatten, children, ...rest }: GrainProps) {
+export function Grain({ intensity, seed, mode = "mix", backdrop, flatten, children, ...rest }: GrainProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyGrain(pixels, intensity, seed),
 		[intensity, seed],
 	)
 
 	return (
-		<TargetEffect effect={effect} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
-		</TargetEffect>
+		</RasterEffect>
 	)
 }

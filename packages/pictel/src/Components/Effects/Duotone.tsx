@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
 import { useCallback } from "react"
-import { TargetEffect } from "../TargetEffect"
+import { RasterEffect } from "../RasterEffect"
 import { luminance } from "./utils/luminance"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -30,19 +30,21 @@ export function applyDuotone(
 interface DuotoneProps extends ComponentPropsWithoutRef<"div"> {
 	dark: [number, number, number]
 	light: [number, number, number]
+	mode?: "parameter" | "mix"
+	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Duotone({ dark, light, flatten, children, ...rest }: DuotoneProps) {
+export function Duotone({ dark, light, mode = "mix", backdrop, flatten, children, ...rest }: DuotoneProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyDuotone(pixels, dark, light),
 		[dark, light],
 	)
 
 	return (
-		<TargetEffect effect={effect} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
-		</TargetEffect>
+		</RasterEffect>
 	)
 }

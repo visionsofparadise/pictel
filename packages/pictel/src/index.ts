@@ -61,8 +61,8 @@ export { RadialGradient } from "./Components/Generative/RadialGradient";
 
 // Effects
 export { Blur } from "./Components/Effects/Blur";
-export { applyUniformBlur } from "./Components/Effects/Blur/utils/uniform-blur";
-export { applyVariableBlur } from "./Components/Effects/Blur/utils/variable-blur";
+export { applyUniformBlur } from "./Components/Effects/Blur";
+export { applyVariableBlur } from "./Components/Effects/Blur";
 export { Brightness } from "./Components/Effects/Brightness";
 export { Contrast } from "./Components/Effects/Contrast";
 export { DropShadow } from "./Components/Effects/DropShadow";
@@ -72,6 +72,16 @@ export { Invert } from "./Components/Effects/Invert";
 export { Opacity } from "./Components/Effects/Opacity";
 export { Saturate } from "./Components/Effects/Saturate";
 export { Sepia } from "./Components/Effects/Sepia";
+
+export { applyBrightness, applyMappedBrightness } from "./Components/Effects/Brightness";
+export { applyContrast, applyMappedContrast } from "./Components/Effects/Contrast";
+export { applyDropShadow } from "./Components/Effects/DropShadow";
+export { applyGrayscale } from "./Components/Effects/Grayscale";
+export { applyHueRotate, applyMappedHueRotate } from "./Components/Effects/HueRotate";
+export { applyInvert } from "./Components/Effects/Invert";
+export { applyOpacity, applyMappedOpacity } from "./Components/Effects/Opacity";
+export { applySaturate, applyMappedSaturate } from "./Components/Effects/Saturate";
+export { applySepia } from "./Components/Effects/Sepia";
 
 // Pixel effects
 export { ChannelMixer } from "./Components/Effects/ChannelMixer";
@@ -94,9 +104,9 @@ export { applyDuotone } from "./Components/Effects/Duotone";
 export { applyGrain } from "./Components/Effects/Grain";
 export { applyHalftone } from "./Components/Effects/Halftone";
 export { applyImageLut } from "./Components/Effects/ImageLUT";
-export { applyPosterize } from "./Components/Effects/Posterize";
-export { applySharpen } from "./Components/Effects/Sharpen";
-export { applyThreshold } from "./Components/Effects/Threshold";
+export { applyPosterize, applyMappedPosterize } from "./Components/Effects/Posterize";
+export { applySharpen, applyMappedSharpen } from "./Components/Effects/Sharpen";
+export { applyThreshold, applyMappedThreshold } from "./Components/Effects/Threshold";
 
 // Pixel effect utilities
 export { mixBlend } from "./Components/Effects/utils/mix-blend";

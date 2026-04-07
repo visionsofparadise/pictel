@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
 import { useCallback } from "react"
-import { TargetEffect } from "../TargetEffect"
+import { RasterEffect } from "../RasterEffect"
 import { luminance } from "./utils/luminance"
 
 function createCanvas(width: number, height: number): { canvas: OffscreenCanvas | HTMLCanvasElement; context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D } {
@@ -88,19 +88,21 @@ export function applyHalftone(pixels: ImageData, dotSize: number, angle = 0): Im
 interface HalftoneProps extends ComponentPropsWithoutRef<"div"> {
 	dotSize: number
 	angle?: number
+	mode?: "parameter" | "mix"
+	backdrop?: boolean
 	flatten?: boolean
 	children?: ReactNode
 }
 
-export function Halftone({ dotSize, angle, flatten, children, ...rest }: HalftoneProps) {
+export function Halftone({ dotSize, angle, mode = "mix", backdrop, flatten, children, ...rest }: HalftoneProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyHalftone(pixels, dotSize, angle),
 		[dotSize, angle],
 	)
 
 	return (
-		<TargetEffect effect={effect} flatten={flatten} {...rest}>
+		<RasterEffect effect={effect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest}>
 			{children}
-		</TargetEffect>
+		</RasterEffect>
 	)
 }

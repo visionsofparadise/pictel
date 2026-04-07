@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { TargetEffect } from "../TargetEffect"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function applyChannelMix(pixels: ImageData, matrix: Array<Array<number>>): ImageData {
@@ -43,8 +43,8 @@ export function ChannelMixer({ matrix, flatten, children, ...rest }: ChannelMixe
 	)
 
 	return (
-		<RasterEffect effect={effect} flatten={flatten} {...rest}>
+		<TargetEffect effect={effect} flatten={flatten} {...rest}>
 			{children}
-		</RasterEffect>
+		</TargetEffect>
 	)
 }

@@ -1,4 +1,4 @@
-import { Blur, Canvas, Grayscale, Multiply, Screen, Viewer } from "pictel";
+import { Blur, Canvas, Grayscale, Map, Multiply, Screen, Viewer } from "pictel";
 import { DepthMap, RemoveBackground, Sam2, SegFormer, Upscale } from "@pictel/ml";
 
 const sampleImage = "https://picsum.photos/id/237/256/256";
@@ -109,6 +109,73 @@ export function App() {
                 style={{ width: 128, height: 128 }}
               />
             </Upscale>
+          </div>
+        </div>
+      </Canvas>
+      <Canvas
+        name="Blur Modes Demo"
+        dimensions={{ reference: { width: 1080, height: 1080 } }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 24,
+            padding: 24,
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          {/* 1. Uniform raster blur — blurs children */}
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>Uniform Raster Blur</p>
+            <Blur radius={10}>
+              <img src={sampleImage} crossOrigin="anonymous" />
+            </Blur>
+          </div>
+
+          {/* 2. Uniform backdrop blur — blurs what's behind */}
+          <div style={{ position: "relative" }}>
+            <p style={{ color: "white", marginBottom: 8 }}>Uniform Backdrop Blur</p>
+            <img src={sampleImage} crossOrigin="anonymous" />
+            <Blur
+              radius={10}
+              style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: "50%" }}
+            />
+          </div>
+
+          {/* 3. Map-driven parameter blur — variable radius per map luminance */}
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>Map Parameter Blur</p>
+            <Blur radius={20}>
+              <Map>
+                <div
+                  style={{
+                    width: 256,
+                    height: 256,
+                    background: "linear-gradient(to right, black, white)",
+                  }}
+                />
+              </Map>
+              <img src={sampleImage} crossOrigin="anonymous" />
+            </Blur>
+          </div>
+
+          {/* 4. Map-driven mix blur — uniform blur blended with original per map */}
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>Map Mix Blur</p>
+            <Blur radius={20} mode="mix">
+              <Map>
+                <div
+                  style={{
+                    width: 256,
+                    height: 256,
+                    background: "linear-gradient(to right, black, white)",
+                  }}
+                />
+              </Map>
+              <img src={sampleImage} crossOrigin="anonymous" />
+            </Blur>
           </div>
         </div>
       </Canvas>

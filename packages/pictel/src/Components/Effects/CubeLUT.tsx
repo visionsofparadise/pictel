@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
 import { useCallback, useEffect, useState } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { TargetEffect } from "../TargetEffect"
 import { lerp } from "./utils/lerp"
 
 export function parseCubeFile(content: string): { lut: Float32Array; size: number } {
@@ -132,8 +132,8 @@ export function CubeLUT({ src, flatten, children, ...rest }: CubeLUTProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} flatten={flatten} {...rest}>
+		<TargetEffect effect={effect} flatten={flatten} {...rest}>
 			{children}
-		</RasterEffect>
+		</TargetEffect>
 	)
 }

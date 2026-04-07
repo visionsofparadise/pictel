@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { TargetEffect } from "../TargetEffect"
 import { luminance } from "./utils/luminance"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -35,8 +35,8 @@ export function Threshold({ threshold, flatten, children, ...rest }: ThresholdPr
 	)
 
 	return (
-		<RasterEffect effect={effect} flatten={flatten} {...rest}>
+		<TargetEffect effect={effect} flatten={flatten} {...rest}>
 			{children}
-		</RasterEffect>
+		</TargetEffect>
 	)
 }

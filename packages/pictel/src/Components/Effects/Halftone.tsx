@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { TargetEffect } from "../TargetEffect"
 import { luminance } from "./utils/luminance"
 
 function createCanvas(width: number, height: number): { canvas: OffscreenCanvas | HTMLCanvasElement; context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D } {
@@ -99,8 +99,8 @@ export function Halftone({ dotSize, angle, flatten, children, ...rest }: Halfton
 	)
 
 	return (
-		<RasterEffect effect={effect} flatten={flatten} {...rest}>
+		<TargetEffect effect={effect} flatten={flatten} {...rest}>
 			{children}
-		</RasterEffect>
+		</TargetEffect>
 	)
 }

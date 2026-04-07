@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
 import { useCallback, useEffect, useState } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { TargetEffect } from "../TargetEffect"
 import { lerp } from "./utils/lerp"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -112,8 +112,8 @@ export function ImageLUT({ src, size, flatten, children, ...rest }: ImageLUTProp
 	)
 
 	return (
-		<RasterEffect effect={effect} flatten={flatten} {...rest}>
+		<TargetEffect effect={effect} flatten={flatten} {...rest}>
 			{children}
-		</RasterEffect>
+		</TargetEffect>
 	)
 }

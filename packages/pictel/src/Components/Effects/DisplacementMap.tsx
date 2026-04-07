@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ComponentPropsWithoutRef, type ReactNode } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { TargetEffect } from "../TargetEffect"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function applyDisplacement(
@@ -91,8 +91,8 @@ export function DisplacementMap({
 	)
 
 	return (
-		<RasterEffect effect={effect} flatten={flatten} {...rest}>
+		<TargetEffect effect={effect} flatten={flatten} {...rest}>
 			{children}
-		</RasterEffect>
+		</TargetEffect>
 	)
 }

@@ -1,13 +1,14 @@
 import { useId, useLayoutEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { useCanvasContext } from "../context/canvas";
-import { captureBehind, captureChildren } from "../pipeline/capture";
+import { captureBehind, captureContentGroup, captureMapGroup, partitionChildren } from "../pipeline/capture";
 import { createPipelineError } from "../pipeline/errors";
 import { addCutout, ensureSharedMask, removeCutouts } from "../pipeline/masking";
-import { drawToCanvas } from "../pipeline/raster";
+import { observeSubtree } from "../pipeline/observe";
+import { drawToCanvas, normalizeResult, type EffectResult } from "../pipeline/raster";
 import { getElementsBehind } from "../pipeline/stacking";
 import { checkStackingEscape } from "../pipeline/stacking-check";
 
-export type CompositeEffectCallback = (self: ImageData, behind: ImageData) => ImageData | Promise<ImageData>;
+export type CompositeEffectCallback = (self: ImageData, behind: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 
 type CompositeEffectProps = {
 	effect: CompositeEffectCallback;
@@ -16,8 +17,6 @@ type CompositeEffectProps = {
 } & ComponentPropsWithoutRef<"div">;
 
 export function CompositeEffect({ effect, flatten, children, style, ...rest }: CompositeEffectProps) {
-	const userDisplay = style?.display ?? "";
-
 	const id = useId();
 	const childrenRef = useRef<HTMLDivElement>(null);
 	const observeRef = useRef<HTMLDivElement>(null);
@@ -35,6 +34,8 @@ export function CompositeEffect({ effect, flatten, children, style, ...rest }: C
 		const canvasEl = canvasElRef.current;
 
 		if (!childrenEl || !observeEl || !rasterEl || !canvasEl) return;
+
+		const observe = observeEl;
 
 		rasterEl.style.display = "none";
 
@@ -56,35 +57,25 @@ export function CompositeEffect({ effect, flatten, children, style, ...rest }: C
 			cleanupCutouts();
 
 			childrenEl.setAttribute("data-pictel-pending", "true");
-			childrenEl.style.display = userDisplay;
+			childrenEl.style.visibility = "";
 			rasterEl.style.display = "none";
 
-			void Promise.resolve().then(() => execute(childrenEl, behindElements));
+			void Promise.resolve().then(() => execute(childrenEl, observe, behindElements));
 		}
 
 		// Children subtree observer
 		const childrenObserver = new MutationObserver(onMutation);
 		observers.push(childrenObserver);
-		childrenObserver.observe(observeEl, {
-			childList: true,
-			attributes: true,
-			subtree: true,
-			characterData: true,
-		});
+		observeSubtree(childrenObserver, observeEl);
 
 		// Behind element observers
 		for (const behindElement of behindElements) {
 			const behindObserver = new MutationObserver(onMutation);
 			observers.push(behindObserver);
-			behindObserver.observe(behindElement, {
-				childList: true,
-				attributes: true,
-				subtree: true,
-				characterData: true,
-			});
+			observeSubtree(behindObserver, behindElement);
 		}
 
-		async function execute(target: HTMLElement, behinds: Array<HTMLElement>) {
+		async function execute(target: HTMLElement, observe: HTMLElement, behinds: Array<HTMLElement>) {
 			if (disposed || !rasterEl || !canvasEl) return;
 
 			const hasPendingChild = target.querySelector("[data-pictel-pending]") !== null;
@@ -126,22 +117,31 @@ export function CompositeEffect({ effect, flatten, children, style, ...rest }: C
 			}
 
 			try {
-				const selfPixels = await captureChildren(target, captureDimensions, cacheRef.current);
+				const { mapElements, contentElements } = partitionChildren(observe);
+
+				const [selfPixels, behindPixels, mapPixels] = await Promise.all([
+					captureContentGroup(observe, mapElements, captureDimensions, cacheRef.current),
+					captureBehind(target, canvasRoot, captureDimensions, cacheRef.current, currentSnapshot.stackingOrder, currentSnapshot.rects),
+					mapElements.length > 0 ? captureMapGroup(observe, contentElements, captureDimensions, cacheRef.current) : Promise.resolve(undefined),
+				]);
 
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (disposed) return;
 
-				const behindPixels = await captureBehind(target, canvasRoot, captureDimensions, cacheRef.current, currentSnapshot.stackingOrder, currentSnapshot.rects);
+				const rawResult = await effect(selfPixels, behindPixels, mapPixels);
 
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (disposed) return;
 
-				const resultData = await effect(selfPixels, behindPixels);
+				const { pixels, overflow } = normalizeResult(rawResult);
 
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (disposed) return;
+				drawToCanvas(canvasEl, pixels);
 
-				drawToCanvas(canvasEl, resultData);
+				const childrenRect = target.getBoundingClientRect();
+				rasterEl.style.top = `-${String(childrenRect.height + overflow.top)}px`;
+				rasterEl.style.left = `-${String(overflow.left)}px`;
+				rasterEl.style.width = `${String(childrenRect.width + overflow.left + overflow.right)}px`;
+				rasterEl.style.height = `${String(childrenRect.height + overflow.top + overflow.bottom)}px`;
 
 				// Apply knockout cutouts to behind elements' shared masks
 				const sourceRect = target.getBoundingClientRect();
@@ -155,8 +155,8 @@ export function CompositeEffect({ effect, flatten, children, style, ...rest }: C
 				}
 
 				target.removeAttribute("data-pictel-pending");
-				target.style.display = "none";
-				rasterEl.style.display = userDisplay;
+				target.style.visibility = "hidden";
+				rasterEl.style.display = "";
 			} catch (error: unknown) {
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (disposed) return;
@@ -165,7 +165,7 @@ export function CompositeEffect({ effect, flatten, children, style, ...rest }: C
 			}
 		}
 
-		void Promise.resolve().then(() => execute(childrenEl, behindElements));
+		void Promise.resolve().then(() => execute(childrenEl, observe, behindElements));
 
 		return () => {
 			disposed = true;
@@ -177,15 +177,16 @@ export function CompositeEffect({ effect, flatten, children, style, ...rest }: C
 			cleanupCutouts();
 			childrenEl.removeAttribute("data-pictel-pending");
 		};
-	}, [id, effect, flatten, userDisplay, domSnapshot, maskDefsRef, canvasRootRef, captureDimensions, reportError]);
+	}, [id, effect, flatten, domSnapshot, maskDefsRef, canvasRootRef, captureDimensions, reportError]);
 
 	return (
-		<>
+		<div
+			style={flatten ? { ...style, isolation: "isolate" } : style}
+			{...rest}
+		>
 			<div
 				ref={childrenRef}
 				data-pictel-pending
-				style={flatten ? { ...style, isolation: "isolate" } : style}
-				{...rest}
 			>
 				<div
 					ref={observeRef}
@@ -194,13 +195,14 @@ export function CompositeEffect({ effect, flatten, children, style, ...rest }: C
 					{children}
 				</div>
 			</div>
-			<div
-				ref={rasterRef}
-				style={style}
-				{...rest}
-			>
-				<canvas ref={canvasElRef} style={{ width: "100%", height: "100%" }} />
+			<div style={{ position: "relative", height: 0 }}>
+				<div
+					ref={rasterRef}
+					style={{ position: "absolute" }}
+				>
+					<canvas ref={canvasElRef} style={{ width: "100%", height: "100%" }} />
+				</div>
 			</div>
-		</>
+		</div>
 	);
 }

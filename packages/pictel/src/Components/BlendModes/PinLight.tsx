@@ -1,18 +1,14 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { useCallback } from "react";
 import { CompositeEffect } from "../CompositeEffect";
-import type { BlendFormula } from "./blend-pixels";
-import { blendPixels } from "./blend-pixels";
+import type { BlendFormula } from "./utils/blend-pixels";
+import { blendPixels } from "./utils/blend-pixels";
 
 function pinLightChannel(dst: number, src: number): number {
-	return src <= 0.5 ? Math.min(dst, 2 * src) : Math.max(dst, 2 * src - 1)
+	return src <= 0.5 ? Math.min(dst, 2 * src) : Math.max(dst, 2 * src - 1);
 }
 
-export const pinLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [
-	pinLightChannel(dr, sr),
-	pinLightChannel(dg, sg),
-	pinLightChannel(db, sb),
-]
+export const pinLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [pinLightChannel(dr, sr), pinLightChannel(dg, sg), pinLightChannel(db, sb)];
 
 interface PinLightProps extends ComponentPropsWithoutRef<"div"> {
 	opacity?: number;
@@ -21,13 +17,15 @@ interface PinLightProps extends ComponentPropsWithoutRef<"div"> {
 }
 
 export function PinLight({ opacity = 1, flatten, children, style, ...rest }: PinLightProps) {
-	const effect = useCallback(
-		(self: ImageData, behind: ImageData) => blendPixels(self, behind, pinLight),
-		[],
-	);
+	const effect = useCallback((self: ImageData, behind: ImageData) => blendPixels(self, behind, pinLight), []);
 
 	return (
-		<CompositeEffect effect={effect} flatten={flatten} {...rest} style={{ ...style, opacity }}>
+		<CompositeEffect
+			effect={effect}
+			flatten={flatten}
+			{...rest}
+			style={{ ...style, opacity }}
+		>
 			{children}
 		</CompositeEffect>
 	);

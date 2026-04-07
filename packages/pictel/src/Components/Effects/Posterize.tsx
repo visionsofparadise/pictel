@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { TargetEffect } from "../TargetEffect"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function applyPosterize(pixels: ImageData, levels: number): ImageData {
@@ -34,8 +34,8 @@ export function Posterize({ levels, flatten, children, ...rest }: PosterizeProps
 	)
 
 	return (
-		<RasterEffect effect={effect} flatten={flatten} {...rest}>
+		<TargetEffect effect={effect} flatten={flatten} {...rest}>
 			{children}
-		</RasterEffect>
+		</TargetEffect>
 	)
 }

@@ -1,5 +1,7 @@
+// @vitest-environment jsdom
+
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { captureChildren, captureBehind, type CaptureCache } from "./capture";
+import { captureChildren, captureBehind, partitionChildren, type CaptureCache } from "./capture";
 import type { StackingOrder } from "./stacking";
 
 const mockGetImageData = vi.fn();
@@ -158,5 +160,74 @@ describe("captureBehind", () => {
 		await expect(captureBehind(element, canvasRoot, null, cache, stackingOrder, rects)).rejects.toThrow("snapdom failure");
 		expect(element.style.visibility).toBe("visible");
 		expect(inFrontElement.style.visibility).toBe("visible");
+	});
+});
+
+describe("partitionChildren", () => {
+	it("partitions mixed children into maps and content", () => {
+		const container = document.createElement("div");
+		const mapChild = document.createElement("div");
+		mapChild.setAttribute("data-pictel-map", "");
+		const contentChild = document.createElement("div");
+		container.appendChild(mapChild);
+		container.appendChild(contentChild);
+
+		const { mapElements, contentElements } = partitionChildren(container);
+
+		expect(mapElements).toEqual([mapChild]);
+		expect(contentElements).toEqual([contentChild]);
+	});
+
+	it("returns all content when no maps are present", () => {
+		const container = document.createElement("div");
+		const child1 = document.createElement("div");
+		const child2 = document.createElement("span");
+		container.appendChild(child1);
+		container.appendChild(child2);
+
+		const { mapElements, contentElements } = partitionChildren(container);
+
+		expect(mapElements).toHaveLength(0);
+		expect(contentElements).toEqual([child1, child2]);
+	});
+
+	it("returns all maps when no content is present", () => {
+		const container = document.createElement("div");
+		const map1 = document.createElement("div");
+		map1.setAttribute("data-pictel-map", "");
+		const map2 = document.createElement("div");
+		map2.setAttribute("data-pictel-map", "");
+		container.appendChild(map1);
+		container.appendChild(map2);
+
+		const { mapElements, contentElements } = partitionChildren(container);
+
+		expect(mapElements).toEqual([map1, map2]);
+		expect(contentElements).toHaveLength(0);
+	});
+
+	it("detects nested data-pictel-map attribute on a descendant", () => {
+		const container = document.createElement("div");
+		const wrapper = document.createElement("div");
+		const nested = document.createElement("div");
+		nested.setAttribute("data-pictel-map", "");
+		wrapper.appendChild(nested);
+		const contentChild = document.createElement("p");
+		container.appendChild(wrapper);
+		container.appendChild(contentChild);
+
+		const { mapElements, contentElements } = partitionChildren(container);
+
+		expect(mapElements).toEqual([wrapper]);
+		expect(contentElements).toEqual([contentChild]);
+	});
+
+	it("returns empty arrays for a container with no children", () => {
+		const container = document.createElement("div");
+
+		const { mapElements, contentElements } = partitionChildren(container);
+
+		expect(mapElements).toHaveLength(0);
+		expect(contentElements).toHaveLength(0);
 	});
 });

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import type { CanvasSnapshot } from "../context/canvas";
+import { observeSubtree } from "../pipeline/observe";
 import { buildStackingOrder } from "../pipeline/stacking";
 
 export function useDomSnapshot(canvasRef: React.RefObject<HTMLDivElement | null>): React.RefObject<CanvasSnapshot | null> {
@@ -39,7 +40,7 @@ export function useDomSnapshot(canvasRef: React.RefObject<HTMLDivElement | null>
 
 		rebuildSnapshot();
 
-		observer.observe(canvasRoot, { childList: true, attributes: true, subtree: true, characterData: true });
+		observeSubtree(observer, canvasRoot);
 
 		return () => {
 			observer.disconnect();

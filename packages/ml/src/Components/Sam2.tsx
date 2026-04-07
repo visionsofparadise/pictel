@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
-import { RasterEffect } from "pictel"
+import { TargetEffect } from "pictel"
 import { Sam2Model, AutoProcessor, Tensor, RawImage } from "@huggingface/transformers"
 import type { Processor } from "@huggingface/transformers"
 import { requireWebGPU } from "../webgpu"
@@ -160,8 +160,8 @@ export function Sam2({
 	)
 
 	return (
-		<RasterEffect effect={effect} flatten={flatten} {...rest}>
+		<TargetEffect effect={effect} flatten={flatten} {...rest}>
 			{children}
-		</RasterEffect>
+		</TargetEffect>
 	)
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
-import { RasterEffect } from "pictel"
+import { TargetEffect } from "pictel"
 import type { Pipeline } from "@huggingface/transformers"
 import type { RawImage } from "@huggingface/transformers"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
@@ -49,8 +49,8 @@ export function Upscale({
 	)
 
 	return (
-		<RasterEffect effect={effect} flatten={flatten} {...rest}>
+		<TargetEffect effect={effect} flatten={flatten} {...rest}>
 			{children}
-		</RasterEffect>
+		</TargetEffect>
 	)
 }

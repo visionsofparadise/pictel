@@ -1,4 +1,7 @@
 import { Blur, Canvas, Grayscale, Multiply, Screen, Viewer } from "pictel";
+import { DepthMap, RemoveBackground, Sam2, SegFormer, Upscale } from "@pictel/ml";
+
+const sampleImage = "https://picsum.photos/id/237/256/256";
 
 export function App() {
   return (
@@ -57,6 +60,56 @@ export function App() {
               }}
             />
           </Screen>
+        </div>
+      </Canvas>
+      <Canvas
+        name="ML Effects Demo"
+        dimensions={{ reference: { width: 1080, height: 1080 } }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 24,
+            padding: 24,
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>RemoveBackground</p>
+            <RemoveBackground>
+              <img src={sampleImage} crossOrigin="anonymous" />
+            </RemoveBackground>
+          </div>
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>DepthMap</p>
+            <DepthMap>
+              <img src={sampleImage} crossOrigin="anonymous" />
+            </DepthMap>
+          </div>
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>Sam2</p>
+            <Sam2 points={[{ x: 128, y: 128 }]}>
+              <img src={sampleImage} crossOrigin="anonymous" />
+            </Sam2>
+          </div>
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>SegFormer</p>
+            <SegFormer>
+              <img src={sampleImage} crossOrigin="anonymous" />
+            </SegFormer>
+          </div>
+          <div>
+            <p style={{ color: "white", marginBottom: 8 }}>Upscale</p>
+            <Upscale>
+              <img
+                src={sampleImage}
+                crossOrigin="anonymous"
+                style={{ width: 128, height: 128 }}
+              />
+            </Upscale>
+          </div>
         </div>
       </Canvas>
     </Viewer>

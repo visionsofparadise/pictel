@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../RasterEffect"
 import { luminance } from "./utils/luminance"
@@ -41,14 +41,22 @@ export function applyMappedPosterize(pixels: ImageData, map: ImageData, levels: 
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface PosterizeProps extends ComponentPropsWithoutRef<"div"> {
+interface PosterizeProps extends ComponentProps<"div"> {
+	/** Number of discrete color levels per channel. Minimum 2. */
 	levels: number
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Posterize({ levels, backdrop, flatten, children, ...rest }: PosterizeProps) {
+/**
+ * Reduces color depth to a fixed number of levels per channel, creating a poster-like flat color effect.
+ *
+ * - `levels` — Number of discrete color levels per channel. Minimum 2.
+ *
+ * @param props
+ * @category Effects
+ */
+export function Posterize({ levels, backdrop, flatten, ...rest }: PosterizeProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyPosterize(pixels, levels),
 		[levels],
@@ -60,8 +68,6 @@ export function Posterize({ levels, backdrop, flatten, children, ...rest }: Post
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

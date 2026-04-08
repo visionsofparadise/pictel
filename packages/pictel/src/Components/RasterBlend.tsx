@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import { useCallback } from "react"
 import type { BlendFormula } from "./BlendModes/utils/blend-pixels"
 import { blendPixels } from "./BlendModes/utils/blend-pixels"
@@ -6,15 +6,24 @@ import { CompositeEffect } from "./CompositeEffect"
 import { luminance } from "./Effects/utils/luminance"
 import { hasTargetChildren } from "./utils/has-target-children"
 
-export interface RasterBlendProps extends ComponentPropsWithoutRef<"div"> {
+interface RasterBlendProps extends ComponentProps<"div"> {
+	/** Per-pixel blend formula function. Receives normalized source and destination RGB, returns blended RGB. */
 	blend: BlendFormula
 	opacity?: number
 	flatten?: boolean
-	children?: ReactNode
 }
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+/**
+ * Routing component for pixel-level blend modes. Applies a blend formula to
+ * composited layers with optional map-driven opacity control.
+ *
+ * - `blend` — Per-pixel blend formula function. Receives normalized source and destination RGB, returns blended RGB.
+ *
+ * @param props
+ * @category Pipeline
+ */
 export function RasterBlend({ blend, opacity = 1, flatten, children, ...rest }: RasterBlendProps) {
 	const hasContent = hasTargetChildren(children)
 

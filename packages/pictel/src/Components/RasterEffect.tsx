@@ -1,4 +1,4 @@
-import { useCallback, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useCallback, type ComponentProps } from "react";
 import type { EffectResult } from "../pipeline/raster";
 import { CompositeEffect } from "./CompositeEffect";
 import { TargetEffect } from "./TargetEffect";
@@ -7,15 +7,26 @@ import { wrapWithMixBlend } from "./utils/wrap-with-mix-blend";
 
 export type RasterEffectCallback = (pixels: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 
-type RasterEffectProps = {
+interface RasterEffectProps extends ComponentProps<"div"> {
+	/** Pixel callback applied to captured content. Receives ImageData and optional map ImageData. */
 	effect: RasterEffectCallback;
+	/** Alternative callback used when a map is present and mode is `"parameter"`. Receives content and map ImageData. */
 	mappedEffect?: (pixels: ImageData, map: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 	mode?: "parameter" | "mix";
 	backdrop?: boolean;
 	flatten?: boolean;
-	children?: ReactNode;
-} & ComponentPropsWithoutRef<"div">;
+}
 
+/**
+ * Routing component for pixel-level effects. Detects whether children contain
+ * content targets or only map inputs, and delegates to TargetEffect or CompositeEffect.
+ *
+ * - `effect` — Pixel callback applied to captured content. Receives ImageData and optional map ImageData.
+ * - `mappedEffect` — Alternative callback used when a map is present and mode is `"parameter"`. Receives content and map ImageData.
+ *
+ * @param props
+ * @category Pipeline
+ */
 export function RasterEffect({
 	effect,
 	mappedEffect,

@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { hslToRgb, rgbToHsl } from "./utils/hsl"
 import { RasterBlend } from "../RasterBlend"
@@ -11,16 +11,20 @@ export const saturation: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 	return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]
 }
 
-interface SaturationProps extends ComponentPropsWithoutRef<"div"> {
+interface SaturationProps extends ComponentProps<"div"> {
 	opacity?: number
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Saturation({ opacity, flatten, children, ...rest }: SaturationProps) {
+/**
+ * Applies the saturation of the blend layer while preserving the hue and luminosity of the base.
+ * Useful for adjusting color intensity without changing the underlying colors.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function Saturation({ opacity, flatten, ...rest }: SaturationProps) {
 	return (
-		<RasterBlend blend={saturation} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={saturation} opacity={opacity} flatten={flatten} {...rest} />
 	)
 }

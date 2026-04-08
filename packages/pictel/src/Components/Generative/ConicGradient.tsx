@@ -1,12 +1,16 @@
-import type { ComponentPropsWithoutRef } from "react"
+import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
 import type { GradientStop } from "./LinearGradient"
 import { useContainerSize } from "../../hooks/useContainerSize"
 
-interface ConicGradientProps extends ComponentPropsWithoutRef<"div"> {
+interface ConicGradientProps extends ComponentProps<"div"> {
+	/** Array of color stops with `color` and `position` (0-1). */
 	stops: Array<GradientStop>
+	/** Horizontal center as a fraction of width. Default 0.5. */
 	centerX?: number
+	/** Vertical center as a fraction of height. Default 0.5. */
 	centerY?: number
+	/** Starting angle in degrees. Default 0. */
 	startAngle?: number
 }
 
@@ -37,6 +41,17 @@ export function drawConicGradient(
 	context.fillRect(0, 0, width, height)
 }
 
+/**
+ * Renders a conic (angular) gradient sweep around a center point.
+ *
+ * - `stops` — Array of color stops with `color` and `position` (0-1).
+ * - `centerX` — Horizontal center as a fraction of width. Default 0.5.
+ * - `centerY` — Vertical center as a fraction of height. Default 0.5.
+ * - `startAngle` — Starting angle in degrees. Default 0.
+ *
+ * @param props
+ * @category Generative
+ */
 export function ConicGradient({
 	stops,
 	centerX = 0.5,

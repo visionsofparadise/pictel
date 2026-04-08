@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../RasterBlend"
 
@@ -12,16 +12,20 @@ export const overlay: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	overlayChannel(sb, db),
 ]
 
-interface OverlayProps extends ComponentPropsWithoutRef<"div"> {
+interface OverlayProps extends ComponentProps<"div"> {
 	opacity?: number
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Overlay({ opacity, flatten, children, ...rest }: OverlayProps) {
+/**
+ * Multiplies dark base values and screens light base values.
+ * Increases contrast while preserving highlights and shadows. Most common contrast blend mode.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function Overlay({ opacity, flatten, ...rest }: OverlayProps) {
 	return (
-		<RasterBlend blend={overlay} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={overlay} opacity={opacity} flatten={flatten} {...rest} />
 	)
 }

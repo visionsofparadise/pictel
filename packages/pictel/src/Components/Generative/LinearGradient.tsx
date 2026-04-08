@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from "react"
+import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
 import { useContainerSize } from "../../hooks/useContainerSize"
 
@@ -7,8 +7,10 @@ export interface GradientStop {
 	position: number
 }
 
-interface LinearGradientProps extends ComponentPropsWithoutRef<"div"> {
+interface LinearGradientProps extends ComponentProps<"div"> {
+	/** Array of color stops with `color` and `position` (0-1). */
 	stops: Array<GradientStop>
+	/** Gradient angle in degrees. 0 is left-to-right. Default 0. */
 	angle?: number
 }
 
@@ -43,6 +45,15 @@ export function drawLinearGradient(
 	context.fillRect(0, 0, width, height)
 }
 
+/**
+ * Renders a linear gradient across the component area.
+ *
+ * - `stops` — Array of color stops with `color` and `position` (0-1).
+ * - `angle` — Gradient angle in degrees. 0 is left-to-right. Default 0.
+ *
+ * @param props
+ * @category Generative
+ */
 export function LinearGradient({
 	stops,
 	angle = 0,

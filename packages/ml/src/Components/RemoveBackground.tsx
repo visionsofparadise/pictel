@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
+import { useCallback, useEffect, useRef, type ComponentProps } from "react"
 import { RasterEffect } from "pictel"
 import type { Pipeline } from "@huggingface/transformers"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
@@ -17,20 +17,29 @@ export async function removeBackground(pixels: ImageData, pipe: Pipeline): Promi
 }
 /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
 
-interface RemoveBackgroundProps extends ComponentPropsWithoutRef<"div"> {
+interface RemoveBackgroundProps extends ComponentProps<"div"> {
+	/** Hugging Face model ID for background removal. Defaults to `onnx-community/BEN2-ONNX`. */
 	model?: string
+	/** Model revision hash. Overridable alongside `model`. */
 	revision?: string
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
+/**
+ * Removes the background from child content, outputting RGBA with model-derived alpha. Uses `onnx-community/BEN2-ONNX` by default.
+ *
+ * - `model` — Hugging Face model ID for background removal. Defaults to `onnx-community/BEN2-ONNX`.
+ * - `revision` — Model revision hash. Overridable alongside `model`.
+ *
+ * @param props
+ * @category Segmentation
+ */
 export function RemoveBackground({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
 	backdrop,
 	flatten,
-	children,
 	...rest
 }: RemoveBackgroundProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
@@ -52,8 +61,6 @@ export function RemoveBackground({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

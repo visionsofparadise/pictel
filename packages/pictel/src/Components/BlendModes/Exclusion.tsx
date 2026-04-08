@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../RasterBlend"
 
@@ -8,16 +8,20 @@ export const exclusion: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	sb + db - 2 * sb * db,
 ]
 
-interface ExclusionProps extends ComponentPropsWithoutRef<"div"> {
+interface ExclusionProps extends ComponentProps<"div"> {
 	opacity?: number
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Exclusion({ opacity, flatten, children, ...rest }: ExclusionProps) {
+/**
+ * Similar to Difference but with lower contrast. Produces a softer inversion effect.
+ * Blending with white inverts the base; blending with black has no effect.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function Exclusion({ opacity, flatten, ...rest }: ExclusionProps) {
 	return (
-		<RasterBlend blend={exclusion} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={exclusion} opacity={opacity} flatten={flatten} {...rest} />
 	)
 }

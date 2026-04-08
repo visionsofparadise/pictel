@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentProps } from "react";
 import { RasterBlend } from "../RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 
@@ -8,16 +8,20 @@ function linearLightChannel(dst: number, src: number): number {
 
 export const linearLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [linearLightChannel(dr, sr), linearLightChannel(dg, sg), linearLightChannel(db, sb)];
 
-interface LinearLightProps extends ComponentPropsWithoutRef<"div"> {
+interface LinearLightProps extends ComponentProps<"div"> {
 	opacity?: number;
 	flatten?: boolean;
-	children?: ReactNode;
 }
 
-export function LinearLight({ opacity, flatten, children, ...rest }: LinearLightProps) {
+/**
+ * Combines Linear Burn and Linear Dodge based on the blend brightness.
+ * Burns darks and dodges lights with linear intensity scaling.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function LinearLight({ opacity, flatten, ...rest }: LinearLightProps) {
 	return (
-		<RasterBlend blend={linearLight} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={linearLight} opacity={opacity} flatten={flatten} {...rest} />
 	);
 }

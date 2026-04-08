@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
-import { RasterEffect, Map as PictelMap, type MapCompose } from "pictel"
+import { useCallback, useEffect, useRef, type ComponentProps } from "react"
+import { RasterEffect } from "pictel"
 import { Sam2Model, AutoProcessor, Tensor, RawImage } from "@huggingface/transformers"
 import type { Processor } from "@huggingface/transformers"
 import { requireWebGPU } from "../webgpu"
@@ -125,26 +125,37 @@ export async function sam2Segment(
 }
 /* eslint-enable @typescript-eslint/naming-convention */
 
-interface Sam2Props extends ComponentPropsWithoutRef<"div"> {
+interface Sam2Props extends ComponentProps<"div"> {
+	/** Hugging Face model ID for SAM2. Defaults to `onnx-community/sam2-hiera-tiny-ONNX`. */
 	model?: string
+	/** Model revision. Overridable alongside `model`. */
 	revision?: string
+	/** Positive point prompts indicating the target region. */
 	points?: Array<Point>
+	/** Negative point prompts indicating regions to exclude. */
 	negativePoints?: Array<Point>
 	backdrop?: boolean
-	compose?: MapCompose
 	flatten?: boolean
-	children?: ReactNode
 }
 
+/**
+ * Point-prompted segmentation using SAM2. Outputs a white-on-black mask for the region matching the given prompts. Uses `onnx-community/sam2-hiera-tiny-ONNX` by default.
+ *
+ * - `points` — Positive point prompts indicating the target region.
+ * - `negativePoints` — Negative point prompts indicating regions to exclude.
+ * - `model` — Hugging Face model ID for SAM2. Defaults to `onnx-community/sam2-hiera-tiny-ONNX`.
+ * - `revision` — Model revision. Overridable alongside `model`.
+ *
+ * @param props
+ * @category Segmentation
+ */
 export function Sam2({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
 	points = [],
 	negativePoints = [],
 	backdrop,
-	compose = "intersect",
 	flatten,
-	children,
 	...rest
 }: Sam2Props) {
 	const resourcesRef = useRef<Promise<Sam2Resources>>(undefined)
@@ -164,10 +175,6 @@ export function Sam2({
 	)
 
 	return (
-		<PictelMap compose={compose}>
-			<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-				{children}
-			</RasterEffect>
-		</PictelMap>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

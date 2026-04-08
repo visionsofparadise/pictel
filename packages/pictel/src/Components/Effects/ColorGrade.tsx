@@ -1,13 +1,18 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../RasterEffect"
 import { luminance } from "./utils/luminance"
 
 export interface ColorGradeAdjustments {
+	/** Brightness multiplier. Default 1. */
 	brightness?: number
+	/** Contrast multiplier. Default 1. */
 	contrast?: number
+	/** Saturation multiplier. Default 1. */
 	saturation?: number
+	/** Warm/cool shift. Positive warms (adds red, removes blue), negative cools. */
 	temperature?: number
+	/** Green/magenta shift. Positive adds magenta, negative adds green. */
 	tint?: number
 }
 
@@ -57,12 +62,23 @@ export function applyColorGrade(pixels: ImageData, adjustments: ColorGradeAdjust
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface ColorGradeProps extends ColorGradeAdjustments, ComponentPropsWithoutRef<"div"> {
+interface ColorGradeProps extends ColorGradeAdjustments, ComponentProps<"div"> {
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
+/**
+ * Combined color grading with brightness, contrast, saturation, temperature, and tint controls.
+ *
+ * - `brightness` — Brightness multiplier. Default 1.
+ * - `contrast` — Contrast multiplier. Default 1.
+ * - `saturation` — Saturation multiplier. Default 1.
+ * - `temperature` — Warm/cool shift. Positive warms (adds red, removes blue), negative cools.
+ * - `tint` — Green/magenta shift. Positive adds magenta, negative adds green.
+ *
+ * @param props
+ * @category Effects
+ */
 export function ColorGrade({
 	brightness,
 	contrast,
@@ -71,7 +87,6 @@ export function ColorGrade({
 	tint,
 	backdrop,
 	flatten,
-	children,
 	...rest
 }: ColorGradeProps) {
 	const effect = useCallback(
@@ -81,8 +96,6 @@ export function ColorGrade({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

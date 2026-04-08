@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
+import { useCallback, useEffect, useRef, type ComponentProps } from "react"
 import { RasterEffect } from "pictel"
 import type { Pipeline } from "@huggingface/transformers"
 import type { RawImage } from "@huggingface/transformers"
@@ -16,20 +16,29 @@ export async function upscale(pixels: ImageData, pipe: Pipeline): Promise<ImageD
 	return rawImageToImageData(result)
 }
 
-interface UpscaleProps extends ComponentPropsWithoutRef<"div"> {
+interface UpscaleProps extends ComponentProps<"div"> {
+	/** Hugging Face model ID for super-resolution. Defaults to `Xenova/swin2SR-classical-sr-x2-64`. */
 	model?: string
+	/** Model revision hash. Overridable alongside `model`. */
 	revision?: string
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
+/**
+ * Upscales child content to higher resolution via the `image-to-image` pipeline. Uses `Xenova/swin2SR-classical-sr-x2-64` by default.
+ *
+ * - `model` — Hugging Face model ID for super-resolution. Defaults to `Xenova/swin2SR-classical-sr-x2-64`.
+ * - `revision` — Model revision hash. Overridable alongside `model`.
+ *
+ * @param props
+ * @category Enhancement
+ */
 export function Upscale({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
 	backdrop,
 	flatten,
-	children,
 	...rest
 }: UpscaleProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
@@ -51,8 +60,6 @@ export function Upscale({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

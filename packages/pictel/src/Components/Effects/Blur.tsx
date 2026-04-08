@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentProps } from "react";
 import { useCallback } from "react";
 import type { EffectResult } from "../../pipeline/raster";
 import { RasterEffect } from "../RasterEffect";
@@ -6,10 +6,6 @@ import { luminance } from "./utils/luminance";
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-/**
- * Two-pass separable box blur. Output is larger than input by `radius` on each side.
- * Edge pixels beyond input bounds read as transparent black (0,0,0,0).
- */
 export function applyUniformBlur(pixels: ImageData, radius: number): EffectResult {
 	const blurRadius = Math.round(radius);
 
@@ -93,11 +89,6 @@ export function applyUniformBlur(pixels: ImageData, radius: number): EffectResul
 	};
 }
 
-/**
- * Per-pixel variable-radius blur. Map luminance at each pixel scales the effective
- * radius from 0 to `radius`. Output is larger by `maxRadius` on each side, where
- * maxRadius = peakMapLuminance * radius.
- */
 export function applyVariableBlur(pixels: ImageData, map: ImageData, radius: number): EffectResult {
 	const blurRadius = Math.round(radius);
 
@@ -196,15 +187,25 @@ export function applyVariableBlur(pixels: ImageData, map: ImageData, radius: num
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-export interface BlurProps extends ComponentPropsWithoutRef<"div"> {
+interface BlurProps extends ComponentProps<"div"> {
+	/** Blur radius in pixels. With a map, radius scales per-pixel by map luminance. */
 	radius: number;
+	/** `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance. */
 	mode?: "parameter" | "mix";
 	backdrop?: boolean;
 	flatten?: boolean;
-	children?: ReactNode;
 }
 
-export function Blur({ radius, mode = "parameter", backdrop, flatten, children, ...rest }: BlurProps) {
+/**
+ * Applies a uniform box blur or a map-driven variable-radius blur.
+ *
+ * - `radius` — Blur radius in pixels. With a map, radius scales per-pixel by map luminance.
+ * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
+ *
+ * @param props
+ * @category Effects
+ */
+export function Blur({ radius, mode = "parameter", backdrop, flatten, ...rest }: BlurProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyUniformBlur(pixels, radius),
 		[radius],
@@ -223,8 +224,6 @@ export function Blur({ radius, mode = "parameter", backdrop, flatten, children, 
 			backdrop={backdrop}
 			flatten={flatten}
 			{...rest}
-		>
-			{children}
-		</RasterEffect>
+		/>
 	);
 }

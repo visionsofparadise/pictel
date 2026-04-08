@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
+import { useCallback, useEffect, useRef, type ComponentProps } from "react"
 import type { Pipeline } from "@huggingface/transformers"
-import { RasterEffect, Map, type MapCompose } from "pictel"
+import { RasterEffect } from "pictel"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
 import { getOrLoadPipeline } from "../registry"
 import { requireWebGPU } from "../webgpu"
@@ -63,22 +63,29 @@ function segmentColor(index: number): [number, number, number] {
 	return palette[index % palette.length]!
 }
 
-interface SegFormerProps extends ComponentPropsWithoutRef<"div"> {
+interface SegFormerProps extends ComponentProps<"div"> {
+	/** Hugging Face model ID for semantic segmentation. Defaults to `Xenova/segformer-b0-finetuned-ade-512-512`. */
 	model?: string
+	/** Model revision. Overridable alongside `model`. */
 	revision?: string
 	backdrop?: boolean
-	compose?: MapCompose
 	flatten?: boolean
-	children?: ReactNode
 }
 
+/**
+ * Automatic semantic segmentation via the `image-segmentation` pipeline. Outputs a color-coded segment map. Uses `Xenova/segformer-b0-finetuned-ade-512-512` by default.
+ *
+ * - `model` — Hugging Face model ID for semantic segmentation. Defaults to `Xenova/segformer-b0-finetuned-ade-512-512`.
+ * - `revision` — Model revision. Overridable alongside `model`.
+ *
+ * @param props
+ * @category Segmentation
+ */
 export function SegFormer({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
 	backdrop,
-	compose = "intersect",
 	flatten,
-	children,
 	...rest
 }: SegFormerProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
@@ -100,10 +107,6 @@ export function SegFormer({
 	)
 
 	return (
-		<Map compose={compose}>
-			<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-				{children}
-			</RasterEffect>
-		</Map>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

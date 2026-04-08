@@ -6,8 +6,13 @@
       "inputs": ["src/**", "./tsconfig.json"],
       "outputs": []
     },
+    "docs": {
+      "dependsOn": [],
+      "inputs": ["src/**", "typedoc.json", "clean-docs.mjs"],
+      "outputs": ["README.md"]
+    },
     "build": {
-      "dependsOn": ["^build", "check"],
+      "dependsOn": ["^build", "check", "docs"],
       "inputs": ["src/**", "./tsconfig.json", "./package.json"],
       "outputs": ["dist/**"]
     },

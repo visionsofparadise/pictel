@@ -1,4 +1,3 @@
-/** Pads an ImageData with transparent-black pixels on each side. */
 export function padImageData(
 	source: ImageData,
 	top: number,

@@ -1,17 +1,22 @@
-import type { ComponentPropsWithoutRef } from "react"
+import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
 import { useContainerSize } from "../../hooks/useContainerSize"
 
-interface LinePatternProps extends ComponentPropsWithoutRef<"div"> {
+interface LinePatternProps extends ComponentProps<"div"> {
+	/** Random seed (reserved for future jitter support). */
 	seed: number
+	/** Distance between lines in pixels. */
 	spacing: number
+	/** Line thickness in pixels. */
 	thickness: number
+	/** Line angle in degrees. 0 is horizontal. Default 0. */
 	angle?: number
+	/** Line color. */
 	color: string
+	/** Optional background fill color. */
 	background?: string
 }
 
-/** Draw parallel lines at a configurable angle. */
 export function drawLinePattern(
 	context: CanvasRenderingContext2D,
 	width: number,
@@ -50,6 +55,19 @@ export function drawLinePattern(
 	context.restore()
 }
 
+/**
+ * Renders a repeating pattern of parallel lines at a configurable angle.
+ *
+ * - `seed` — Random seed (reserved for future jitter support).
+ * - `spacing` — Distance between lines in pixels.
+ * - `thickness` — Line thickness in pixels.
+ * - `angle` — Line angle in degrees. 0 is horizontal. Default 0.
+ * - `color` — Line color.
+ * - `background` — Optional background fill color.
+ *
+ * @param props
+ * @category Generative
+ */
 export function LinePattern({
 	seed: _seed,
 	spacing,

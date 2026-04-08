@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import { useCallback, useEffect, useState } from "react"
 import { RasterEffect } from "../RasterEffect"
 import { lerp } from "./utils/lerp"
@@ -68,15 +68,25 @@ export function applyImageLut(pixels: ImageData, lutImage: ImageData, size: numb
 }
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface ImageLUTProps extends ComponentPropsWithoutRef<"div"> {
+interface ImageLUTProps extends ComponentProps<"div"> {
+	/** URL to the LUT image. */
 	src: string
+	/** Grid dimension of the LUT (e.g., 16 for a 16x16x16 LUT). */
 	size: number
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function ImageLUT({ src, size, backdrop, flatten, children, ...rest }: ImageLUTProps) {
+/**
+ * Applies a 3D LUT from an image file (PNG strip of horizontal slices) for color grading.
+ *
+ * - `src` — URL to the LUT image.
+ * - `size` — Grid dimension of the LUT (e.g., 16 for a 16x16x16 LUT).
+ *
+ * @param props
+ * @category Effects
+ */
+export function ImageLUT({ src, size, backdrop, flatten, ...rest }: ImageLUTProps) {
 	const [lutImage, setLutImage] = useState<ImageData | null>(null)
 
 	useEffect(() => {
@@ -113,8 +123,6 @@ export function ImageLUT({ src, size, backdrop, flatten, children, ...rest }: Im
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../RasterEffect"
 import { luminance } from "./utils/luminance"
@@ -83,14 +83,22 @@ export function applyMappedSharpen(pixels: ImageData, map: ImageData, amount: nu
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface SharpenProps extends ComponentPropsWithoutRef<"div"> {
+interface SharpenProps extends ComponentProps<"div"> {
+	/** Sharpening strength. Higher values produce more aggressive edge enhancement. */
 	amount: number
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Sharpen({ amount, backdrop, flatten, children, ...rest }: SharpenProps) {
+/**
+ * Sharpens the image using a 3x3 unsharp mask convolution.
+ *
+ * - `amount` — Sharpening strength. Higher values produce more aggressive edge enhancement.
+ *
+ * @param props
+ * @category Effects
+ */
+export function Sharpen({ amount, backdrop, flatten, ...rest }: SharpenProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applySharpen(pixels, amount),
 		[amount],
@@ -102,8 +110,6 @@ export function Sharpen({ amount, backdrop, flatten, children, ...rest }: Sharpe
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

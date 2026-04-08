@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useId, useLayoutEffect, useRef, type ComponentProps, type ReactNode } from "react";
 import { useCanvasContext } from "../context/canvas";
 import { captureContentGroup, captureMapGroup, partitionChildren } from "../pipeline/capture";
 import { createPipelineError } from "../pipeline/errors";
@@ -8,12 +8,22 @@ import { checkStackingEscape } from "../pipeline/stacking-check";
 
 export type TargetEffectCallback = (children: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 
-type TargetEffectProps = {
+interface TargetEffectProps extends ComponentProps<"div"> {
+	/** Pixel callback receiving children pixels and optional map pixels. Returns processed ImageData. */
 	effect: TargetEffectCallback;
 	flatten?: boolean;
 	children: ReactNode;
-} & ComponentPropsWithoutRef<"div">;
+}
 
+/**
+ * Single-input pixel effect that captures its children and applies a transformation.
+ * Used when the effect only needs the target content, not the layers behind it.
+ *
+ * - `effect` — Pixel callback receiving children pixels and optional map pixels. Returns processed ImageData.
+ *
+ * @param props
+ * @category Pipeline
+ */
 export function TargetEffect({ effect, flatten, children, style, ...rest }: TargetEffectProps) {
 	const id = useId();
 	const childrenRef = useRef<HTMLDivElement>(null);

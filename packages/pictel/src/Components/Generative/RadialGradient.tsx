@@ -1,12 +1,16 @@
-import type { ComponentPropsWithoutRef } from "react"
+import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
 import type { GradientStop } from "./LinearGradient"
 import { useContainerSize } from "../../hooks/useContainerSize"
 
-interface RadialGradientProps extends ComponentPropsWithoutRef<"div"> {
+interface RadialGradientProps extends ComponentProps<"div"> {
+	/** Array of color stops with `color` and `position` (0-1). */
 	stops: Array<GradientStop>
+	/** Horizontal center as a fraction of width. Default 0.5. */
 	centerX?: number
+	/** Vertical center as a fraction of height. Default 0.5. */
 	centerY?: number
+	/** Gradient radius as a fraction of the smaller dimension. Default 0.5. */
 	radius?: number
 }
 
@@ -40,6 +44,17 @@ export function drawRadialGradient(
 	context.fillRect(0, 0, width, height)
 }
 
+/**
+ * Renders a radial gradient radiating from a center point.
+ *
+ * - `stops` — Array of color stops with `color` and `position` (0-1).
+ * - `centerX` — Horizontal center as a fraction of width. Default 0.5.
+ * - `centerY` — Vertical center as a fraction of height. Default 0.5.
+ * - `radius` — Gradient radius as a fraction of the smaller dimension. Default 0.5.
+ *
+ * @param props
+ * @category Generative
+ */
 export function RadialGradient({
 	stops,
 	centerX = 0.5,

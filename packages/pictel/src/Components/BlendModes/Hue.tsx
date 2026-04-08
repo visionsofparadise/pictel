@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { hslToRgb, rgbToHsl } from "./utils/hsl"
 import { RasterBlend } from "../RasterBlend"
@@ -11,16 +11,20 @@ export const hue: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 	return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]
 }
 
-interface HueProps extends ComponentPropsWithoutRef<"div"> {
+interface HueProps extends ComponentProps<"div"> {
 	opacity?: number
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Hue({ opacity, flatten, children, ...rest }: HueProps) {
+/**
+ * Applies the hue of the blend layer while preserving the saturation and luminosity of the base.
+ * Useful for shifting color tones without affecting brightness or intensity.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function Hue({ opacity, flatten, ...rest }: HueProps) {
 	return (
-		<RasterBlend blend={hue} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={hue} opacity={opacity} flatten={flatten} {...rest} />
 	)
 }

@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
+import type { ComponentProps, CSSProperties, ReactNode } from "react";
 
 export type MapCompose = "intersect" | "add" | "subtract" | "exclude";
 
@@ -9,11 +9,21 @@ const composeToBlendMode: Record<MapCompose, CSSProperties["mixBlendMode"]> = {
 	exclude: "exclusion",
 };
 
-type MapProps = {
+interface MapProps extends ComponentProps<"div"> {
+	/** How multiple maps combine: `"intersect"` (multiply), `"add"` (screen), `"subtract"` (difference), `"exclude"` (exclusion). */
 	compose?: MapCompose;
 	children: ReactNode;
-} & ComponentPropsWithoutRef<"div">;
+}
 
+/**
+ * Marks children as a map input for effects and blend modes. Map luminance
+ * controls where and how strongly the parent effect is applied.
+ *
+ * - `compose` — How multiple maps combine: `"intersect"` (multiply), `"add"` (screen), `"subtract"` (difference), `"exclude"` (exclusion).
+ *
+ * @param props
+ * @category Pipeline
+ */
 export function Map({ compose = "intersect", children, style, ...rest }: MapProps) {
 	return (
 		<div

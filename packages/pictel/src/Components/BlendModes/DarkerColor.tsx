@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentProps } from "react";
 import { RasterBlend } from "../RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 import { luminance } from "./utils/luminance";
@@ -10,16 +10,20 @@ export const darkerColor: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 	return sl < dl ? [sr, sg, sb] : [dr, dg, db];
 };
 
-interface DarkerColorProps extends ComponentPropsWithoutRef<"div"> {
+interface DarkerColorProps extends ComponentProps<"div"> {
 	opacity?: number;
 	flatten?: boolean;
-	children?: ReactNode;
 }
 
-export function DarkerColor({ opacity, flatten, children, ...rest }: DarkerColorProps) {
+/**
+ * Compares the overall luminance of base and blend pixels and keeps the darker one.
+ * Unlike Darken, operates on the whole pixel rather than per-channel.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function DarkerColor({ opacity, flatten, ...rest }: DarkerColorProps) {
 	return (
-		<RasterBlend blend={darkerColor} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={darkerColor} opacity={opacity} flatten={flatten} {...rest} />
 	);
 }

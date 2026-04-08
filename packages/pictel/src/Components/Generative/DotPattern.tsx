@@ -1,16 +1,20 @@
-import type { ComponentPropsWithoutRef } from "react"
+import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
 import { useContainerSize } from "../../hooks/useContainerSize"
 
-interface DotPatternProps extends ComponentPropsWithoutRef<"div"> {
+interface DotPatternProps extends ComponentProps<"div"> {
+	/** Random seed (reserved for future jitter support). */
 	seed: number
+	/** Distance between dot centers in pixels. */
 	spacing: number
+	/** Dot radius in pixels. */
 	radius: number
+	/** Dot fill color. */
 	color: string
+	/** Optional background fill color. */
 	background?: string
 }
 
-/** Draw filled circles on a regular grid. */
 export function drawDotPattern(
 	context: CanvasRenderingContext2D,
 	width: number,
@@ -33,6 +37,18 @@ export function drawDotPattern(
 	}
 }
 
+/**
+ * Renders a repeating dot pattern on a regular grid.
+ *
+ * - `seed` — Random seed (reserved for future jitter support).
+ * - `spacing` — Distance between dot centers in pixels.
+ * - `radius` — Dot radius in pixels.
+ * - `color` — Dot fill color.
+ * - `background` — Optional background fill color.
+ *
+ * @param props
+ * @category Generative
+ */
 export function DotPattern({
 	seed: _seed,
 	spacing,

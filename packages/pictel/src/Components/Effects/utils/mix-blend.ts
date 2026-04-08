@@ -1,10 +1,6 @@
 import { lerp } from "./lerp"
 import { luminance } from "./luminance"
 
-/**
- * Per-pixel lerp between original and result based on map luminance.
- * All three inputs must have identical dimensions.
- */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function mixBlend(
 	original: ImageData,

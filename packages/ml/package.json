@@ -16,7 +16,8 @@
   "scripts": {
     "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
     "unit": "vitest run",
-    "build": "tsup"
+    "build": "tsup",
+    "docs": "typedoc && node clean-docs.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.0.0"

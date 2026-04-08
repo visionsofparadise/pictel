@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../RasterBlend"
 
@@ -12,16 +12,20 @@ export const hardLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	hardLightChannel(sb, db),
 ]
 
-interface HardLightProps extends ComponentPropsWithoutRef<"div"> {
+interface HardLightProps extends ComponentProps<"div"> {
 	opacity?: number
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function HardLight({ opacity, flatten, children, ...rest }: HardLightProps) {
+/**
+ * Multiplies dark blend values and screens light blend values.
+ * Like shining a harsh light on the base layer. Inverse of Overlay.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function HardLight({ opacity, flatten, ...rest }: HardLightProps) {
 	return (
-		<RasterBlend blend={hardLight} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={hardLight} opacity={opacity} flatten={flatten} {...rest} />
 	)
 }

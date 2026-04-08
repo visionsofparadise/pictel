@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import { useCallback, useEffect, useState } from "react"
 import { RasterEffect } from "../RasterEffect"
 import { lerp } from "./utils/lerp"
@@ -100,14 +100,23 @@ export function applyLut(pixels: ImageData, lut: Float32Array, size: number): Im
 }
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface CubeLUTProps extends ComponentPropsWithoutRef<"div"> {
+interface CubeLUTProps extends ComponentProps<"div"> {
+	/** URL to a .cube LUT file. */
 	src: string
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function CubeLUT({ src, backdrop, flatten, children, ...rest }: CubeLUTProps) {
+/**
+ * Applies a .cube 3D LUT file for color grading. Fetches and parses the cube file, then
+ * applies trilinear-interpolated color transformation.
+ *
+ * - `src` — URL to a .cube LUT file.
+ *
+ * @param props
+ * @category Effects
+ */
+export function CubeLUT({ src, backdrop, flatten, ...rest }: CubeLUTProps) {
 	const [lutData, setLutData] = useState<{ lut: Float32Array; size: number } | null>(null)
 
 	useEffect(() => {
@@ -133,8 +142,6 @@ export function CubeLUT({ src, backdrop, flatten, children, ...rest }: CubeLUTPr
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

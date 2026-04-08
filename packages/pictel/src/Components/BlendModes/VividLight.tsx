@@ -1,20 +1,24 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentProps } from "react";
 import { RasterBlend } from "../RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 import { vividLightChannel } from "./utils/vivid-light-channel";
 
 export const vividLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [vividLightChannel(dr, sr), vividLightChannel(dg, sg), vividLightChannel(db, sb)];
 
-interface VividLightProps extends ComponentPropsWithoutRef<"div"> {
+interface VividLightProps extends ComponentProps<"div"> {
 	opacity?: number;
 	flatten?: boolean;
-	children?: ReactNode;
 }
 
-export function VividLight({ opacity, flatten, children, ...rest }: VividLightProps) {
+/**
+ * Combines Color Burn and Color Dodge based on the blend brightness.
+ * Dark blend values increase contrast via burn; light values decrease via dodge.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function VividLight({ opacity, flatten, ...rest }: VividLightProps) {
 	return (
-		<RasterBlend blend={vividLight} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={vividLight} opacity={opacity} flatten={flatten} {...rest} />
 	);
 }

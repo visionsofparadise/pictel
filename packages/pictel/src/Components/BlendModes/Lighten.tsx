@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../RasterBlend"
 
@@ -8,16 +8,20 @@ export const lighten: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	Math.max(sb, db),
 ]
 
-interface LightenProps extends ComponentPropsWithoutRef<"div"> {
+interface LightenProps extends ComponentProps<"div"> {
 	opacity?: number
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Lighten({ opacity, flatten, children, ...rest }: LightenProps) {
+/**
+ * Keeps the lighter of the base or blend value for each channel.
+ * Useful for removing black backgrounds or combining light elements.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function Lighten({ opacity, flatten, ...rest }: LightenProps) {
 	return (
-		<RasterBlend blend={lighten} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={lighten} opacity={opacity} flatten={flatten} {...rest} />
 	)
 }

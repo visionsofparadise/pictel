@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { hslToRgb, rgbToHsl } from "./utils/hsl"
 import { RasterBlend } from "../RasterBlend"
@@ -11,16 +11,20 @@ export const luminosity: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 	return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]
 }
 
-interface LuminosityProps extends ComponentPropsWithoutRef<"div"> {
+interface LuminosityProps extends ComponentProps<"div"> {
 	opacity?: number
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Luminosity({ opacity, flatten, children, ...rest }: LuminosityProps) {
+/**
+ * Applies the luminosity of the blend layer while preserving the hue and saturation of the base.
+ * Inverse of Color blend mode. Useful for applying tonal values from one image to another.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function Luminosity({ opacity, flatten, ...rest }: LuminosityProps) {
 	return (
-		<RasterBlend blend={luminosity} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={luminosity} opacity={opacity} flatten={flatten} {...rest} />
 	)
 }

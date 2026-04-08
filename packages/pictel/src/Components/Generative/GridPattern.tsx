@@ -1,17 +1,22 @@
-import type { ComponentPropsWithoutRef } from "react"
+import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
 import { useContainerSize } from "../../hooks/useContainerSize"
 
-interface GridPatternProps extends ComponentPropsWithoutRef<"div"> {
+interface GridPatternProps extends ComponentProps<"div"> {
+	/** Random seed (reserved for future jitter support). */
 	seed: number
+	/** Horizontal spacing between vertical lines in pixels. */
 	spacingX: number
+	/** Vertical spacing between horizontal lines. Defaults to `spacingX`. */
 	spacingY?: number
+	/** Line thickness in pixels. */
 	thickness: number
+	/** Line color. */
 	color: string
+	/** Optional background fill color. */
 	background?: string
 }
 
-/** Draw vertical and horizontal grid lines. */
 export function drawGridPattern(
 	context: CanvasRenderingContext2D,
 	width: number,
@@ -43,6 +48,19 @@ export function drawGridPattern(
 	}
 }
 
+/**
+ * Renders a repeating grid of horizontal and vertical lines.
+ *
+ * - `seed` — Random seed (reserved for future jitter support).
+ * - `spacingX` — Horizontal spacing between vertical lines in pixels.
+ * - `spacingY` — Vertical spacing between horizontal lines. Defaults to `spacingX`.
+ * - `thickness` — Line thickness in pixels.
+ * - `color` — Line color.
+ * - `background` — Optional background fill color.
+ *
+ * @param props
+ * @category Generative
+ */
 export function GridPattern({
 	seed: _seed,
 	spacingX,

@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import { useCallback } from "react"
 import type { EffectResult } from "../../pipeline/raster"
 import { RasterEffect } from "../RasterEffect"
@@ -180,25 +180,37 @@ export function applyDropShadow(
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface DropShadowProps extends ComponentPropsWithoutRef<"div"> {
+interface DropShadowProps extends ComponentProps<"div"> {
+	/** Horizontal shadow offset in pixels. */
 	offsetX: number
+	/** Vertical shadow offset in pixels. */
 	offsetY: number
+	/** Shadow blur radius in pixels. */
 	blurRadius: number
+	/** Shadow color as hex (`#rgb`, `#rrggbb`, `#rrggbbaa`) or `rgb()`/`rgba()`. */
 	color: string
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function DropShadow({ offsetX, offsetY, blurRadius, color, backdrop, flatten, children, ...rest }: DropShadowProps) {
+/**
+ * Adds a drop shadow behind the content at a specified offset with blur and color.
+ *
+ * - `offsetX` — Horizontal shadow offset in pixels.
+ * - `offsetY` — Vertical shadow offset in pixels.
+ * - `blurRadius` — Shadow blur radius in pixels.
+ * - `color` — Shadow color as hex (`#rgb`, `#rrggbb`, `#rrggbbaa`) or `rgb()`/`rgba()`.
+ *
+ * @param props
+ * @category Effects
+ */
+export function DropShadow({ offsetX, offsetY, blurRadius, color, backdrop, flatten, ...rest }: DropShadowProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyDropShadow(pixels, offsetX, offsetY, blurRadius, color),
 		[offsetX, offsetY, blurRadius, color],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

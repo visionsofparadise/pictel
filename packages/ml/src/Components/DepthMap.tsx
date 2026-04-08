@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
+import { useCallback, useEffect, useRef, type ComponentProps } from "react"
 import type { Pipeline } from "@huggingface/transformers"
-import { RasterEffect, Map, type MapCompose } from "pictel"
+import { RasterEffect } from "pictel"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
 import { getOrLoadPipeline } from "../registry"
 import { requireWebGPU } from "../webgpu"
@@ -17,22 +17,29 @@ export async function estimateDepth(pixels: ImageData, pipe: Pipeline): Promise<
 }
 /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 
-interface DepthMapProps extends ComponentPropsWithoutRef<"div"> {
+interface DepthMapProps extends ComponentProps<"div"> {
+	/** Hugging Face model ID for depth estimation. Defaults to `onnx-community/depth-anything-v2-small`. */
 	model?: string
+	/** Model revision hash. Overridable alongside `model`. */
 	revision?: string
 	backdrop?: boolean
-	compose?: MapCompose
 	flatten?: boolean
-	children?: ReactNode
 }
 
+/**
+ * Produces a grayscale depth map from child content via the `depth-estimation` pipeline. Uses `onnx-community/depth-anything-v2-small` by default.
+ *
+ * - `model` — Hugging Face model ID for depth estimation. Defaults to `onnx-community/depth-anything-v2-small`.
+ * - `revision` — Model revision hash. Overridable alongside `model`.
+ *
+ * @param props
+ * @category Analysis
+ */
 export function DepthMap({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
 	backdrop,
-	compose = "intersect",
 	flatten,
-	children,
 	...rest
 }: DepthMapProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
@@ -54,10 +61,6 @@ export function DepthMap({
 	)
 
 	return (
-		<Map compose={compose}>
-			<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-				{children}
-			</RasterEffect>
-		</Map>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

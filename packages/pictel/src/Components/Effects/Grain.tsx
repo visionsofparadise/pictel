@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../RasterEffect"
 
@@ -36,23 +36,31 @@ export function applyGrain(pixels: ImageData, intensity: number, seed: number): 
 }
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface GrainProps extends ComponentPropsWithoutRef<"div"> {
+interface GrainProps extends ComponentProps<"div"> {
+	/** Maximum noise amplitude in pixel values (0-255 range). */
 	intensity: number
+	/** Random seed for reproducible grain patterns. */
 	seed: number
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Grain({ intensity, seed, backdrop, flatten, children, ...rest }: GrainProps) {
+/**
+ * Adds deterministic monochromatic film grain noise to the image.
+ *
+ * - `intensity` — Maximum noise amplitude in pixel values (0-255 range).
+ * - `seed` — Random seed for reproducible grain patterns.
+ *
+ * @param props
+ * @category Effects
+ */
+export function Grain({ intensity, seed, backdrop, flatten, ...rest }: GrainProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyGrain(pixels, intensity, seed),
 		[intensity, seed],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

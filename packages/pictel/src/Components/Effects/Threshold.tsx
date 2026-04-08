@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../RasterEffect"
 import { luminance } from "./utils/luminance"
@@ -41,14 +41,22 @@ export function applyMappedThreshold(pixels: ImageData, map: ImageData, level: n
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface ThresholdProps extends ComponentPropsWithoutRef<"div"> {
+interface ThresholdProps extends ComponentProps<"div"> {
+	/** Luminance threshold (0-255). Pixels at or above become white. */
 	threshold: number
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Threshold({ threshold, backdrop, flatten, children, ...rest }: ThresholdProps) {
+/**
+ * Converts each pixel to pure black or white based on a luminance threshold.
+ *
+ * - `threshold` — Luminance threshold (0-255). Pixels at or above become white.
+ *
+ * @param props
+ * @category Effects
+ */
+export function Threshold({ threshold, backdrop, flatten, ...rest }: ThresholdProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyThreshold(pixels, threshold),
 		[threshold],
@@ -60,8 +68,6 @@ export function Threshold({ threshold, backdrop, flatten, children, ...rest }: T
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

@@ -1,10 +1,9 @@
-import type { ComponentPropsWithoutRef } from "react"
+import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
 import alea from "alea"
 import { createNoise2D } from "simplex-noise"
 import { useContainerSize } from "../../hooks/useContainerSize"
 
-/** Fractal Brownian motion — layers multiple octaves of noise for natural-looking variation. */
 export function fbm(
 	noise2D: (x: number, y: number) => number,
 	x: number,
@@ -28,18 +27,36 @@ export function fbm(
 	return (value / maxAmplitude + 1) / 2
 }
 
-interface ProceduralNoiseProps extends ComponentPropsWithoutRef<"div"> {
+interface ProceduralNoiseProps extends ComponentProps<"div"> {
+	/** Noise algorithm. `"simplex"` or `"perlin"` (uses simplex with seed offset). */
 	type: "simplex" | "perlin"
+	/** Random seed for reproducible patterns. */
 	seed: number
+	/** Frequency scale. Smaller values produce larger features. Default 0.01. */
 	scale?: number
+	/** Number of noise layers for fBm detail. Default 1. */
 	octaves?: number
+	/** Amplitude falloff per octave. Default 0.5. */
 	persistence?: number
 	// Named "tint" instead of "color" to avoid conflict with the HTML "color"
-	// attribute inherited from ComponentPropsWithoutRef<'div'>.
-	/** RGB tint values, each in [0, 255]. Default: monochrome (grayscale). */
+	// attribute inherited from ComponentProps<'div'>.
+	/** RGB tint [r, g, b] (0-255). Default: grayscale. */
 	tint?: [number, number, number]
 }
 
+/**
+ * Generates procedural noise textures using simplex noise with fractal Brownian motion.
+ *
+ * - `type` — Noise algorithm. `"simplex"` or `"perlin"` (uses simplex with seed offset).
+ * - `seed` — Random seed for reproducible patterns.
+ * - `scale` — Frequency scale. Smaller values produce larger features. Default 0.01.
+ * - `octaves` — Number of noise layers for fBm detail. Default 1.
+ * - `persistence` — Amplitude falloff per octave. Default 0.5.
+ * - `tint` — RGB tint [r, g, b] (0-255). Default: grayscale.
+ *
+ * @param props
+ * @category Generative
+ */
 export function ProceduralNoise({
 	type,
 	seed,

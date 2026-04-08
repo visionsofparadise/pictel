@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../RasterBlend"
 
@@ -8,16 +8,20 @@ export const difference: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	Math.abs(sb - db),
 ]
 
-interface DifferenceProps extends ComponentPropsWithoutRef<"div"> {
+interface DifferenceProps extends ComponentProps<"div"> {
 	opacity?: number
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Difference({ opacity, flatten, children, ...rest }: DifferenceProps) {
+/**
+ * Subtracts the darker color from the lighter for each channel.
+ * Identical layers produce black; useful for comparing or creating inverted effects.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function Difference({ opacity, flatten, ...rest }: DifferenceProps) {
 	return (
-		<RasterBlend blend={difference} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={difference} opacity={opacity} flatten={flatten} {...rest} />
 	)
 }

@@ -1,10 +1,9 @@
-import { type CSSProperties, type ComponentPropsWithoutRef, type ReactNode, Children, isValidElement } from "react";
+import { type CSSProperties, type ComponentProps, Children, isValidElement } from "react";
 import { useMode } from "../hooks/useMode";
 import { useSearchParam } from "../hooks/useSearchParam";
 import { Canvas } from "./Canvas";
 
-interface ViewerProps extends ComponentPropsWithoutRef<"div"> {
-	children?: ReactNode;
+interface ViewerProps extends ComponentProps<"div"> {
 }
 
 const panelStyle: CSSProperties = {
@@ -37,6 +36,13 @@ const selectedItemStyle: CSSProperties = {
 	fontWeight: 600,
 };
 
+/**
+ * Development preview shell that renders one or more Canvas components.
+ * Provides a sidebar for selecting between canvases when multiple are present.
+ *
+ * @param props
+ * @category Layout
+ */
 export function Viewer({ children, style, ...rest }: ViewerProps) {
 	const selectedCanvas = useSearchParam("canvas", "");
 	const mode = useMode();

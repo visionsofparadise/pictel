@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type CSSProperties, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useCallback, useRef, useState, type CSSProperties, type ComponentProps } from "react";
 import { CanvasContext, type CanvasContextValue, type CanvasDimensions } from "../context/canvas";
 import { useContainerSize } from "../hooks/useContainerSize";
 import { useDomSnapshot } from "../hooks/useDomSnapshot";
@@ -7,12 +7,23 @@ import type { PipelineError } from "../pipeline/errors";
 import { ErrorOverlay } from "./ErrorOverlay";
 import { Frame } from "./Frame";
 
-interface CanvasProps extends ComponentPropsWithoutRef<"div"> {
+interface CanvasProps extends ComponentProps<"div"> {
+	/** Display name shown in the Viewer sidebar. Used as the `aria-label`. */
 	name?: string;
+	/** Output dimensions for rasterization. Either fixed `{ width, height }` or reference-based `{ reference: { width, height } }`. */
 	dimensions: CanvasDimensions;
-	children?: ReactNode;
 }
 
+/**
+ * Root compositing surface. Contains layers, effects, and blend modes as children.
+ * Each Canvas is an independent composition with its own pixel pipeline.
+ *
+ * - `name` — Display name shown in the Viewer sidebar. Used as the `aria-label`.
+ * - `dimensions` — Output dimensions for rasterization. Either fixed `{ width, height }` or reference-based `{ reference: { width, height } }`.
+ *
+ * @param props
+ * @category Layout
+ */
 export function Canvas({ name, dimensions, children, style, ...rest }: CanvasProps) {
 	const mode = useMode();
 	const { ref, width, height } = useContainerSize();

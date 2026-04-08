@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../RasterEffect"
 
@@ -24,28 +24,29 @@ export function applyChannelMix(pixels: ImageData, matrix: Array<Array<number>>)
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface ChannelMixerProps extends ComponentPropsWithoutRef<"div"> {
-	/**
-	 * 3x3 channel mixing matrix: `matrix[outChannel][inChannel]`.
-	 *
-	 * Consumer must stabilize the matrix reference with `useMemo` since a new
-	 * array literal on every render will invalidate the effect callback.
-	 */
+interface ChannelMixerProps extends ComponentProps<"div"> {
+	/** 3x3 array where `matrix[outChannel][inChannel]` is the weight. Stabilize with `useMemo`. */
 	matrix: Array<Array<number>>
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function ChannelMixer({ matrix, backdrop, flatten, children, ...rest }: ChannelMixerProps) {
+/**
+ * Remaps RGB channels through a 3x3 mixing matrix. Each output channel is a
+ * weighted sum of the input channels.
+ *
+ * - `matrix` — 3x3 array where `matrix[outChannel][inChannel]` is the weight. Stabilize with `useMemo`.
+ *
+ * @param props
+ * @category Effects
+ */
+export function ChannelMixer({ matrix, backdrop, flatten, ...rest }: ChannelMixerProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyChannelMix(pixels, matrix),
 		[matrix],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

@@ -1,4 +1,4 @@
-import { useCallback, type ComponentPropsWithoutRef, type ReactNode } from "react"
+import { useCallback, type ComponentProps } from "react"
 import { RasterEffect } from "../RasterEffect"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -40,20 +40,30 @@ export function applyDisplacement(
 }
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface DisplacementMapProps extends ComponentPropsWithoutRef<"div"> {
+interface DisplacementMapProps extends ComponentProps<"div"> {
+	/** Maximum horizontal displacement in pixels. Default 20. */
 	scaleX?: number
+	/** Maximum vertical displacement in pixels. Default 20. */
 	scaleY?: number
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
+/**
+ * Displaces pixels using a Map child's red and green channels for X and Y offset.
+ * Requires a `<Map>` child providing the displacement source.
+ *
+ * - `scaleX` — Maximum horizontal displacement in pixels. Default 20.
+ * - `scaleY` — Maximum vertical displacement in pixels. Default 20.
+ *
+ * @param props
+ * @category Effects
+ */
 export function DisplacementMap({
 	scaleX = 20,
 	scaleY = 20,
 	backdrop,
 	flatten,
-	children,
 	...rest
 }: DisplacementMapProps) {
 	const effect = useCallback(
@@ -67,8 +77,6 @@ export function DisplacementMap({
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

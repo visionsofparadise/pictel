@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../RasterEffect"
 import { lerp } from "./utils/lerp"
@@ -29,22 +29,28 @@ export function applySepia(pixels: ImageData, amount: number): ImageData {
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface SepiaProps extends ComponentPropsWithoutRef<"div"> {
+interface SepiaProps extends ComponentProps<"div"> {
+	/** Sepia intensity. 0 is unchanged, 1 is fully sepia. Default 1. */
 	amount?: number
 	backdrop?: boolean
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function Sepia({ amount = 1, backdrop, flatten, children, ...rest }: SepiaProps) {
+/**
+ * Applies a warm sepia tone effect.
+ *
+ * - `amount` — Sepia intensity. 0 is unchanged, 1 is fully sepia. Default 1.
+ *
+ * @param props
+ * @category Effects
+ */
+export function Sepia({ amount = 1, backdrop, flatten, ...rest }: SepiaProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applySepia(pixels, amount),
 		[amount],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest}>
-			{children}
-		</RasterEffect>
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
 	)
 }

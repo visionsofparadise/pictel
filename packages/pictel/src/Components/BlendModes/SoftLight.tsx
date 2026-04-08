@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../RasterBlend"
 
@@ -18,16 +18,20 @@ export const softLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	softLightChannel(sb, db),
 ]
 
-interface SoftLightProps extends ComponentPropsWithoutRef<"div"> {
+interface SoftLightProps extends ComponentProps<"div"> {
 	opacity?: number
 	flatten?: boolean
-	children?: ReactNode
 }
 
-export function SoftLight({ opacity, flatten, children, ...rest }: SoftLightProps) {
+/**
+ * Gently darkens or lightens depending on the blend value.
+ * Like shining a diffused light on the base. Subtler than Overlay or Hard Light.
+ *
+ * @param props
+ * @category Blend Modes
+ */
+export function SoftLight({ opacity, flatten, ...rest }: SoftLightProps) {
 	return (
-		<RasterBlend blend={softLight} opacity={opacity} flatten={flatten} {...rest}>
-			{children}
-		</RasterBlend>
+		<RasterBlend blend={softLight} opacity={opacity} flatten={flatten} {...rest} />
 	)
 }

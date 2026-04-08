@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useId, useLayoutEffect, useRef, type ComponentProps, type ReactNode } from "react";
 import { useCanvasContext } from "../context/canvas";
 import { captureBehind, captureContentGroup, captureMapGroup, partitionChildren } from "../pipeline/capture";
 import { createPipelineError } from "../pipeline/errors";
@@ -10,12 +10,22 @@ import { checkStackingEscape } from "../pipeline/stacking-check";
 
 export type CompositeEffectCallback = (self: ImageData, behind: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 
-type CompositeEffectProps = {
+interface CompositeEffectProps extends ComponentProps<"div"> {
+	/** Pixel callback receiving self pixels, behind pixels, and optional map pixels. Returns processed ImageData. */
 	effect: CompositeEffectCallback;
 	flatten?: boolean;
 	children: ReactNode;
-} & ComponentPropsWithoutRef<"div">;
+}
 
+/**
+ * Two-input pixel effect that composites its children against the layers behind them.
+ * Captures both self and behind pixels, applies an effect callback, and renders the result.
+ *
+ * - `effect` — Pixel callback receiving self pixels, behind pixels, and optional map pixels. Returns processed ImageData.
+ *
+ * @param props
+ * @category Pipeline
+ */
 export function CompositeEffect({ effect, flatten, children, style, ...rest }: CompositeEffectProps) {
 	const id = useId();
 	const childrenRef = useRef<HTMLDivElement>(null);

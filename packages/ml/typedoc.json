@@ -1,0 +1,21 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["./src/index.ts"],
+  "tsconfig": "./tsconfig.json",
+  "plugin": ["typedoc-plugin-markdown"],
+  "out": ".",
+  "cleanOutputDir": false,
+  "router": "module",
+  "entryFileName": "README",
+  "mergeReadme": true,
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "excludeNotDocumented": true,
+  "excludeInternal": true,
+  "categorizeByGroup": false,
+  "categoryOrder": ["Segmentation", "Enhancement", "Analysis", "Utilities", "*"],
+  "defaultCategory": "Other",
+  "validation": { "notExported": false },
+  "parametersFormat": "table",
+  "interfacePropertiesFormat": "table"
+}

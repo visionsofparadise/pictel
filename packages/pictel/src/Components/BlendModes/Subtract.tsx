@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { RasterBlend } from "../RasterBlend";
+import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 
 export const subtract: BlendFormula = (sr, sg, sb, dr, dg, db) => [Math.max(0, dr - sr), Math.max(0, dg - sg), Math.max(0, db - sb)];

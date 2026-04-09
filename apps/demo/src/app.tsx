@@ -1,357 +1,186 @@
-import {
-  Blur,
-  Brightness,
-  Canvas,
-  ColorGrade,
-  Contrast,
-  DisplacementMap,
-  Duotone,
-  Grayscale,
-  Map,
-  Multiply,
-  ProceduralNoise,
-  Screen,
-  Viewer,
-} from "pictel";
-import { DepthMap, RemoveBackground, Sam2, SegFormer, Upscale } from "@pictel/ml";
+import { useEffect, useState } from "react";
+import { codeToHtml } from "shiki";
+import TiltShift from "./demos/TiltShift";
+import tiltShiftSource from "./demos/TiltShift.tsx?raw";
+import cityPhoto from "../assets/city overview.jpg";
 
-const sampleImage = "https://picsum.photos/id/237/256/256";
+function CodeBlock({ source }: { source: string }) {
+  const [html, setHtml] = useState("");
+
+  useEffect(() => {
+    void codeToHtml(source, {
+      lang: "tsx",
+      theme: "github-dark",
+    }).then(setHtml);
+  }, [source]);
+
+  return (
+    <div
+      style={{
+        borderRadius: 4,
+        overflow: "auto",
+        maxHeight: 400,
+        fontSize: 13,
+        lineHeight: 1.5,
+        tabSize: 2,
+      }}
+      dangerouslySetInnerHTML={html ? { __html: html } : undefined}
+    >
+      {html ? undefined : (
+        <pre
+          style={{
+            backgroundColor: "#1a1a1a",
+            padding: 16,
+            margin: 0,
+            color: "#ccc",
+            fontFamily: "monospace",
+          }}
+        >
+          {source}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+const demos = [
+  {
+    name: "Tilt-Shift",
+    description:
+      "Depth-map-driven blur with contrast-adjusted depth map and saturation boost. Uses parameter-mode Blur so the kernel varies per pixel based on estimated depth.",
+    original: cityPhoto,
+    component: TiltShift,
+    source: tiltShiftSource,
+  },
+];
 
 export function App() {
   return (
-    <Viewer>
-      <Canvas
-        name="Reference Demo"
-        dimensions={{ reference: { width: 1080, height: 1080 } }}
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#111",
+        color: "#eee",
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        padding: "48px 32px",
+        maxWidth: 1200,
+        margin: "0 auto",
+      }}
+    >
+      <h1
+        style={{
+          fontSize: 36,
+          fontWeight: 600,
+          marginBottom: 12,
+          letterSpacing: "-0.02em",
+        }}
       >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-            height: "100%",
-            gap: 24,
-          }}
-        >
-          <h1 style={{ color: "white", fontSize: 72 }}>Pictel</h1>
-          <Multiply>
+        Pictel
+      </h1>
+      <p
+        style={{
+          fontSize: 16,
+          color: "#888",
+          marginBottom: 48,
+          maxWidth: 600,
+        }}
+      >
+        Effect gallery. Each row shows the original image, the processed result,
+        and the composition source code.
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 64 }}>
+        {demos.map((demo) => (
+          <div key={demo.name}>
+            <h2
+              style={{
+                fontSize: 22,
+                fontWeight: 500,
+                marginBottom: 6,
+              }}
+            >
+              {demo.name}
+            </h2>
+            <p
+              style={{
+                fontSize: 14,
+                color: "#888",
+                marginBottom: 20,
+                maxWidth: 700,
+              }}
+            >
+              {demo.description}
+            </p>
+
             <div
               style={{
-                width: "100%",
-                height: 200,
-                backgroundColor: "coral",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 20,
+                marginBottom: 20,
               }}
-            />
-          </Multiply>
-          <Blur radius={4}>
-            <p style={{ color: "white", fontSize: 24 }}>Blurred text</p>
-          </Blur>
-        </div>
-      </Canvas>
-      <Canvas name="Aspect Ratio Demo" dimensions={{ aspectRatio: 16 / 9 }}>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-            height: "100%",
-            gap: 24,
-          }}
-        >
-          <Grayscale>
-            <h2 style={{ color: "white", fontSize: 48 }}>16:9 Canvas</h2>
-          </Grayscale>
-          <Screen>
-            <div
-              style={{
-                width: "100%",
-                height: 120,
-                backgroundColor: "royalblue",
-              }}
-            />
-          </Screen>
-        </div>
-      </Canvas>
-      <Canvas
-        name="ML Effects Demo"
-        dimensions={{ reference: { width: 1080, height: 1080 } }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 24,
-            padding: 24,
-            width: "100%",
-            height: "100%",
-          }}
-        >
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>RemoveBackground</p>
-            <RemoveBackground>
-              <img src={sampleImage} crossOrigin="anonymous" />
-            </RemoveBackground>
-          </div>
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>DepthMap</p>
-            <DepthMap>
-              <img src={sampleImage} crossOrigin="anonymous" />
-            </DepthMap>
-          </div>
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>Sam2</p>
-            <Sam2 points={[{ x: 128, y: 128 }]}>
-              <img src={sampleImage} crossOrigin="anonymous" />
-            </Sam2>
-          </div>
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>SegFormer</p>
-            <SegFormer>
-              <img src={sampleImage} crossOrigin="anonymous" />
-            </SegFormer>
-          </div>
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>Upscale</p>
-            <Upscale>
-              <img
-                src={sampleImage}
-                crossOrigin="anonymous"
-                style={{ width: 128, height: 128 }}
-              />
-            </Upscale>
-          </div>
-        </div>
-      </Canvas>
-      <Canvas
-        name="Blur Modes Demo"
-        dimensions={{ reference: { width: 1080, height: 1080 } }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 24,
-            padding: 24,
-            width: "100%",
-            height: "100%",
-          }}
-        >
-          {/* 1. Uniform raster blur — blurs children */}
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>Uniform Raster Blur</p>
-            <Blur radius={10}>
-              <img src={sampleImage} crossOrigin="anonymous" />
-            </Blur>
-          </div>
+            >
+              {/* Original */}
+              <div>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#666",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    marginBottom: 8,
+                  }}
+                >
+                  Original
+                </p>
+                <img
+                  src={demo.original}
+                  style={{
+                    width: "100%",
+                    borderRadius: 4,
+                    display: "block",
+                  }}
+                />
+              </div>
 
-          {/* 2. Uniform backdrop blur — blurs what's behind */}
-          <div style={{ position: "relative" }}>
-            <p style={{ color: "white", marginBottom: 8 }}>Uniform Backdrop Blur</p>
-            <img src={sampleImage} crossOrigin="anonymous" />
-            <Blur
-              radius={10}
-              style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: "50%" }}
-            />
-          </div>
+              {/* After */}
+              <div>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#666",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    marginBottom: 8,
+                  }}
+                >
+                  After
+                </p>
+                <div style={{ borderRadius: 4, overflow: "hidden" }}>
+                  <demo.component />
+                </div>
+              </div>
+            </div>
 
-          {/* 3. Map-driven parameter blur — variable radius per map luminance */}
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>Map Parameter Blur</p>
-            <Blur radius={20}>
-              <Map>
-                <div
-                  style={{
-                    width: 256,
-                    height: 256,
-                    background: "linear-gradient(to right, black, white)",
-                  }}
-                />
-              </Map>
-              <img src={sampleImage} crossOrigin="anonymous" />
-            </Blur>
+            {/* Code */}
+            <div>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "#666",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  marginBottom: 8,
+                }}
+              >
+                Code
+              </p>
+              <CodeBlock source={demo.source} />
+            </div>
           </div>
-
-          {/* 4. Map-driven mix blur — uniform blur blended with original per map */}
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>Map Mix Blur</p>
-            <Blur radius={20} mode="mix">
-              <Map>
-                <div
-                  style={{
-                    width: 256,
-                    height: 256,
-                    background: "linear-gradient(to right, black, white)",
-                  }}
-                />
-              </Map>
-              <img src={sampleImage} crossOrigin="anonymous" />
-            </Blur>
-          </div>
-        </div>
-      </Canvas>
-      <Canvas
-        name="Backdrop Duotone Demo"
-        dimensions={{ reference: { width: 1080, height: 1080 } }}
-      >
-        <div
-          style={{
-            position: "relative",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 24,
-          }}
-        >
-          <img
-            src={sampleImage}
-            crossOrigin="anonymous"
-            style={{ width: 400, height: 400 }}
-          />
-          <Duotone
-            dark={[20, 0, 80]}
-            light={[255, 200, 50]}
-            backdrop
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              width: "100%",
-              height: "50%",
-            }}
-          />
-        </div>
-      </Canvas>
-      <Canvas
-        name="Map-driven ColorGrade Demo"
-        dimensions={{ reference: { width: 1080, height: 1080 } }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-            height: "100%",
-            gap: 24,
-          }}
-        >
-          <p style={{ color: "white", marginBottom: 8 }}>
-            SegFormer mask controlling ColorGrade
-          </p>
-          <ColorGrade temperature={1} saturation={1.8}>
-            <Map>
-              <SegFormer>
-                <img src={sampleImage} crossOrigin="anonymous" />
-              </SegFormer>
-            </Map>
-            <img src={sampleImage} crossOrigin="anonymous" />
-          </ColorGrade>
-        </div>
-      </Canvas>
-      <Canvas
-        name="Pixel-Level Filters Demo"
-        dimensions={{ reference: { width: 1080, height: 1080 } }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 24,
-            padding: 24,
-            width: "100%",
-            height: "100%",
-          }}
-        >
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>
-              Brightness (1.5x)
-            </p>
-            <Brightness amount={1.5}>
-              <img src={sampleImage} crossOrigin="anonymous" />
-            </Brightness>
-          </div>
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>Contrast (1.8x)</p>
-            <Contrast amount={1.8}>
-              <img src={sampleImage} crossOrigin="anonymous" />
-            </Contrast>
-          </div>
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>
-              Brightness + Map
-            </p>
-            <Brightness amount={2}>
-              <Map>
-                <div
-                  style={{
-                    width: 256,
-                    height: 256,
-                    background: "linear-gradient(to bottom, black, white)",
-                  }}
-                />
-              </Map>
-              <img src={sampleImage} crossOrigin="anonymous" />
-            </Brightness>
-          </div>
-          <div>
-            <p style={{ color: "white", marginBottom: 8 }}>
-              Contrast + Map
-            </p>
-            <Contrast amount={2}>
-              <Map>
-                <div
-                  style={{
-                    width: 256,
-                    height: 256,
-                    background:
-                      "radial-gradient(circle, white, black)",
-                  }}
-                />
-              </Map>
-              <img src={sampleImage} crossOrigin="anonymous" />
-            </Contrast>
-          </div>
-        </div>
-      </Canvas>
-      <Canvas
-        name="DisplacementMap Demo"
-        dimensions={{ reference: { width: 1080, height: 1080 } }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-            height: "100%",
-            gap: 24,
-          }}
-        >
-          <p style={{ color: "white", marginBottom: 8 }}>
-            DisplacementMap with noise Map child
-          </p>
-          <DisplacementMap scaleX={30} scaleY={30}>
-            <Map>
-              <ProceduralNoise
-                type="simplex"
-                seed={42}
-                style={{ width: 256, height: 256 }}
-                scale={0.02}
-              />
-            </Map>
-            <img src={sampleImage} crossOrigin="anonymous" />
-          </DisplacementMap>
-        </div>
-      </Canvas>
-    </Viewer>
+        ))}
+      </div>
+    </div>
   );
 }

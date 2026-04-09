@@ -4,6 +4,8 @@ import { useSearchParam } from "../hooks/useSearchParam";
 import { Canvas } from "./Canvas";
 
 interface ViewerProps extends ComponentProps<"div"> {
+	/** Overrides URL-based mode detection for all child canvases. */
+	mode?: string;
 }
 
 const panelStyle: CSSProperties = {
@@ -43,9 +45,10 @@ const selectedItemStyle: CSSProperties = {
  * @param props
  * @category Layout
  */
-export function Viewer({ children, style, ...rest }: ViewerProps) {
+export function Viewer({ children, mode: modeProp, style, ...rest }: ViewerProps) {
 	const selectedCanvas = useSearchParam("canvas", "");
-	const mode = useMode();
+	const urlMode = useMode();
+	const mode = modeProp ?? urlMode;
 	const isPreview = mode === "preview";
 
 	const canvasElements: Array<{ element: React.ReactElement; name: string }> = [];

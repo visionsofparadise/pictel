@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 import { useCallback, useEffect, useState } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { RasterEffect } from "../Pipeline/RasterEffect"
 import { lerp } from "./utils/lerp"
 
 export function parseCubeFile(content: string): { lut: Float32Array; size: number } {

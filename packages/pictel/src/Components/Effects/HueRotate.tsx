@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react"
 import { useCallback } from "react"
 import { hslToRgb, rgbToHsl } from "../BlendModes/utils/hsl"
-import { RasterEffect } from "../RasterEffect"
+import { RasterEffect } from "../Pipeline/RasterEffect"
 import { luminance } from "./utils/luminance"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */

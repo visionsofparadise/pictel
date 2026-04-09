@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
-import { RasterBlend } from "../RasterBlend"
+import { RasterBlend } from "../Pipeline/RasterBlend"
 
 function softLightD(x: number): number {
 	return x <= 0.25 ? ((16 * x - 12) * x + 4) * x : Math.sqrt(x)

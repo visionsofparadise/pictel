@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { colorBurn as colorBurnChannel } from "./utils/color-burn"
-import { RasterBlend } from "../RasterBlend"
+import { RasterBlend } from "../Pipeline/RasterBlend"
 
 export const colorBurn: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	colorBurnChannel(dr, sr),

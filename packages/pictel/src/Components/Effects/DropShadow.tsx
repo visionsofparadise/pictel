@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react"
 import { useCallback } from "react"
-import type { EffectResult } from "../../pipeline/raster"
-import { RasterEffect } from "../RasterEffect"
+import type { EffectResult } from "../utils/raster"
+import { RasterEffect } from "../Pipeline/RasterEffect"
 import { applyUniformBlur } from "./Blur"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */

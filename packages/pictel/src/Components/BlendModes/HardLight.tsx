@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
-import { RasterBlend } from "../RasterBlend"
+import { RasterBlend } from "../Pipeline/RasterBlend"
 
 function hardLightChannel(sr: number, dr: number): number {
 	return sr <= 0.5 ? 2 * sr * dr : 1 - 2 * (1 - sr) * (1 - dr)

@@ -1,7 +1,7 @@
-import type { EffectResult } from "../../pipeline/raster";
-import { normalizeResult } from "../../pipeline/raster";
-import { mixBlend } from "../Effects/utils/mix-blend";
-import { padImageData } from "../Effects/utils/pad-image-data";
+import type { EffectResult } from "../../utils/raster";
+import { normalizeResult } from "../../utils/raster";
+import { mixBlend } from "../../Effects/utils/mix-blend";
+import { padImageData } from "../../Effects/utils/pad-image-data";
 import type { RasterEffectCallback } from "../RasterEffect";
 
 function applyMixBlend(

@@ -1,5 +1,5 @@
 import { useCallback, type ComponentProps } from "react";
-import type { EffectResult } from "../pipeline/raster";
+import type { EffectResult } from "../utils/raster";
 import { CompositeEffect } from "./CompositeEffect";
 import { TargetEffect } from "./TargetEffect";
 import { hasTargetChildren } from "./utils/has-target-children";

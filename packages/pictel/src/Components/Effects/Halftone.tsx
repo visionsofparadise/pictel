@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { RasterEffect } from "../Pipeline/RasterEffect"
 import { luminance } from "./utils/luminance"
 
 function createCanvas(width: number, height: number): { canvas: OffscreenCanvas | HTMLCanvasElement; context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D } {

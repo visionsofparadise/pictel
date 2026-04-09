@@ -1,9 +1,9 @@
 import type { ComponentProps } from "react"
 import { useCallback } from "react"
-import type { BlendFormula } from "./BlendModes/utils/blend-pixels"
-import { blendPixels } from "./BlendModes/utils/blend-pixels"
+import type { BlendFormula } from "../BlendModes/utils/blend-pixels"
+import { blendPixels } from "../BlendModes/utils/blend-pixels"
 import { CompositeEffect } from "./CompositeEffect"
-import { luminance } from "./Effects/utils/luminance"
+import { luminance } from "../Effects/utils/luminance"
 import { hasTargetChildren } from "./utils/has-target-children"
 
 interface RasterBlendProps extends ComponentProps<"div"> {

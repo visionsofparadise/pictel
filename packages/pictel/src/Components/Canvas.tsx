@@ -1,17 +1,58 @@
-import { useCallback, useRef, useState, type CSSProperties, type ComponentProps } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ComponentProps } from "react";
 import { CanvasContext, type CanvasContextValue, type CanvasDimensions } from "../context/canvas";
 import { useContainerSize } from "../hooks/useContainerSize";
 import { useDomSnapshot } from "../hooks/useDomSnapshot";
 import { useMode } from "../hooks/useMode";
-import type { PipelineError } from "../pipeline/errors";
+import type { PipelineError } from "../utils/errors";
 import { ErrorOverlay } from "./ErrorOverlay";
 import { Frame } from "./Frame";
+
+function LoadingIndicator() {
+	return (
+		<div
+			style={{
+				position: "absolute",
+				inset: 0,
+				backgroundColor: "rgba(0, 0, 0, 0.3)",
+				zIndex: 9999,
+				pointerEvents: "none",
+				display: "flex",
+				alignItems: "flex-end",
+				justifyContent: "flex-end",
+				padding: 8,
+			}}
+		>
+			<svg
+				width="20"
+				height="20"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="white"
+				strokeWidth="2.5"
+				strokeLinecap="round"
+			>
+				<path d="M12 2a10 10 0 0 1 10 10">
+					<animateTransform
+						attributeName="transform"
+						type="rotate"
+						from="0 12 12"
+						to="360 12 12"
+						dur="0.8s"
+						repeatCount="indefinite"
+					/>
+				</path>
+			</svg>
+		</div>
+	);
+}
 
 interface CanvasProps extends ComponentProps<"div"> {
 	/** Display name shown in the Viewer sidebar. Used as the `aria-label`. */
 	name?: string;
 	/** Output dimensions for rasterization. Either fixed `{ width, height }` or reference-based `{ reference: { width, height } }`. */
-	dimensions: CanvasDimensions;
+	dimensions?: CanvasDimensions;
+	/** Overrides URL-based mode detection. Use `"display"` for inline embedding without chrome or fixed dimensions. */
+	mode?: string;
 }
 
 /**
@@ -20,12 +61,14 @@ interface CanvasProps extends ComponentProps<"div"> {
  *
  * - `name` — Display name shown in the Viewer sidebar. Used as the `aria-label`.
  * - `dimensions` — Output dimensions for rasterization. Either fixed `{ width, height }` or reference-based `{ reference: { width, height } }`.
+ * - `mode` — Overrides URL-based mode detection. Use `"display"` for inline embedding without chrome or fixed dimensions.
  *
  * @param props
  * @category Layout
  */
-export function Canvas({ name, dimensions, children, style, ...rest }: CanvasProps) {
-	const mode = useMode();
+export function Canvas({ name, dimensions, mode: modeProp, children, style, ...rest }: CanvasProps) {
+	const urlMode = useMode();
+	const mode = modeProp ?? urlMode;
 	const { ref, width, height } = useContainerSize();
 	const domSnapshot = useDomSnapshot(ref);
 	const maskDefsRef = useRef<SVGDefsElement>(null);
@@ -35,7 +78,25 @@ export function Canvas({ name, dimensions, children, style, ...rest }: CanvasPro
 		setErrors((prev) => [...prev, error]);
 	}, []);
 
-	const captureDimensions = "reference" in dimensions ? { width: dimensions.reference.width, height: dimensions.reference.height } : null;
+	const captureDimensions = dimensions && "reference" in dimensions ? { width: dimensions.reference.width, height: dimensions.reference.height } : null;
+	const [pending, setPending] = useState(true);
+
+	useEffect(() => {
+		const container = ref.current;
+
+		if (!container) return;
+
+		function check() {
+			setPending(container!.querySelector("[data-pictel-pending]") !== null);
+		}
+
+		check();
+
+		const observer = new MutationObserver(() => check());
+		observer.observe(container, { attributes: true, subtree: true, attributeFilter: ["data-pictel-pending"] });
+
+		return () => observer.disconnect();
+	}, [ref]);
 
 	const outerStyle: CSSProperties = {
 		position: "relative",
@@ -51,7 +112,7 @@ export function Canvas({ name, dimensions, children, style, ...rest }: CanvasPro
 
 	const contextValue: CanvasContextValue = {
 		mode,
-		dimensions,
+		dimensions: dimensions ?? null,
 		viewport: { width, height },
 		domSnapshot,
 		maskDefs: maskDefsRef,
@@ -69,6 +130,7 @@ export function Canvas({ name, dimensions, children, style, ...rest }: CanvasPro
 				{...rest}
 			>
 				<Frame>{children}</Frame>
+				{pending && <LoadingIndicator />}
 				<ErrorOverlay errors={errors} />
 			</div>
 			<svg

@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { colorDodge as colorDodgeChannel } from "./utils/color-dodge"
-import { RasterBlend } from "../RasterBlend"
+import { RasterBlend } from "../Pipeline/RasterBlend"
 
 export const colorDodge: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	colorDodgeChannel(dr, sr),

@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { RasterEffect } from "../Pipeline/RasterEffect"
 import { lerp } from "./utils/lerp"
 import { luminance } from "./utils/luminance"
 

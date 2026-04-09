@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { type CSSProperties, useState } from "react";
 import { useMode } from "../hooks/useMode";
-import type { PipelineError } from "../pipeline/errors";
+import type { PipelineError } from "../utils/errors";
 
 const containerStyle: CSSProperties = {
 	position: "absolute",

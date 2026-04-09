@@ -1,10 +1,90 @@
 import type { ComponentProps } from "react";
 import { useCallback } from "react";
-import type { EffectResult } from "../../pipeline/raster";
-import { RasterEffect } from "../RasterEffect";
+import { normalizeResult, type EffectResult } from "../utils/raster";
+import { RasterEffect } from "../Pipeline/RasterEffect";
 import { luminance } from "./utils/luminance";
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+
+function boxBlurPass(
+	input: Float64Array,
+	output: Float64Array,
+	width: number,
+	height: number,
+	radius: number,
+): void {
+	if (radius <= 0) {
+		output.set(input);
+
+		return;
+	}
+
+	const kernelSize = 2 * radius + 1;
+
+	// Horizontal pass: input → output
+	for (let oy = 0; oy < height; oy++) {
+		for (let channel = 0; channel < 4; channel++) {
+			let acc = 0;
+
+			for (let kx = -radius; kx <= radius; kx++) {
+				const cx = Math.max(0, Math.min(width - 1, kx));
+				acc += input[(oy * width + cx) * 4 + channel]!;
+			}
+
+			output[(oy * width + 0) * 4 + channel] = acc / kernelSize;
+
+			for (let ox = 1; ox < width; ox++) {
+				const addX = Math.min(ox + radius, width - 1);
+				const removeX = Math.max(ox - radius - 1, 0);
+				acc += input[(oy * width + addX) * 4 + channel]! - input[(oy * width + removeX) * 4 + channel]!;
+				output[(oy * width + ox) * 4 + channel] = acc / kernelSize;
+			}
+		}
+	}
+
+	// Vertical pass: output → vBuffer, then copy back to output
+	const vBuffer = new Float64Array(output.length);
+
+	for (let ox = 0; ox < width; ox++) {
+		for (let channel = 0; channel < 4; channel++) {
+			let acc = 0;
+
+			for (let ky = -radius; ky <= radius; ky++) {
+				const cy = Math.max(0, Math.min(height - 1, ky));
+				acc += output[(cy * width + ox) * 4 + channel]!;
+			}
+
+			vBuffer[(0 * width + ox) * 4 + channel] = acc / kernelSize;
+
+			for (let oy = 1; oy < height; oy++) {
+				const addY = Math.min(oy + radius, height - 1);
+				const removeY = Math.max(oy - radius - 1, 0);
+				acc += output[(addY * width + ox) * 4 + channel]! - output[(removeY * width + ox) * 4 + channel]!;
+				vBuffer[(oy * width + ox) * 4 + channel] = acc / kernelSize;
+			}
+		}
+	}
+
+	output.set(vBuffer);
+}
+
+export function boxRadiiForGaussian(sigma: number): [number, number, number] {
+	const ideal = Math.sqrt((12 * sigma * sigma) / 3 + 1);
+	let lower = Math.floor(ideal);
+
+	if (lower % 2 === 0) lower -= 1;
+
+	const upper = lower + 2;
+	const count = Math.round(
+		(12 * sigma * sigma - 3 * lower * lower - 12 * lower - 9) / (-4 * lower - 4),
+	);
+
+	const r1 = Math.max(0, (count > 0 ? lower : upper) - 1) / 2;
+	const r2 = Math.max(0, (count > 1 ? lower : upper) - 1) / 2;
+	const r3 = Math.max(0, (count > 2 ? lower : upper) - 1) / 2;
+
+	return [Math.round(r1), Math.round(r2), Math.round(r3)];
+}
 
 export function applyUniformBlur(pixels: ImageData, radius: number): EffectResult {
 	const blurRadius = Math.round(radius);
@@ -17,70 +97,38 @@ export function applyUniformBlur(pixels: ImageData, radius: number): EffectResul
 	const srcH = pixels.height;
 	const outW = srcW + 2 * blurRadius;
 	const outH = srcH + 2 * blurRadius;
-
 	const src = pixels.data;
 
-	function readSrc(ox: number, oy: number, channel: number): number {
-		const sx = ox - blurRadius;
-		const sy = oy - blurRadius;
-
-		if (sx < 0 || sx >= srcW || sy < 0 || sy >= srcH) return 0;
-
-		return src[(sy * srcW + sx) * 4 + channel]!;
-	}
-
-	// Horizontal pass: read from source, write to intermediate buffer (outW x outH).
-	const hPass = new Float64Array(outW * outH * 4);
-	const kernelSize = 2 * blurRadius + 1;
+	// Embed source into edge-clamped padded buffer
+	const bufferA = new Float64Array(outW * outH * 4);
 
 	for (let oy = 0; oy < outH; oy++) {
-		const acc = [0, 0, 0, 0];
+		const sy = Math.max(0, Math.min(srcH - 1, oy - blurRadius));
 
-		for (let kx = -blurRadius; kx <= blurRadius; kx++) {
-			for (let channel = 0; channel < 4; channel++) {
-				acc[channel]! += readSrc(kx, oy, channel);
-			}
-		}
-
-		for (let channel = 0; channel < 4; channel++) {
-			hPass[(oy * outW + 0) * 4 + channel] = acc[channel]! / kernelSize;
-		}
-
-		for (let ox = 1; ox < outW; ox++) {
-			for (let channel = 0; channel < 4; channel++) {
-				acc[channel]! += readSrc(ox + blurRadius, oy, channel) - readSrc(ox - blurRadius - 1, oy, channel);
-				hPass[(oy * outW + ox) * 4 + channel] = acc[channel]! / kernelSize;
-			}
+		for (let ox = 0; ox < outW; ox++) {
+			const sx = Math.max(0, Math.min(srcW - 1, ox - blurRadius));
+			const srcOffset = (sy * srcW + sx) * 4;
+			const dstOffset = (oy * outW + ox) * 4;
+			bufferA[dstOffset] = src[srcOffset]!;
+			bufferA[dstOffset + 1] = src[srcOffset + 1]!;
+			bufferA[dstOffset + 2] = src[srcOffset + 2]!;
+			bufferA[dstOffset + 3] = src[srcOffset + 3]!;
 		}
 	}
 
-	// Vertical pass: read from horizontal pass buffer, write to output.
+	const bufferB = new Float64Array(outW * outH * 4);
+	const radii = boxRadiiForGaussian(blurRadius);
+
+	// 3-pass box blur alternating between buffers
+	boxBlurPass(bufferA, bufferB, outW, outH, radii[0]);
+	boxBlurPass(bufferB, bufferA, outW, outH, radii[1]);
+	boxBlurPass(bufferA, bufferB, outW, outH, radii[2]);
+
+	// Clamp to Uint8ClampedArray output
 	const outData = new Uint8ClampedArray(outW * outH * 4);
 
-	for (let ox = 0; ox < outW; ox++) {
-		const acc = [0, 0, 0, 0];
-
-		for (let ky = -blurRadius; ky <= blurRadius; ky++) {
-			const ty = Math.max(0, Math.min(outH - 1, ky));
-
-			for (let channel = 0; channel < 4; channel++) {
-				acc[channel]! += hPass[(ty * outW + ox) * 4 + channel]!;
-			}
-		}
-
-		for (let channel = 0; channel < 4; channel++) {
-			outData[ox * 4 + channel] = Math.round(acc[channel]! / kernelSize);
-		}
-
-		for (let oy = 1; oy < outH; oy++) {
-			const addY = Math.min(oy + blurRadius, outH - 1);
-			const removeY = Math.max(oy - blurRadius - 1, 0);
-
-			for (let channel = 0; channel < 4; channel++) {
-				acc[channel]! += hPass[(addY * outW + ox) * 4 + channel]! - hPass[(removeY * outW + ox) * 4 + channel]!;
-				outData[(oy * outW + ox) * 4 + channel] = Math.round(acc[channel]! / kernelSize);
-			}
-		}
+	for (let offset = 0; offset < outData.length; offset++) {
+		outData[offset] = Math.round(bufferB[offset]!);
 	}
 
 	return {
@@ -116,6 +164,29 @@ export function applyVariableBlur(pixels: ImageData, map: ImageData, radius: num
 		return { pixels, overflow: { top: 0, right: 0, bottom: 0, left: 0 } };
 	}
 
+	// Build mip levels from radius 1 to maxRadius (~8 levels)
+	const mipCount = Math.min(8, maxRadius);
+	const mipLevels: Array<{ radius: number; data: Float64Array; overflow: number }> = [];
+
+	for (let mipIdx = 0; mipIdx < mipCount; mipIdx++) {
+		const mipRadius = Math.max(1, Math.round(((mipIdx + 1) / mipCount) * maxRadius));
+
+		if (mipLevels.length > 0 && mipLevels[mipLevels.length - 1]!.radius === mipRadius) continue;
+
+		const result = normalizeResult(applyUniformBlur(pixels, mipRadius));
+		const mipData = new Float64Array(result.pixels.data.length);
+
+		for (let offset = 0; offset < result.pixels.data.length; offset++) {
+			mipData[offset] = result.pixels.data[offset]!;
+		}
+
+		mipLevels.push({
+			radius: mipRadius,
+			data: mipData,
+			overflow: result.overflow.top,
+		});
+	}
+
 	const outW = srcW + 2 * maxRadius;
 	const outH = srcH + 2 * maxRadius;
 	const outData = new Uint8ClampedArray(outW * outH * 4);
@@ -130,13 +201,14 @@ export function applyVariableBlur(pixels: ImageData, map: ImageData, radius: num
 			if (sx >= 0 && sx < srcW && sy >= 0 && sy < srcH) {
 				const mapOffset = (sy * srcW + sx) * 4;
 				const lum = luminance(mapData[mapOffset]!, mapData[mapOffset + 1]!, mapData[mapOffset + 2]!);
-				effectiveR = Math.round((lum / 255) * blurRadius);
+				effectiveR = (lum / 255) * blurRadius;
 			}
+
+			const outOffset = (oy * outW + ox) * 4;
 
 			if (effectiveR <= 0) {
 				if (sx >= 0 && sx < srcW && sy >= 0 && sy < srcH) {
 					const srcOffset = (sy * srcW + sx) * 4;
-					const outOffset = (oy * outW + ox) * 4;
 					outData[outOffset] = src[srcOffset]!;
 					outData[outOffset + 1] = src[srcOffset + 1]!;
 					outData[outOffset + 2] = src[srcOffset + 2]!;
@@ -146,31 +218,51 @@ export function applyVariableBlur(pixels: ImageData, map: ImageData, radius: num
 				continue;
 			}
 
-			const acc = [0, 0, 0, 0];
-			let count = 0;
+			// Find bracketing mip levels
+			let lowerMip = mipLevels[0]!;
+			let upperMip = mipLevels[0]!;
 
-			for (let ky = -effectiveR; ky <= effectiveR; ky++) {
-				for (let kx = -effectiveR; kx <= effectiveR; kx++) {
-					const rx = sx + kx;
-					const ry = sy + ky;
+			for (const mip of mipLevels) {
+				if (mip.radius <= effectiveR) {
+					lowerMip = mip;
+				}
 
-					if (rx >= 0 && rx < srcW && ry >= 0 && ry < srcH) {
-						const srcOffset = (ry * srcW + rx) * 4;
-						acc[0]! += src[srcOffset]!;
-						acc[1]! += src[srcOffset + 1]!;
-						acc[2]! += src[srcOffset + 2]!;
-						acc[3]! += src[srcOffset + 3]!;
-					}
-
-					count++;
+				if (mip.radius >= effectiveR) {
+					upperMip = mip;
+					break;
 				}
 			}
 
-			const outOffset = (oy * outW + ox) * 4;
-			outData[outOffset] = Math.round(acc[0]! / count);
-			outData[outOffset + 1] = Math.round(acc[1]! / count);
-			outData[outOffset + 2] = Math.round(acc[2]! / count);
-			outData[outOffset + 3] = Math.round(acc[3]! / count);
+			const lowerX = ox - maxRadius + lowerMip.overflow;
+			const lowerY = oy - maxRadius + lowerMip.overflow;
+			const lowerW = srcW + 2 * lowerMip.overflow;
+			const lowerH = srcH + 2 * lowerMip.overflow;
+
+			const upperX = ox - maxRadius + upperMip.overflow;
+			const upperY = oy - maxRadius + upperMip.overflow;
+			const upperW = srcW + 2 * upperMip.overflow;
+			const upperH = srcH + 2 * upperMip.overflow;
+
+			let blend = 0;
+
+			if (upperMip.radius !== lowerMip.radius) {
+				blend = (effectiveR - lowerMip.radius) / (upperMip.radius - lowerMip.radius);
+			}
+
+			for (let channel = 0; channel < 4; channel++) {
+				let lowerVal = 0;
+				let upperVal = 0;
+
+				if (lowerX >= 0 && lowerX < lowerW && lowerY >= 0 && lowerY < lowerH) {
+					lowerVal = lowerMip.data[(lowerY * lowerW + lowerX) * 4 + channel]!;
+				}
+
+				if (upperX >= 0 && upperX < upperW && upperY >= 0 && upperY < upperH) {
+					upperVal = upperMip.data[(upperY * upperW + upperX) * 4 + channel]!;
+				}
+
+				outData[outOffset + channel] = Math.round(lowerVal + (upperVal - lowerVal) * blend);
+			}
 		}
 	}
 
@@ -197,7 +289,7 @@ interface BlurProps extends ComponentProps<"div"> {
 }
 
 /**
- * Applies a uniform box blur or a map-driven variable-radius blur.
+ * Applies a Gaussian-approximation blur or a map-driven variable-radius blur.
  *
  * - `radius` — Blur radius in pixels. With a map, radius scales per-pixel by map luminance.
  * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.

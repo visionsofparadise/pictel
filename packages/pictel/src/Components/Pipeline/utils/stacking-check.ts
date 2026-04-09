@@ -1,4 +1,4 @@
-import type { StackingOrder } from "./stacking";
+import type { StackingOrder } from "../../../utils/stacking";
 
 export function checkStackingEscape(target: HTMLElement, stackingOrder: StackingOrder): HTMLElement | null {
 	const parentIndex = stackingOrder.indexOf.get(target);

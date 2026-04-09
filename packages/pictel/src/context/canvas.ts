@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
-import type { PipelineError } from "../pipeline/errors";
-import type { StackingOrder } from "../pipeline/stacking";
+import type { PipelineError } from "../utils/errors";
+import type { StackingOrder } from "../utils/stacking";
 
 export interface ReferenceDimensions {
 	reference: { width: number; height: number };
@@ -25,7 +25,7 @@ export interface Viewport {
 
 export interface CanvasContextValue {
 	mode: string;
-	dimensions: CanvasDimensions;
+	dimensions: CanvasDimensions | null;
 	viewport: Viewport;
 	domSnapshot: React.RefObject<CanvasSnapshot | null>;
 	maskDefs: React.RefObject<SVGDefsElement | null>;

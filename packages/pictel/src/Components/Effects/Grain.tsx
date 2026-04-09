@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { RasterEffect } from "../Pipeline/RasterEffect"
 
 function mulberry32(seed: number): () => number {
 	let state = seed | 0

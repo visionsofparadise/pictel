@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../RasterEffect"
+import { RasterEffect } from "../Pipeline/RasterEffect"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function applyChannelMix(pixels: ImageData, matrix: Array<Array<number>>): ImageData {

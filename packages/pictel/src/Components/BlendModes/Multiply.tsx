@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
-import { RasterBlend } from "../RasterBlend"
+import { RasterBlend } from "../Pipeline/RasterBlend"
 
 export const multiply: BlendFormula = (sr, sg, sb, dr, dg, db) => [sr * dr, sg * dg, sb * db]
 

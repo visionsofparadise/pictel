@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { RasterBlend } from "../RasterBlend";
+import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 
 function pinLightChannel(dst: number, src: number): number {

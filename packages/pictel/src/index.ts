@@ -1,11 +1,11 @@
 // Components
 export { Canvas } from "./Components/Canvas";
-export { CompositeEffect } from "./Components/CompositeEffect";
+export { CompositeEffect } from "./Components/Pipeline/CompositeEffect";
 export { ErrorOverlay } from "./Components/ErrorOverlay";
-export { Map } from "./Components/Map";
-export { RasterBlend } from "./Components/RasterBlend";
-export { RasterEffect } from "./Components/RasterEffect";
-export { TargetEffect } from "./Components/TargetEffect";
+export { Map } from "./Components/Pipeline/Map";
+export { RasterBlend } from "./Components/Pipeline/RasterBlend";
+export { RasterEffect } from "./Components/Pipeline/RasterEffect";
+export { TargetEffect } from "./Components/Pipeline/TargetEffect";
 export { Viewer } from "./Components/Viewer";
 
 // Blend modes
@@ -134,12 +134,12 @@ export { useMode } from "./hooks/useMode";
 export { useSearchParam } from "./hooks/useSearchParam";
 
 // Pipeline types
-export { type CompositeEffectCallback } from "./Components/CompositeEffect";
-export { type MapCompose } from "./Components/Map";
-export { type RasterEffectCallback } from "./Components/RasterEffect";
-export { type TargetEffectCallback } from "./Components/TargetEffect";
-export { type EffectResult } from "./pipeline/raster";
-export { type PipelineError } from "./pipeline/errors";
+export { type CompositeEffectCallback } from "./Components/Pipeline/CompositeEffect";
+export { type MapCompose } from "./Components/Pipeline/Map";
+export { type RasterEffectCallback } from "./Components/Pipeline/RasterEffect";
+export { type TargetEffectCallback } from "./Components/Pipeline/TargetEffect";
+export { type EffectResult } from "./Components/utils/raster";
+export { type PipelineError } from "./utils/errors";
 
 // Types
 export { type AspectRatioDimensions, type CanvasContextValue, type CanvasDimensions, type CanvasSnapshot, type ReferenceDimensions, type Viewport } from "./context/canvas";

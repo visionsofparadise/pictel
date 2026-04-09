@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { RasterBlend } from "../RasterBlend";
+import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 import { luminance } from "./utils/luminance";
 

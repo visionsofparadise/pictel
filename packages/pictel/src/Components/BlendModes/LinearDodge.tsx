@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { RasterBlend } from "../RasterBlend";
+import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 
 export const linearDodge: BlendFormula = (sr, sg, sb, dr, dg, db) => [Math.min(1, sr + dr), Math.min(1, sg + dg), Math.min(1, sb + db)];

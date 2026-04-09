@@ -10,6 +10,14 @@ export function Frame({ children }: FrameProps) {
 	const isPreview = mode === "preview";
 	const checkerboard = isPreview ? "repeating-conic-gradient(#e0e0e0 0% 25%, #ffffff 0% 50%) 0 0 / 16px 16px" : "transparent";
 
+	if (!dimensions) {
+		return (
+			<div style={{ position: "relative", width: "100%" }}>
+				{children}
+			</div>
+		);
+	}
+
 	if ("reference" in dimensions) {
 		const referenceWidth = dimensions.reference.width;
 		const referenceHeight = dimensions.reference.height;

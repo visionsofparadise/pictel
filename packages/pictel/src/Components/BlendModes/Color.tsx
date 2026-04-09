@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { hslToRgb, rgbToHsl } from "./utils/hsl"
-import { RasterBlend } from "../RasterBlend"
+import { RasterBlend } from "../Pipeline/RasterBlend"
 
 export const color: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 	const srcHsl = rgbToHsl(sr * 255, sg * 255, sb * 255)

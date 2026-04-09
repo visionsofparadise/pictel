@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
-import { RasterBlend } from "../RasterBlend"
+import { RasterBlend } from "../Pipeline/RasterBlend"
 
 export const difference: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	Math.abs(sr - dr),

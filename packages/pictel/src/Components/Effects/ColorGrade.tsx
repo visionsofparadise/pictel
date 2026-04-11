@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 import { luminance } from "./utils/luminance"
@@ -62,9 +62,10 @@ export function applyColorGrade(pixels: ImageData, adjustments: ColorGradeAdjust
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface ColorGradeProps extends ColorGradeAdjustments, ComponentProps<"div"> {
+interface ColorGradeProps extends ColorGradeAdjustments {
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -87,7 +88,7 @@ export function ColorGrade({
 	tint,
 	backdrop,
 	flatten,
-	...rest
+	children,
 }: ColorGradeProps) {
 	const effect = useCallback(
 		(pixels: ImageData) =>
@@ -96,6 +97,8 @@ export function ColorGrade({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

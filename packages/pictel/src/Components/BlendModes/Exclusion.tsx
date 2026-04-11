@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../Pipeline/RasterBlend"
 
@@ -8,9 +8,10 @@ export const exclusion: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	sb + db - 2 * sb * db,
 ]
 
-interface ExclusionProps extends ComponentProps<"div"> {
+interface ExclusionProps {
 	opacity?: number
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -20,8 +21,10 @@ interface ExclusionProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function Exclusion({ opacity, flatten, ...rest }: ExclusionProps) {
+export function Exclusion({ opacity, flatten, children }: ExclusionProps) {
 	return (
-		<RasterBlend blend={exclusion} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={exclusion} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	)
 }

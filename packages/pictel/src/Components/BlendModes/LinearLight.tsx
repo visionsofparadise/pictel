@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 
@@ -8,9 +8,10 @@ function linearLightChannel(dst: number, src: number): number {
 
 export const linearLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [linearLightChannel(dr, sr), linearLightChannel(dg, sg), linearLightChannel(db, sb)];
 
-interface LinearLightProps extends ComponentProps<"div"> {
+interface LinearLightProps {
 	opacity?: number;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
 /**
@@ -20,8 +21,10 @@ interface LinearLightProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function LinearLight({ opacity, flatten, ...rest }: LinearLightProps) {
+export function LinearLight({ opacity, flatten, children }: LinearLightProps) {
 	return (
-		<RasterBlend blend={linearLight} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={linearLight} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	);
 }

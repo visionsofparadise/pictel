@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../Pipeline/RasterBlend"
 
@@ -8,9 +8,10 @@ export const difference: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	Math.abs(sb - db),
 ]
 
-interface DifferenceProps extends ComponentProps<"div"> {
+interface DifferenceProps {
 	opacity?: number
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -20,8 +21,10 @@ interface DifferenceProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function Difference({ opacity, flatten, ...rest }: DifferenceProps) {
+export function Difference({ opacity, flatten, children }: DifferenceProps) {
 	return (
-		<RasterBlend blend={difference} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={difference} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	)
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ComponentProps } from "react"
+import { useCallback, useEffect, useRef, type ReactNode } from "react"
 import { RasterEffect } from "pictel"
 import { Sam2Model, AutoProcessor, Tensor, RawImage } from "@huggingface/transformers"
 import type { Processor } from "@huggingface/transformers"
@@ -125,7 +125,7 @@ export async function sam2Segment(
 }
 /* eslint-enable @typescript-eslint/naming-convention */
 
-interface Sam2Props extends ComponentProps<"div"> {
+interface Sam2Props {
 	/** Hugging Face model ID for SAM2. Defaults to `onnx-community/sam2-hiera-tiny-ONNX`. */
 	model?: string
 	/** Model revision. Overridable alongside `model`. */
@@ -136,6 +136,7 @@ interface Sam2Props extends ComponentProps<"div"> {
 	negativePoints?: Array<Point>
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -156,7 +157,7 @@ export function Sam2({
 	negativePoints = [],
 	backdrop,
 	flatten,
-	...rest
+	children,
 }: Sam2Props) {
 	const resourcesRef = useRef<Promise<Sam2Resources>>(undefined)
 
@@ -175,6 +176,8 @@ export function Sam2({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

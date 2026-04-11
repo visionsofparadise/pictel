@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../Pipeline/RasterBlend"
 
@@ -8,9 +8,10 @@ export const lighten: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	Math.max(sb, db),
 ]
 
-interface LightenProps extends ComponentProps<"div"> {
+interface LightenProps {
 	opacity?: number
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -20,8 +21,10 @@ interface LightenProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function Lighten({ opacity, flatten, ...rest }: LightenProps) {
+export function Lighten({ opacity, flatten, children }: LightenProps) {
 	return (
-		<RasterBlend blend={lighten} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={lighten} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	)
 }

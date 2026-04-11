@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 
@@ -36,13 +36,14 @@ export function applyGrain(pixels: ImageData, intensity: number, seed: number): 
 }
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface GrainProps extends ComponentProps<"div"> {
+interface GrainProps {
 	/** Maximum noise amplitude in pixel values (0-255 range). */
 	intensity: number
 	/** Random seed for reproducible grain patterns. */
 	seed: number
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -54,13 +55,15 @@ interface GrainProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function Grain({ intensity, seed, backdrop, flatten, ...rest }: GrainProps) {
+export function Grain({ intensity, seed, backdrop, flatten, children }: GrainProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyGrain(pixels, intensity, seed),
 		[intensity, seed],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

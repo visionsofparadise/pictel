@@ -1,23 +1,23 @@
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 import { Sam2, type Point } from "./Sam2";
 import { SegFormer } from "./SegFormer";
 
-interface Sam2SegmentProps extends ComponentProps<"div"> {
+interface Sam2SegmentProps {
 	model: "sam2";
 	points?: Array<Point>;
 	negativePoints?: Array<Point>;
 	revision?: string;
-	mode?: "parameter" | "mix";
 	backdrop?: boolean;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
-interface SegFormerSegmentProps extends ComponentProps<"div"> {
+interface SegFormerSegmentProps {
 	model: "segformer";
 	revision?: string;
-	mode?: "parameter" | "mix";
 	backdrop?: boolean;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
 type SegmentProps = Sam2SegmentProps | SegFormerSegmentProps;
@@ -30,16 +30,16 @@ type SegmentProps = Sam2SegmentProps | SegFormerSegmentProps;
  */
 export function Segment(props: SegmentProps) {
 	if (props.model === "sam2") {
-		const { model, ...rest } = props;
+		const { model, children, ...effectProps } = props;
 
 		void model;
 
-		return <Sam2 {...rest} />;
+		return <Sam2 {...effectProps}>{children}</Sam2>;
 	}
 
-	const { model, ...rest } = props;
+	const { model, children, ...effectProps } = props;
 
 	void model;
 
-	return <SegFormer {...rest} />;
+	return <SegFormer {...effectProps}>{children}</SegFormer>;
 }

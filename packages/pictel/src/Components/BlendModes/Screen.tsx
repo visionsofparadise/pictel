@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../Pipeline/RasterBlend"
 
@@ -8,9 +8,10 @@ export const screen: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	sb + db - sb * db,
 ]
 
-interface ScreenProps extends ComponentProps<"div"> {
+interface ScreenProps {
 	opacity?: number
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -20,8 +21,10 @@ interface ScreenProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function Screen({ opacity, flatten, ...rest }: ScreenProps) {
+export function Screen({ opacity, flatten, children }: ScreenProps) {
 	return (
-		<RasterBlend blend={screen} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={screen} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	)
 }

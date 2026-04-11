@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { hslToRgb, rgbToHsl } from "../BlendModes/utils/hsl"
 import { RasterEffect } from "../Pipeline/RasterEffect"
@@ -46,12 +46,13 @@ export function applyMappedHueRotate(pixels: ImageData, map: ImageData, angle: n
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface HueRotateProps extends ComponentProps<"div"> {
+interface HueRotateProps {
 	/** Hue rotation in degrees. 180 inverts all colors; 360 returns to original. */
 	angle: number
 	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -62,7 +63,7 @@ interface HueRotateProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function HueRotate({ angle, mode = "mix", backdrop, flatten, ...rest }: HueRotateProps) {
+export function HueRotate({ angle, mode = "mix", backdrop, flatten, children }: HueRotateProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyHueRotate(pixels, angle),
 		[angle],
@@ -74,6 +75,8 @@ export function HueRotate({ angle, mode = "mix", backdrop, flatten, ...rest }: H
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

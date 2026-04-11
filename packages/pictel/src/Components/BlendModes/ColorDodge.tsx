@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { colorDodge as colorDodgeChannel } from "./utils/color-dodge"
 import { RasterBlend } from "../Pipeline/RasterBlend"
@@ -9,9 +9,10 @@ export const colorDodge: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	colorDodgeChannel(db, sb),
 ]
 
-interface ColorDodgeProps extends ComponentProps<"div"> {
+interface ColorDodgeProps {
 	opacity?: number
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -21,8 +22,10 @@ interface ColorDodgeProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function ColorDodge({ opacity, flatten, ...rest }: ColorDodgeProps) {
+export function ColorDodge({ opacity, flatten, children }: ColorDodgeProps) {
 	return (
-		<RasterBlend blend={colorDodge} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={colorDodge} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	)
 }

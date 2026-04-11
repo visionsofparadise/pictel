@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 import { lerp } from "./utils/lerp"
@@ -40,12 +40,13 @@ export function applyMappedContrast(pixels: ImageData, map: ImageData, amount: n
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface ContrastProps extends ComponentProps<"div"> {
+interface ContrastProps {
 	/** Contrast multiplier. 1 is unchanged, 0 is flat gray, greater than 1 increases contrast. */
 	amount?: number
 	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -56,7 +57,7 @@ interface ContrastProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function Contrast({ amount = 1, mode = "mix", backdrop, flatten, ...rest }: ContrastProps) {
+export function Contrast({ amount = 1, mode = "mix", backdrop, flatten, children }: ContrastProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyContrast(pixels, amount),
 		[amount],
@@ -68,6 +69,8 @@ export function Contrast({ amount = 1, mode = "mix", backdrop, flatten, ...rest 
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback, useEffect, useState } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 import { lerp } from "./utils/lerp"
@@ -100,11 +100,12 @@ export function applyLut(pixels: ImageData, lut: Float32Array, size: number): Im
 }
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface CubeLUTProps extends ComponentProps<"div"> {
+interface CubeLUTProps {
 	/** URL to a .cube LUT file. */
 	src: string
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -116,7 +117,7 @@ interface CubeLUTProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function CubeLUT({ src, backdrop, flatten, ...rest }: CubeLUTProps) {
+export function CubeLUT({ src, backdrop, flatten, children }: CubeLUTProps) {
 	const [lutData, setLutData] = useState<{ lut: Float32Array; size: number } | null>(null)
 
 	useEffect(() => {
@@ -142,6 +143,8 @@ export function CubeLUT({ src, backdrop, flatten, ...rest }: CubeLUTProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

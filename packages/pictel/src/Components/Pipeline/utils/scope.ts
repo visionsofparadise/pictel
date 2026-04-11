@@ -49,3 +49,25 @@ export function getOwnUnloadedImages(boundary: Element): Array<HTMLImageElement>
 
 	return unloaded;
 }
+
+/**
+ * Returns true if any mutation in the list originated OUTSIDE the given
+ * element's subtree. Used by CompositeEffect's behind observers to ignore
+ * self-triggered mutations — the pipeline element is a descendant of its
+ * behind elements (because behind elements include ancestors of the pipeline),
+ * so every DOM write the pipeline makes to its own subtree would otherwise
+ * fire the behind observer and cause a gate() loop.
+ */
+export function hasExternalMutations(mutations: Array<MutationRecord>, pipelineElement: Element): boolean {
+	for (const mutation of mutations) {
+		const target = mutation.target instanceof Element ? mutation.target : mutation.target.parentElement;
+
+		if (!target) continue;
+
+		if (pipelineElement.contains(target)) continue;
+
+		return true;
+	}
+
+	return false;
+}

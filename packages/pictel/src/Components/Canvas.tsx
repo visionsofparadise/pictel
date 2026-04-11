@@ -98,6 +98,20 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 		return () => observer.disconnect();
 	}, [ref]);
 
+	useEffect(() => {
+		const container = ref.current;
+
+		if (!container) return;
+
+		if (width === 0 || height === 0) return;
+
+		const pipelines = container.querySelectorAll("[data-pictel-pipeline]");
+
+		for (const pipeline of pipelines) {
+			pipeline.dispatchEvent(new CustomEvent("pictel:resize"));
+		}
+	}, [width, height, ref]);
+
 	const outerStyle: CSSProperties = {
 		position: "relative",
 		width: "100%",

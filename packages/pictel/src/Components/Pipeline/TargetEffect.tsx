@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useMemo, useRef, type ComponentProps, type ReactNode } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { useCanvasContext } from "../../context/canvas";
 import { captureChildren } from "./utils/capture";
 import { createPipelineError } from "../../utils/errors";
@@ -10,7 +10,7 @@ import { separateChildren } from "./utils/separate-children";
 
 export type TargetEffectCallback = (children: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 
-interface TargetEffectProps extends ComponentProps<"div"> {
+interface TargetEffectProps {
 	/** Pixel callback receiving children pixels and optional map pixels. Returns processed ImageData. */
 	effect: TargetEffectCallback;
 	flatten?: boolean;
@@ -26,7 +26,7 @@ interface TargetEffectProps extends ComponentProps<"div"> {
  * @param props
  * @category Pipeline
  */
-export function TargetEffect({ effect, flatten, children, style, ...rest }: TargetEffectProps) {
+export function TargetEffect({ effect, flatten, children }: TargetEffectProps) {
 	const id = useId();
 	const pipelineRef = useRef<HTMLDivElement>(null);
 	const childrenRef = useRef<HTMLDivElement>(null);
@@ -171,7 +171,7 @@ export function TargetEffect({ effect, flatten, children, style, ...rest }: Targ
 				drawToCanvas(canvasEl, pixels);
 
 				const childrenRect = childrenEl.getBoundingClientRect();
-				rasterEl.style.top = `-${String(childrenRect.height + overflow.top)}px`;
+				rasterEl.style.top = `-${String(overflow.top)}px`;
 				rasterEl.style.left = `-${String(overflow.left)}px`;
 				rasterEl.style.width = `${String(childrenRect.width + overflow.left + overflow.right)}px`;
 				rasterEl.style.height = `${String(childrenRect.height + overflow.top + overflow.bottom)}px`;
@@ -195,11 +195,19 @@ export function TargetEffect({ effect, flatten, children, style, ...rest }: Targ
 			}
 		}
 
+		function onResize() {
+			gate();
+		}
+
+		pipelineEl.addEventListener("pictel:resize", onResize);
+
 		// Initial gate check
 		gate();
 
 		return () => {
 			disposed = true;
+
+			pipelineEl.removeEventListener("pictel:resize", onResize);
 
 			for (const obs of observers) obs.disconnect();
 
@@ -214,11 +222,15 @@ export function TargetEffect({ effect, flatten, children, style, ...rest }: Targ
 			ref={pipelineRef}
 			data-pictel-pipeline
 			data-pictel-pending
-			style={flatten ? { ...style, isolation: "isolate" } : style}
-			{...rest}
+			style={flatten ? { isolation: "isolate" } : undefined}
 		>
-			<div ref={childrenRef}>
-				{content}
+			<div style={{ position: "relative", height: 0 }}>
+				<div
+					ref={rasterRef}
+					style={{ position: "absolute" }}
+				>
+					<canvas ref={canvasElRef} style={{ width: "100%", height: "100%" }} />
+				</div>
 			</div>
 			<div style={{ position: "relative", height: 0 }}>
 				<div
@@ -228,13 +240,8 @@ export function TargetEffect({ effect, flatten, children, style, ...rest }: Targ
 					{maps}
 				</div>
 			</div>
-			<div style={{ position: "relative", height: 0 }}>
-				<div
-					ref={rasterRef}
-					style={{ position: "absolute" }}
-				>
-					<canvas ref={canvasElRef} style={{ width: "100%", height: "100%" }} />
-				</div>
+			<div ref={childrenRef}>
+				{content}
 			</div>
 		</div>
 	);

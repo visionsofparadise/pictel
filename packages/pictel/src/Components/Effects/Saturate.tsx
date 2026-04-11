@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 import { lerp } from "./utils/lerp"
@@ -43,12 +43,13 @@ export function applyMappedSaturate(pixels: ImageData, map: ImageData, amount: n
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface SaturateProps extends ComponentProps<"div"> {
+interface SaturateProps {
 	/** Saturation multiplier. 0 is grayscale, 1 is unchanged, greater than 1 oversaturates. Default 1. */
 	amount?: number
 	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -59,7 +60,7 @@ interface SaturateProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function Saturate({ amount = 1, mode = "mix", backdrop, flatten, ...rest }: SaturateProps) {
+export function Saturate({ amount = 1, mode = "mix", backdrop, flatten, children }: SaturateProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applySaturate(pixels, amount),
 		[amount],
@@ -71,6 +72,8 @@ export function Saturate({ amount = 1, mode = "mix", backdrop, flatten, ...rest 
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

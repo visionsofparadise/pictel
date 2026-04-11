@@ -1,12 +1,13 @@
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 
 export const linearDodge: BlendFormula = (sr, sg, sb, dr, dg, db) => [Math.min(1, sr + dr), Math.min(1, sg + dg), Math.min(1, sb + db)];
 
-interface LinearDodgeProps extends ComponentProps<"div"> {
+interface LinearDodgeProps {
 	opacity?: number;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
 /**
@@ -16,8 +17,10 @@ interface LinearDodgeProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function LinearDodge({ opacity, flatten, ...rest }: LinearDodgeProps) {
+export function LinearDodge({ opacity, flatten, children }: LinearDodgeProps) {
 	return (
-		<RasterBlend blend={linearDodge} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={linearDodge} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	);
 }

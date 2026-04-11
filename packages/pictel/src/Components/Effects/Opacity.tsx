@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 import { lerp } from "./utils/lerp"
@@ -40,12 +40,13 @@ export function applyMappedOpacity(pixels: ImageData, map: ImageData, amount: nu
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface OpacityProps extends ComponentProps<"div"> {
+interface OpacityProps {
 	/** Opacity multiplier. 1 is unchanged, 0 is fully transparent. Default 1. */
 	amount?: number
 	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -56,7 +57,7 @@ interface OpacityProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function Opacity({ amount = 1, mode = "mix", backdrop, flatten, ...rest }: OpacityProps) {
+export function Opacity({ amount = 1, mode = "mix", backdrop, flatten, children }: OpacityProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyOpacity(pixels, amount),
 		[amount],
@@ -68,6 +69,8 @@ export function Opacity({ amount = 1, mode = "mix", backdrop, flatten, ...rest }
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

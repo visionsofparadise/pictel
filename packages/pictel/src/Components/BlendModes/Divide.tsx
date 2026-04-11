@@ -1,12 +1,13 @@
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 
 export const divide: BlendFormula = (sr, sg, sb, dr, dg, db) => [sr === 0 ? 1 : Math.min(1, dr / sr), sg === 0 ? 1 : Math.min(1, dg / sg), sb === 0 ? 1 : Math.min(1, db / sb)];
 
-interface DivideProps extends ComponentProps<"div"> {
+interface DivideProps {
 	opacity?: number;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
 /**
@@ -16,8 +17,10 @@ interface DivideProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function Divide({ opacity, flatten, ...rest }: DivideProps) {
+export function Divide({ opacity, flatten, children }: DivideProps) {
 	return (
-		<RasterBlend blend={divide} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={divide} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	);
 }

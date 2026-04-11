@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ComponentProps } from "react"
+import { useCallback, useEffect, useRef, type ReactNode } from "react"
 import type { Pipeline } from "@huggingface/transformers"
 import { RasterEffect } from "pictel"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
@@ -63,13 +63,14 @@ function segmentColor(index: number): [number, number, number] {
 	return palette[index % palette.length]!
 }
 
-interface SegFormerProps extends ComponentProps<"div"> {
+interface SegFormerProps {
 	/** Hugging Face model ID for semantic segmentation. Defaults to `Xenova/segformer-b0-finetuned-ade-512-512`. */
 	model?: string
 	/** Model revision. Overridable alongside `model`. */
 	revision?: string
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -86,7 +87,7 @@ export function SegFormer({
 	revision = DEFAULT_REVISION,
 	backdrop,
 	flatten,
-	...rest
+	children,
 }: SegFormerProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
 
@@ -107,6 +108,8 @@ export function SegFormer({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

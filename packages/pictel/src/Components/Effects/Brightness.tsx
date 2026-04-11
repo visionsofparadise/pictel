@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 import { lerp } from "./utils/lerp"
@@ -40,12 +40,13 @@ export function applyMappedBrightness(pixels: ImageData, map: ImageData, amount:
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface BrightnessProps extends ComponentProps<"div"> {
+interface BrightnessProps {
 	/** Brightness multiplier. 1 is unchanged, 0 is black, greater than 1 brightens. */
 	amount?: number
 	mode?: "parameter" | "mix"
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -56,7 +57,7 @@ interface BrightnessProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function Brightness({ amount = 1, mode = "mix", backdrop, flatten, ...rest }: BrightnessProps) {
+export function Brightness({ amount = 1, mode = "mix", backdrop, flatten, children }: BrightnessProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyBrightness(pixels, amount),
 		[amount],
@@ -68,6 +69,8 @@ export function Brightness({ amount = 1, mode = "mix", backdrop, flatten, ...res
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

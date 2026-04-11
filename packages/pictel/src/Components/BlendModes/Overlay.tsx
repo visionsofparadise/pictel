@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../Pipeline/RasterBlend"
 
@@ -12,9 +12,10 @@ export const overlay: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	overlayChannel(sb, db),
 ]
 
-interface OverlayProps extends ComponentProps<"div"> {
+interface OverlayProps {
 	opacity?: number
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -24,8 +25,10 @@ interface OverlayProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function Overlay({ opacity, flatten, ...rest }: OverlayProps) {
+export function Overlay({ opacity, flatten, children }: OverlayProps) {
 	return (
-		<RasterBlend blend={overlay} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={overlay} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	)
 }

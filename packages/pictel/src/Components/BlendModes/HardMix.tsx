@@ -1,13 +1,14 @@
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 import { vividLightChannel } from "./utils/vivid-light-channel";
 
 export const hardMix: BlendFormula = (sr, sg, sb, dr, dg, db) => [vividLightChannel(dr, sr) >= 0.5 ? 1 : 0, vividLightChannel(dg, sg) >= 0.5 ? 1 : 0, vividLightChannel(db, sb) >= 0.5 ? 1 : 0];
 
-interface HardMixProps extends ComponentProps<"div"> {
+interface HardMixProps {
 	opacity?: number;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
 /**
@@ -17,8 +18,10 @@ interface HardMixProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function HardMix({ opacity, flatten, ...rest }: HardMixProps) {
+export function HardMix({ opacity, flatten, children }: HardMixProps) {
 	return (
-		<RasterBlend blend={hardMix} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={hardMix} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	);
 }

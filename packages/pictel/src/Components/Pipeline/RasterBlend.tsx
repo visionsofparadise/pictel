@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import type { BlendFormula } from "../BlendModes/utils/blend-pixels"
 import { blendPixels } from "../BlendModes/utils/blend-pixels"
@@ -6,11 +6,12 @@ import { CompositeEffect } from "./CompositeEffect"
 import { luminance } from "../Effects/utils/luminance"
 import { hasTargetChildren } from "./utils/has-target-children"
 
-interface RasterBlendProps extends ComponentProps<"div"> {
+interface RasterBlendProps {
 	/** Per-pixel blend formula function. Receives normalized source and destination RGB, returns blended RGB. */
 	blend: BlendFormula
 	opacity?: number
 	flatten?: boolean
+	children: ReactNode
 }
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -24,7 +25,7 @@ interface RasterBlendProps extends ComponentProps<"div"> {
  * @param props
  * @category Pipeline
  */
-export function RasterBlend({ blend, opacity = 1, flatten, children, ...rest }: RasterBlendProps) {
+export function RasterBlend({ blend, opacity = 1, flatten, children }: RasterBlendProps) {
 	const hasContent = hasTargetChildren(children)
 
 	const effect = useCallback(
@@ -66,11 +67,11 @@ export function RasterBlend({ blend, opacity = 1, flatten, children, ...rest }: 
 	)
 
 	if (!hasContent) {
-		return <div {...rest} style={{ ...rest.style, display: "none" }}>{children}</div>
+		return <div style={{ display: "none" }}>{children}</div>
 	}
 
 	return (
-		<CompositeEffect effect={effect} flatten={flatten} {...rest}>
+		<CompositeEffect effect={effect} flatten={flatten}>
 			{children}
 		</CompositeEffect>
 	)

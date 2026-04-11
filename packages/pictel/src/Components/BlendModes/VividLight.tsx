@@ -1,13 +1,14 @@
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 import { vividLightChannel } from "./utils/vivid-light-channel";
 
 export const vividLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [vividLightChannel(dr, sr), vividLightChannel(dg, sg), vividLightChannel(db, sb)];
 
-interface VividLightProps extends ComponentProps<"div"> {
+interface VividLightProps {
 	opacity?: number;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
 /**
@@ -17,8 +18,10 @@ interface VividLightProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function VividLight({ opacity, flatten, ...rest }: VividLightProps) {
+export function VividLight({ opacity, flatten, children }: VividLightProps) {
 	return (
-		<RasterBlend blend={vividLight} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={vividLight} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	);
 }

@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import type { EffectResult } from "../utils/raster"
 import { RasterEffect } from "../Pipeline/RasterEffect"
@@ -180,7 +180,7 @@ export function applyDropShadow(
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface DropShadowProps extends ComponentProps<"div"> {
+interface DropShadowProps {
 	/** Horizontal shadow offset in pixels. */
 	offsetX: number
 	/** Vertical shadow offset in pixels. */
@@ -191,6 +191,7 @@ interface DropShadowProps extends ComponentProps<"div"> {
 	color: string
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -204,13 +205,15 @@ interface DropShadowProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function DropShadow({ offsetX, offsetY, blurRadius, color, backdrop, flatten, ...rest }: DropShadowProps) {
+export function DropShadow({ offsetX, offsetY, blurRadius, color, backdrop, flatten, children }: DropShadowProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyDropShadow(pixels, offsetX, offsetY, blurRadius, color),
 		[offsetX, offsetY, blurRadius, color],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 import { luminance } from "./utils/luminance"
@@ -27,13 +27,14 @@ export function applyDuotone(
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface DuotoneProps extends ComponentProps<"div"> {
+interface DuotoneProps {
 	/** RGB triple [r, g, b] (0-255) for shadow tones. */
 	dark: [number, number, number]
 	/** RGB triple [r, g, b] (0-255) for highlight tones. */
 	light: [number, number, number]
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -45,13 +46,15 @@ interface DuotoneProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function Duotone({ dark, light, backdrop, flatten, ...rest }: DuotoneProps) {
+export function Duotone({ dark, light, backdrop, flatten, children }: DuotoneProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyDuotone(pixels, dark, light),
 		[dark, light],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

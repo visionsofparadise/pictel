@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 
@@ -24,11 +24,12 @@ export function applyChannelMix(pixels: ImageData, matrix: Array<Array<number>>)
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface ChannelMixerProps extends ComponentProps<"div"> {
+interface ChannelMixerProps {
 	/** 3x3 array where `matrix[outChannel][inChannel]` is the weight. Stabilize with `useMemo`. */
 	matrix: Array<Array<number>>
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -40,13 +41,15 @@ interface ChannelMixerProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function ChannelMixer({ matrix, backdrop, flatten, ...rest }: ChannelMixerProps) {
+export function ChannelMixer({ matrix, backdrop, flatten, children }: ChannelMixerProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyChannelMix(pixels, matrix),
 		[matrix],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

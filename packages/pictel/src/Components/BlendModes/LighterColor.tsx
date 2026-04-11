@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 import { luminance } from "./utils/luminance";
@@ -10,9 +10,10 @@ export const lighterColor: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 	return sl > dl ? [sr, sg, sb] : [dr, dg, db];
 };
 
-interface LighterColorProps extends ComponentProps<"div"> {
+interface LighterColorProps {
 	opacity?: number;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
 /**
@@ -22,8 +23,10 @@ interface LighterColorProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function LighterColor({ opacity, flatten, ...rest }: LighterColorProps) {
+export function LighterColor({ opacity, flatten, children }: LighterColorProps) {
 	return (
-		<RasterBlend blend={lighterColor} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={lighterColor} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	);
 }

@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 import { useCallback } from "react";
 import { normalizeResult, type EffectResult } from "../utils/raster";
 import { RasterEffect } from "../Pipeline/RasterEffect";
@@ -279,13 +279,14 @@ export function applyVariableBlur(pixels: ImageData, map: ImageData, radius: num
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface BlurProps extends ComponentProps<"div"> {
+interface BlurProps {
 	/** Blur radius in pixels. With a map, radius scales per-pixel by map luminance. */
 	radius: number;
 	/** `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance. */
 	mode?: "parameter" | "mix";
 	backdrop?: boolean;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
 /**
@@ -297,7 +298,7 @@ interface BlurProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function Blur({ radius, mode = "parameter", backdrop, flatten, ...rest }: BlurProps) {
+export function Blur({ radius, mode = "parameter", backdrop, flatten, children }: BlurProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyUniformBlur(pixels, radius),
 		[radius],
@@ -315,7 +316,8 @@ export function Blur({ radius, mode = "parameter", backdrop, flatten, ...rest }:
 			mode={mode}
 			backdrop={backdrop}
 			flatten={flatten}
-			{...rest}
-		/>
+		>
+			{children}
+		</RasterEffect>
 	);
 }

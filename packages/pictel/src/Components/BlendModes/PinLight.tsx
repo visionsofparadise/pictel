@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 
@@ -8,9 +8,10 @@ function pinLightChannel(dst: number, src: number): number {
 
 export const pinLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [pinLightChannel(dr, sr), pinLightChannel(dg, sg), pinLightChannel(db, sb)];
 
-interface PinLightProps extends ComponentProps<"div"> {
+interface PinLightProps {
 	opacity?: number;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
 /**
@@ -20,8 +21,10 @@ interface PinLightProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function PinLight({ opacity, flatten, ...rest }: PinLightProps) {
+export function PinLight({ opacity, flatten, children }: PinLightProps) {
 	return (
-		<RasterBlend blend={pinLight} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={pinLight} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	);
 }

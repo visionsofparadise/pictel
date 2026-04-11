@@ -1,4 +1,4 @@
-import { useCallback, type ComponentProps } from "react";
+import { useCallback, type ReactNode } from "react";
 import type { EffectResult } from "../utils/raster";
 import { CompositeEffect } from "./CompositeEffect";
 import { TargetEffect } from "./TargetEffect";
@@ -7,7 +7,7 @@ import { wrapWithMixBlend } from "./utils/wrap-with-mix-blend";
 
 export type RasterEffectCallback = (pixels: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 
-interface RasterEffectProps extends ComponentProps<"div"> {
+interface RasterEffectProps {
 	/** Pixel callback applied to captured content. Receives ImageData and optional map ImageData. */
 	effect: RasterEffectCallback;
 	/** Alternative callback used when a map is present and mode is `"parameter"`. Receives content and map ImageData. */
@@ -15,6 +15,7 @@ interface RasterEffectProps extends ComponentProps<"div"> {
 	mode?: "parameter" | "mix";
 	backdrop?: boolean;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
 /**
@@ -34,7 +35,6 @@ export function RasterEffect({
 	backdrop,
 	flatten,
 	children,
-	...rest
 }: RasterEffectProps) {
 	const useComposite = (backdrop ?? false) || !hasTargetChildren(children);
 
@@ -66,14 +66,14 @@ export function RasterEffect({
 
 	if (useComposite) {
 		return (
-			<CompositeEffect effect={compositeCallback} flatten={flatten} {...rest}>
+			<CompositeEffect effect={compositeCallback} flatten={flatten}>
 				{children}
 			</CompositeEffect>
 		);
 	}
 
 	return (
-		<TargetEffect effect={targetCallback} flatten={flatten} {...rest}>
+		<TargetEffect effect={targetCallback} flatten={flatten}>
 			{children}
 		</TargetEffect>
 	);

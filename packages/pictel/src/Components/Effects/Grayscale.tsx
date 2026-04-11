@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 import { lerp } from "./utils/lerp"
@@ -24,11 +24,12 @@ export function applyGrayscale(pixels: ImageData, amount: number): ImageData {
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface GrayscaleProps extends ComponentProps<"div"> {
+interface GrayscaleProps {
 	/** Desaturation amount. 0 is unchanged, 1 is fully grayscale. Default 1. */
 	amount?: number
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -39,13 +40,15 @@ interface GrayscaleProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function Grayscale({ amount = 1, backdrop, flatten, ...rest }: GrayscaleProps) {
+export function Grayscale({ amount = 1, backdrop, flatten, children }: GrayscaleProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyGrayscale(pixels, amount),
 		[amount],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

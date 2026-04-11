@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { colorBurn as colorBurnChannel } from "./utils/color-burn"
 import { RasterBlend } from "../Pipeline/RasterBlend"
@@ -9,9 +9,10 @@ export const colorBurn: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 	colorBurnChannel(db, sb),
 ]
 
-interface ColorBurnProps extends ComponentProps<"div"> {
+interface ColorBurnProps {
 	opacity?: number
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -21,8 +22,10 @@ interface ColorBurnProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function ColorBurn({ opacity, flatten, ...rest }: ColorBurnProps) {
+export function ColorBurn({ opacity, flatten, children }: ColorBurnProps) {
 	return (
-		<RasterBlend blend={colorBurn} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={colorBurn} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	)
 }

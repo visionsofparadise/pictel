@@ -5,5 +5,6 @@ export default defineConfig({
     globals: true,
     environment: "node",
     passWithNoTests: true,
+    exclude: ["**/src/integration/**"],
   },
 });

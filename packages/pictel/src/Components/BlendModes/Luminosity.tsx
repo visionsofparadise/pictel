@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { hslToRgb, rgbToHsl } from "./utils/hsl"
 import { RasterBlend } from "../Pipeline/RasterBlend"
@@ -11,9 +11,10 @@ export const luminosity: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 	return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]
 }
 
-interface LuminosityProps extends ComponentProps<"div"> {
+interface LuminosityProps {
 	opacity?: number
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -23,8 +24,10 @@ interface LuminosityProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function Luminosity({ opacity, flatten, ...rest }: LuminosityProps) {
+export function Luminosity({ opacity, flatten, children }: LuminosityProps) {
 	return (
-		<RasterBlend blend={luminosity} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={luminosity} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	)
 }

@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 import { luminance } from "./utils/luminance"
@@ -85,13 +85,14 @@ export function applyHalftone(pixels: ImageData, dotSize: number, angle = 0): Im
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface HalftoneProps extends ComponentProps<"div"> {
+interface HalftoneProps {
 	/** Grid cell size in pixels. Larger values produce coarser halftone. */
 	dotSize: number
 	/** Rotation angle of the dot grid in degrees. Default 0. */
 	angle?: number
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -103,13 +104,15 @@ interface HalftoneProps extends ComponentProps<"div"> {
  * @param props
  * @category Effects
  */
-export function Halftone({ dotSize, angle, backdrop, flatten, ...rest }: HalftoneProps) {
+export function Halftone({ dotSize, angle, backdrop, flatten, children }: HalftoneProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyHalftone(pixels, dotSize, angle),
 		[dotSize, angle],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

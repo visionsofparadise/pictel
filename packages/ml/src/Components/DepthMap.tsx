@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ComponentProps } from "react"
+import { useCallback, useEffect, useRef, type ReactNode } from "react"
 import type { Pipeline } from "@huggingface/transformers"
 import { RasterEffect } from "pictel"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
@@ -17,13 +17,14 @@ export async function estimateDepth(pixels: ImageData, pipe: Pipeline): Promise<
 }
 /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 
-interface DepthMapProps extends ComponentProps<"div"> {
+interface DepthMapProps {
 	/** Hugging Face model ID for depth estimation. Defaults to `onnx-community/depth-anything-v2-small`. */
 	model?: string
 	/** Model revision hash. Overridable alongside `model`. */
 	revision?: string
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -40,7 +41,7 @@ export function DepthMap({
 	revision = DEFAULT_REVISION,
 	backdrop,
 	flatten,
-	...rest
+	children,
 }: DepthMapProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
 
@@ -61,6 +62,8 @@ export function DepthMap({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

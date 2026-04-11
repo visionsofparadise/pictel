@@ -1,12 +1,13 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { RasterBlend } from "../Pipeline/RasterBlend"
 
 export const multiply: BlendFormula = (sr, sg, sb, dr, dg, db) => [sr * dr, sg * dg, sb * db]
 
-interface MultiplyProps extends ComponentProps<"div"> {
+interface MultiplyProps {
 	opacity?: number
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -16,8 +17,10 @@ interface MultiplyProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function Multiply({ opacity, flatten, ...rest }: MultiplyProps) {
+export function Multiply({ opacity, flatten, children }: MultiplyProps) {
 	return (
-		<RasterBlend blend={multiply} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={multiply} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	)
 }

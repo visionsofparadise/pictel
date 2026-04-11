@@ -1,4 +1,4 @@
-import { useCallback, type ComponentProps } from "react"
+import { useCallback, type ReactNode } from "react"
 import { RasterEffect } from "../Pipeline/RasterEffect"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -40,13 +40,14 @@ export function applyDisplacement(
 }
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-interface DisplacementMapProps extends ComponentProps<"div"> {
+interface DisplacementMapProps {
 	/** Maximum horizontal displacement in pixels. Default 20. */
 	scaleX?: number
 	/** Maximum vertical displacement in pixels. Default 20. */
 	scaleY?: number
 	backdrop?: boolean
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -64,7 +65,7 @@ export function DisplacementMap({
 	scaleY = 20,
 	backdrop,
 	flatten,
-	...rest
+	children,
 }: DisplacementMapProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => pixels,
@@ -77,6 +78,8 @@ export function DisplacementMap({
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten} {...rest} />
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten}>
+			{children}
+		</RasterEffect>
 	)
 }

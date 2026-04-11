@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ReactNode } from "react"
 import type { BlendFormula } from "./utils/blend-pixels"
 import { hslToRgb, rgbToHsl } from "./utils/hsl"
 import { RasterBlend } from "../Pipeline/RasterBlend"
@@ -11,9 +11,10 @@ export const hue: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 	return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255]
 }
 
-interface HueProps extends ComponentProps<"div"> {
+interface HueProps {
 	opacity?: number
 	flatten?: boolean
+	children: ReactNode
 }
 
 /**
@@ -23,8 +24,10 @@ interface HueProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function Hue({ opacity, flatten, ...rest }: HueProps) {
+export function Hue({ opacity, flatten, children }: HueProps) {
 	return (
-		<RasterBlend blend={hue} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={hue} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	)
 }

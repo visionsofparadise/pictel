@@ -1,12 +1,13 @@
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 import { RasterBlend } from "../Pipeline/RasterBlend";
 import type { BlendFormula } from "./utils/blend-pixels";
 
 export const subtract: BlendFormula = (sr, sg, sb, dr, dg, db) => [Math.max(0, dr - sr), Math.max(0, dg - sg), Math.max(0, db - sb)];
 
-interface SubtractProps extends ComponentProps<"div"> {
+interface SubtractProps {
 	opacity?: number;
 	flatten?: boolean;
+	children: ReactNode;
 }
 
 /**
@@ -16,8 +17,10 @@ interface SubtractProps extends ComponentProps<"div"> {
  * @param props
  * @category Blend Modes
  */
-export function Subtract({ opacity, flatten, ...rest }: SubtractProps) {
+export function Subtract({ opacity, flatten, children }: SubtractProps) {
 	return (
-		<RasterBlend blend={subtract} opacity={opacity} flatten={flatten} {...rest} />
+		<RasterBlend blend={subtract} opacity={opacity} flatten={flatten}>
+			{children}
+		</RasterBlend>
 	);
 }

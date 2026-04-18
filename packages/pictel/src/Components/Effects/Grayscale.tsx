@@ -28,7 +28,6 @@ interface GrayscaleProps {
 	/** Desaturation amount. 0 is unchanged, 1 is fully grayscale. Default 1. */
 	amount?: number
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -40,14 +39,14 @@ interface GrayscaleProps {
  * @param props
  * @category Effects
  */
-export function Grayscale({ amount = 1, backdrop, flatten, children }: GrayscaleProps) {
+export function Grayscale({ amount = 1, backdrop, children }: GrayscaleProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyGrayscale(pixels, amount),
 		[amount],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

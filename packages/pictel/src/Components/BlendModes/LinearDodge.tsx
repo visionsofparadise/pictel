@@ -6,7 +6,6 @@ export const linearDodge: BlendFormula = (sr, sg, sb, dr, dg, db) => [Math.min(1
 
 interface LinearDodgeProps {
 	opacity?: number;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -17,9 +16,9 @@ interface LinearDodgeProps {
  * @param props
  * @category Blend Modes
  */
-export function LinearDodge({ opacity, flatten, children }: LinearDodgeProps) {
+export function LinearDodge({ opacity, children }: LinearDodgeProps) {
 	return (
-		<RasterBlend blend={linearDodge} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={linearDodge} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	);

@@ -87,7 +87,6 @@ interface SharpenProps {
 	/** Sharpening strength. Higher values produce more aggressive edge enhancement. */
 	amount: number
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -99,7 +98,7 @@ interface SharpenProps {
  * @param props
  * @category Effects
  */
-export function Sharpen({ amount, backdrop, flatten, children }: SharpenProps) {
+export function Sharpen({ amount, backdrop, children }: SharpenProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applySharpen(pixels, amount),
 		[amount],
@@ -111,7 +110,7 @@ export function Sharpen({ amount, backdrop, flatten, children }: SharpenProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

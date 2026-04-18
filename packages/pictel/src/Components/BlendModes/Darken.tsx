@@ -10,7 +10,6 @@ export const darken: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 
 interface DarkenProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -21,9 +20,9 @@ interface DarkenProps {
  * @param props
  * @category Blend Modes
  */
-export function Darken({ opacity, flatten, children }: DarkenProps) {
+export function Darken({ opacity, children }: DarkenProps) {
 	return (
-		<RasterBlend blend={darken} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={darken} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

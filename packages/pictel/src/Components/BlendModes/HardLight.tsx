@@ -14,7 +14,6 @@ export const hardLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 
 interface HardLightProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -25,9 +24,9 @@ interface HardLightProps {
  * @param props
  * @category Blend Modes
  */
-export function HardLight({ opacity, flatten, children }: HardLightProps) {
+export function HardLight({ opacity, children }: HardLightProps) {
 	return (
-		<RasterBlend blend={hardLight} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={hardLight} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

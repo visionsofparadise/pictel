@@ -285,7 +285,6 @@ interface BlurProps {
 	/** `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance. */
 	mode?: "parameter" | "mix";
 	backdrop?: boolean;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -298,7 +297,7 @@ interface BlurProps {
  * @param props
  * @category Effects
  */
-export function Blur({ radius, mode = "parameter", backdrop, flatten, children }: BlurProps) {
+export function Blur({ radius, mode = "parameter", backdrop, children }: BlurProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyUniformBlur(pixels, radius),
 		[radius],
@@ -315,7 +314,6 @@ export function Blur({ radius, mode = "parameter", backdrop, flatten, children }
 			mappedEffect={mappedEffect}
 			mode={mode}
 			backdrop={backdrop}
-			flatten={flatten}
 		>
 			{children}
 		</RasterEffect>

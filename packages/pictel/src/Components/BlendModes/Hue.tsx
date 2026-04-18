@@ -13,7 +13,6 @@ export const hue: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 
 interface HueProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -24,9 +23,9 @@ interface HueProps {
  * @param props
  * @category Blend Modes
  */
-export function Hue({ opacity, flatten, children }: HueProps) {
+export function Hue({ opacity, children }: HueProps) {
 	return (
-		<RasterBlend blend={hue} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={hue} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

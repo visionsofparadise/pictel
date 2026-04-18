@@ -7,7 +7,6 @@ export const hardMix: BlendFormula = (sr, sg, sb, dr, dg, db) => [vividLightChan
 
 interface HardMixProps {
 	opacity?: number;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -18,9 +17,9 @@ interface HardMixProps {
  * @param props
  * @category Blend Modes
  */
-export function HardMix({ opacity, flatten, children }: HardMixProps) {
+export function HardMix({ opacity, children }: HardMixProps) {
 	return (
-		<RasterBlend blend={hardMix} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={hardMix} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	);

@@ -3,7 +3,39 @@ import { getElementsInFront, type StackingOrder } from "../../../utils/stacking"
 
 const baseOptions = { dpr: 1, fast: true };
 
+/**
+ * Direct pipeline child fast path. When `element` (the children wrapper of
+ * some pipeline) contains exactly one child and that child is a resolved
+ * pictel pipeline, read its canvas's pixels directly via getImageData
+ * instead of going through snapdom.
+ */
+function tryFastPath(element: HTMLElement): ImageData | null {
+	if (element.children.length !== 1) return null;
+
+	const inner = element.children[0];
+
+	if (!(inner instanceof HTMLElement)) return null;
+
+	if (!inner.hasAttribute("data-pictel-pipeline")) return null;
+
+	if (inner.hasAttribute("data-pictel-pending")) return null;
+
+	const canvas = inner.querySelector<HTMLCanvasElement>(":scope > [data-pictel-raster] > canvas");
+
+	if (!(canvas instanceof HTMLCanvasElement)) return null;
+
+	const innerContext = canvas.getContext("2d", { willReadFrequently: true });
+
+	if (!innerContext) return null;
+
+	return innerContext.getImageData(0, 0, canvas.width, canvas.height);
+}
+
 export async function captureChildren(element: HTMLElement, dimensions: { width: number; height: number } | null): Promise<ImageData> {
+	const fast = tryFastPath(element);
+
+	if (fast) return fast;
+
 	const options = dimensions ? { ...baseOptions, width: dimensions.width, height: dimensions.height } : baseOptions;
 	const canvas = await snapdom.toCanvas(element, options);
 	const context = canvas.getContext("2d", { willReadFrequently: true });
@@ -19,7 +51,7 @@ export async function captureBehind(
 	dimensions: { width: number; height: number } | null,
 	stackingOrder: StackingOrder,
 	rects: ReadonlyMap<HTMLElement, DOMRect>,
-	isDisposed?: () => boolean,
+	signal?: AbortSignal,
 ): Promise<ImageData> {
 	const inFront = getElementsInFront(element, stackingOrder, rects);
 	const allToHide = [element, ...inFront];
@@ -47,11 +79,11 @@ export async function captureBehind(
 
 		return context.getImageData(offsetX, offsetY, width, height);
 	} finally {
-		// If the caller was disposed while snapdom was pending, skip the
+		// If the caller was aborted while snapdom was pending, skip the
 		// visibility restore: the snapshotted "previous" values are stale and
 		// writing them back would clobber state belonging to a subsequent
 		// mount's in-flight captureBehind (StrictMode double-mount race).
-		if (!isDisposed?.()) {
+		if (!signal?.aborted) {
 			for (let elementIndex = 0; elementIndex < allToHide.length; elementIndex++) {
 				const hidden = allToHide[elementIndex];
 				const previous = previousVisibilities[elementIndex];

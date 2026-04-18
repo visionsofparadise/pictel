@@ -6,7 +6,6 @@ export const multiply: BlendFormula = (sr, sg, sb, dr, dg, db) => [sr * dr, sg *
 
 interface MultiplyProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -17,9 +16,9 @@ interface MultiplyProps {
  * @param props
  * @category Blend Modes
  */
-export function Multiply({ opacity, flatten, children }: MultiplyProps) {
+export function Multiply({ opacity, children }: MultiplyProps) {
 	return (
-		<RasterBlend blend={multiply} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={multiply} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

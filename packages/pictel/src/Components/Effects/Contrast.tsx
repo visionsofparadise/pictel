@@ -45,7 +45,6 @@ interface ContrastProps {
 	amount?: number
 	mode?: "parameter" | "mix"
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -57,7 +56,7 @@ interface ContrastProps {
  * @param props
  * @category Effects
  */
-export function Contrast({ amount = 1, mode = "mix", backdrop, flatten, children }: ContrastProps) {
+export function Contrast({ amount = 1, mode = "mix", backdrop, children }: ContrastProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyContrast(pixels, amount),
 		[amount],
@@ -69,7 +68,7 @@ export function Contrast({ amount = 1, mode = "mix", backdrop, flatten, children
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

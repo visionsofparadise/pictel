@@ -45,7 +45,6 @@ interface OpacityProps {
 	amount?: number
 	mode?: "parameter" | "mix"
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -57,7 +56,7 @@ interface OpacityProps {
  * @param props
  * @category Effects
  */
-export function Opacity({ amount = 1, mode = "mix", backdrop, flatten, children }: OpacityProps) {
+export function Opacity({ amount = 1, mode = "mix", backdrop, children }: OpacityProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyOpacity(pixels, amount),
 		[amount],
@@ -69,7 +68,7 @@ export function Opacity({ amount = 1, mode = "mix", backdrop, flatten, children 
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

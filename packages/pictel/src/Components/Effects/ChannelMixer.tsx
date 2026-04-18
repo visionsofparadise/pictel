@@ -28,7 +28,6 @@ interface ChannelMixerProps {
 	/** 3x3 array where `matrix[outChannel][inChannel]` is the weight. Stabilize with `useMemo`. */
 	matrix: Array<Array<number>>
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -41,14 +40,14 @@ interface ChannelMixerProps {
  * @param props
  * @category Effects
  */
-export function ChannelMixer({ matrix, backdrop, flatten, children }: ChannelMixerProps) {
+export function ChannelMixer({ matrix, backdrop, children }: ChannelMixerProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyChannelMix(pixels, matrix),
 		[matrix],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

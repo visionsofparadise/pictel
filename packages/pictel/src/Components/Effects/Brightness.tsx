@@ -45,7 +45,6 @@ interface BrightnessProps {
 	amount?: number
 	mode?: "parameter" | "mix"
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -57,7 +56,7 @@ interface BrightnessProps {
  * @param props
  * @category Effects
  */
-export function Brightness({ amount = 1, mode = "mix", backdrop, flatten, children }: BrightnessProps) {
+export function Brightness({ amount = 1, mode = "mix", backdrop, children }: BrightnessProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyBrightness(pixels, amount),
 		[amount],
@@ -69,7 +68,7 @@ export function Brightness({ amount = 1, mode = "mix", backdrop, flatten, childr
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

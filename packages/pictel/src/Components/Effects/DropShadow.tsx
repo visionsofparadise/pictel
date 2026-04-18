@@ -190,7 +190,6 @@ interface DropShadowProps {
 	/** Shadow color as hex (`#rgb`, `#rrggbb`, `#rrggbbaa`) or `rgb()`/`rgba()`. */
 	color: string
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -205,14 +204,14 @@ interface DropShadowProps {
  * @param props
  * @category Effects
  */
-export function DropShadow({ offsetX, offsetY, blurRadius, color, backdrop, flatten, children }: DropShadowProps) {
+export function DropShadow({ offsetX, offsetY, blurRadius, color, backdrop, children }: DropShadowProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyDropShadow(pixels, offsetX, offsetY, blurRadius, color),
 		[offsetX, offsetY, blurRadius, color],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

@@ -6,7 +6,6 @@ export const subtract: BlendFormula = (sr, sg, sb, dr, dg, db) => [Math.max(0, d
 
 interface SubtractProps {
 	opacity?: number;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -17,9 +16,9 @@ interface SubtractProps {
  * @param props
  * @category Blend Modes
  */
-export function Subtract({ opacity, flatten, children }: SubtractProps) {
+export function Subtract({ opacity, children }: SubtractProps) {
 	return (
-		<RasterBlend blend={subtract} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={subtract} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	);

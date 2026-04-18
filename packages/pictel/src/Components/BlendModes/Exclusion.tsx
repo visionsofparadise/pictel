@@ -10,7 +10,6 @@ export const exclusion: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 
 interface ExclusionProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -21,9 +20,9 @@ interface ExclusionProps {
  * @param props
  * @category Blend Modes
  */
-export function Exclusion({ opacity, flatten, children }: ExclusionProps) {
+export function Exclusion({ opacity, children }: ExclusionProps) {
 	return (
-		<RasterBlend blend={exclusion} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={exclusion} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

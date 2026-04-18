@@ -1,8 +1,10 @@
 // Components
 export { Canvas } from "./Components/Canvas";
+export { Clip } from "./Components/Pipeline/Clip";
 export { CompositeEffect } from "./Components/Pipeline/CompositeEffect";
 export { ErrorOverlay } from "./Components/ErrorOverlay";
 export { Map } from "./Components/Pipeline/Map";
+export { Overflow } from "./Components/Pipeline/Overflow";
 export { RasterBlend } from "./Components/Pipeline/RasterBlend";
 export { RasterEffect } from "./Components/Pipeline/RasterEffect";
 export { TargetEffect } from "./Components/Pipeline/TargetEffect";

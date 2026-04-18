@@ -11,7 +11,6 @@ export const colorDodge: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 
 interface ColorDodgeProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -22,9 +21,9 @@ interface ColorDodgeProps {
  * @param props
  * @category Blend Modes
  */
-export function ColorDodge({ opacity, flatten, children }: ColorDodgeProps) {
+export function ColorDodge({ opacity, children }: ColorDodgeProps) {
 	return (
-		<RasterBlend blend={colorDodge} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={colorDodge} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

@@ -42,7 +42,6 @@ interface GrainProps {
 	/** Random seed for reproducible grain patterns. */
 	seed: number
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -55,14 +54,14 @@ interface GrainProps {
  * @param props
  * @category Effects
  */
-export function Grain({ intensity, seed, backdrop, flatten, children }: GrainProps) {
+export function Grain({ intensity, seed, backdrop, children }: GrainProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyGrain(pixels, intensity, seed),
 		[intensity, seed],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

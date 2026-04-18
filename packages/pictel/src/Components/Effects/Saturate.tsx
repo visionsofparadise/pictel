@@ -48,7 +48,6 @@ interface SaturateProps {
 	amount?: number
 	mode?: "parameter" | "mix"
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -60,7 +59,7 @@ interface SaturateProps {
  * @param props
  * @category Effects
  */
-export function Saturate({ amount = 1, mode = "mix", backdrop, flatten, children }: SaturateProps) {
+export function Saturate({ amount = 1, mode = "mix", backdrop, children }: SaturateProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applySaturate(pixels, amount),
 		[amount],
@@ -72,7 +71,7 @@ export function Saturate({ amount = 1, mode = "mix", backdrop, flatten, children
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

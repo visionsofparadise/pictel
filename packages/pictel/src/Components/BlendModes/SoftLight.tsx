@@ -20,7 +20,6 @@ export const softLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 
 interface SoftLightProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -31,9 +30,9 @@ interface SoftLightProps {
  * @param props
  * @category Blend Modes
  */
-export function SoftLight({ opacity, flatten, children }: SoftLightProps) {
+export function SoftLight({ opacity, children }: SoftLightProps) {
 	return (
-		<RasterBlend blend={softLight} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={softLight} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

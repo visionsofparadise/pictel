@@ -1,39 +1,41 @@
 import { DepthMap } from "@pictel/ml";
-import { Blur, Brightness, Canvas, Contrast, Invert, Map, Saturate } from "pictel";
+import { Blur, Brightness, Canvas, Clip, Contrast, Invert, Map, Saturate } from "pictel";
 import cityPhoto from "../../assets/city overview.jpg";
 
 export default function TiltShift() {
 	return (
 		<Canvas mode="display">
-			<Blur
-				radius={7}
-				mode="parameter"
-			>
-				<Map>
-					<Invert>
-						<Brightness amount={2}>
-							<Contrast amount={0.35}>
-								<DepthMap>
-									<img
-										src={cityPhoto}
-										crossOrigin="anonymous"
-										style={{ display: "block", maxWidth: "100%" }}
-									/>
-								</DepthMap>
-							</Contrast>
-						</Brightness>
-					</Invert>
-				</Map>
-				<Saturate amount={1.1}>
-					<Contrast amount={1.1}>
-						<img
-							src={cityPhoto}
-							crossOrigin="anonymous"
-							style={{ display: "block", maxWidth: "100%" }}
-						/>
-					</Contrast>
-				</Saturate>
-			</Blur>
+			<Clip>
+				<Blur
+					radius={7}
+					mode="parameter"
+				>
+					<Map>
+						<Invert>
+							<Brightness amount={2}>
+								<Contrast amount={0.35}>
+									<DepthMap>
+										<img
+											src={cityPhoto}
+											crossOrigin="anonymous"
+											style={{ display: "block", maxWidth: "100%" }}
+										/>
+									</DepthMap>
+								</Contrast>
+							</Brightness>
+						</Invert>
+					</Map>
+					<Saturate amount={1.1}>
+						<Contrast amount={1.1}>
+							<img
+								src={cityPhoto}
+								crossOrigin="anonymous"
+								style={{ display: "block", maxWidth: "100%" }}
+							/>
+						</Contrast>
+					</Saturate>
+				</Blur>
+			</Clip>
 			<div
 				style={{
 					position: "absolute",

@@ -91,7 +91,6 @@ interface HalftoneProps {
 	/** Rotation angle of the dot grid in degrees. Default 0. */
 	angle?: number
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -104,14 +103,14 @@ interface HalftoneProps {
  * @param props
  * @category Effects
  */
-export function Halftone({ dotSize, angle, backdrop, flatten, children }: HalftoneProps) {
+export function Halftone({ dotSize, angle, backdrop, children }: HalftoneProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyHalftone(pixels, dotSize, angle),
 		[dotSize, angle],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

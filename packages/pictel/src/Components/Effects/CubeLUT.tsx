@@ -104,7 +104,6 @@ interface CubeLUTProps {
 	/** URL to a .cube LUT file. */
 	src: string
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -117,7 +116,7 @@ interface CubeLUTProps {
  * @param props
  * @category Effects
  */
-export function CubeLUT({ src, backdrop, flatten, children }: CubeLUTProps) {
+export function CubeLUT({ src, backdrop, children }: CubeLUTProps) {
 	const [lutData, setLutData] = useState<{ lut: Float32Array; size: number } | null>(null)
 
 	useEffect(() => {
@@ -143,7 +142,7 @@ export function CubeLUT({ src, backdrop, flatten, children }: CubeLUTProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

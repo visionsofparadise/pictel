@@ -11,7 +11,6 @@ export const colorBurn: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 
 interface ColorBurnProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -22,9 +21,9 @@ interface ColorBurnProps {
  * @param props
  * @category Blend Modes
  */
-export function ColorBurn({ opacity, flatten, children }: ColorBurnProps) {
+export function ColorBurn({ opacity, children }: ColorBurnProps) {
 	return (
-		<RasterBlend blend={colorBurn} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={colorBurn} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

@@ -1,13 +1,12 @@
 import { useId, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { useCanvasContext } from "../../context/canvas";
-import { captureBehind, captureChildren } from "./utils/capture";
 import { createPipelineError } from "../../utils/errors";
-import { addCutout, ensureSharedMask, removeCutouts } from "./utils/masking";
 import { observeSubtree } from "../../utils/observe";
-import { drawToCanvas, normalizeResult, type EffectResult } from "../utils/raster";
-import { getOwnUnloadedImages, hasExternalMutations, hasOwnMutations } from "./utils/scope";
 import { getElementsBehind } from "../../utils/stacking";
-import { checkStackingEscape } from "./utils/stacking-check";
+import { drawToCanvas, normalizeResult, type EffectResult } from "../utils/raster";
+import { captureBehind, captureChildren } from "./utils/capture";
+import { addCutout, ensureSharedMask, removeCutouts } from "./utils/masking";
+import { getOwnUnloadedImages, hasExternalMutations, hasOwnMutations } from "./utils/scope";
 import { separateChildren } from "./utils/separate-children";
 
 export type CompositeEffectCallback = (self: ImageData, behind: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
@@ -15,7 +14,6 @@ export type CompositeEffectCallback = (self: ImageData, behind: ImageData, map?:
 interface CompositeEffectProps {
 	/** Pixel callback receiving self pixels, behind pixels, and optional map pixels. Returns processed ImageData. */
 	effect: CompositeEffectCallback;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -28,7 +26,7 @@ interface CompositeEffectProps {
  * @param props
  * @category Pipeline
  */
-export function CompositeEffect({ effect, flatten, children }: CompositeEffectProps) {
+export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 	const id = useId();
 	const pipelineRef = useRef<HTMLDivElement>(null);
 	const childrenRef = useRef<HTMLDivElement>(null);
@@ -49,68 +47,39 @@ export function CompositeEffect({ effect, flatten, children }: CompositeEffectPr
 
 		if (!pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
 
+		// Initial: canvas hidden until first resolve.
 		rasterEl.style.display = "none";
 
-		// Size map container to match content so nested effects render at correct dimensions
-		const contentRect = childrenEl.getBoundingClientRect();
-		mapEl.style.width = `${String(contentRect.width)}px`;
-		mapEl.style.height = `${String(contentRect.height)}px`;
-
-		let disposed = false;
-		const isDisposed = () => disposed;
-		const observers: Array<MutationObserver> = [];
-		// Behind-element observers live in their own array so execute() can
-		// disconnect+drop them on each run without leaving dead entries in the
-		// main observers array (which used to grow unboundedly across reruns).
-		let behindObservers: Array<MutationObserver> = [];
+		const controller = new AbortController();
+		const { signal } = controller;
 
 		function cleanupCutouts() {
 			removeCutouts(cutoutsRef.current);
 			cutoutsRef.current = [];
 		}
 
-		const snapshot = domSnapshot.current;
-		// Filter out any behind-stacking element that is the pipeline itself or
-		// lives inside it — those are "our own" DOM, not a layer we composite
-		// against. Without this filter, the pipeline div (and its infrastructure
-		// wrappers) appear in behindElements because they precede childrenRef in
-		// the stacking order and intersect its rect, which then breaks the
-		// pending-behind check (the pipeline is pending while we're running) and
-		// causes behind observers to watch subtrees that overlap our own writes.
-		const rawBehind = snapshot ? getElementsBehind(childrenEl, snapshot.stackingOrder, snapshot.rects) : [];
+		// Behind elements are discovered once at setup. Filter out the pipeline
+		// itself and anything inside it — those are our own DOM, not a layer we
+		// composite against. Without this filter the pipeline div (and its
+		// infrastructure wrappers) appear in behindElements because they precede
+		// childrenRef in the stacking order and intersect its rect.
+		const setupSnapshot = domSnapshot.current;
+		const rawBehind = setupSnapshot ? getElementsBehind(childrenEl, setupSnapshot.stackingOrder, setupSnapshot.rects) : [];
 		const behindElements = rawBehind.filter((candidate) => candidate !== pipelineEl && !pipelineEl.contains(candidate));
-		const imageListeners = new Map<HTMLImageElement, { load: () => void; error: () => void }>();
 
-		function clearImageListeners() {
-			for (const [img, handlers] of imageListeners) {
-				img.removeEventListener("load", handlers.load);
-				img.removeEventListener("error", handlers.error);
-			}
-
-			imageListeners.clear();
-		}
-
-		/** Gated entry point — checks preconditions before scheduling execute. */
+		/** Validate-only gate. No DOM writes except installing image listeners when waiting. */
 		function gate() {
-			if (disposed || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
+			if (signal.aborted || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
 
-			// Reset to pre-execution state
-			clearImageListeners();
-			cleanupCutouts();
-			pipelineEl.setAttribute("data-pictel-pending", "true");
-			childrenEl.style.visibility = "";
-			rasterEl.style.display = "none";
-
-			// Check for pending nested effects
+			// Check for pending nested effects.
 			if (childrenEl.querySelector("[data-pictel-pending]") !== null) return;
 
 			if (mapEl.querySelector("[data-pictel-pending]") !== null) return;
 
-			// Check for pending behind elements. Ancestors of the pipeline
-			// appear here too, and their pending-descendants query would
-			// always find our own pipelineEl (which is pending by construction
-			// while we run). Exclude anything inside our own pipelineEl from
-			// the pending scan.
+			// Check for pending behind elements. Ancestors of the pipeline appear
+			// here too; their pending-descendants query would always find our own
+			// pipelineEl (which we marked pending). Exclude anything inside our
+			// own pipelineEl from the pending scan.
 			const hasPendingBehind = behindElements.some((behind) => {
 				if (behind.getAttribute("data-pictel-pending") === "true") return true;
 
@@ -125,14 +94,10 @@ export function CompositeEffect({ effect, flatten, children }: CompositeEffectPr
 
 			if (hasPendingBehind) return;
 
-			// Check for unloaded images: our own subtree plus any behind
-			// elements we'll be capturing pixels from. captureBehind uses
-			// snapdom on the canvas root, which needs the behind element's
-			// images decoded to produce correct pixels — so we must wait.
-			const unloaded = [
-				...getOwnUnloadedImages(childrenEl),
-				...getOwnUnloadedImages(mapEl),
-			];
+			// Check for unloaded images: our own subtree plus any behind elements
+			// we'll be capturing pixels from. captureBehind uses snapdom on the
+			// canvas root, which needs the behind element's images decoded.
+			const unloaded = [...getOwnUnloadedImages(childrenEl), ...getOwnUnloadedImages(mapEl)];
 
 			for (const behindElement of behindElements) {
 				unloaded.push(...getOwnUnloadedImages(behindElement));
@@ -140,138 +105,109 @@ export function CompositeEffect({ effect, flatten, children }: CompositeEffectPr
 
 			if (unloaded.length > 0) {
 				for (const img of unloaded) {
-					if (imageListeners.has(img)) continue;
-
-					const onLoad = () => { imageListeners.delete(img); gate(); };
-					const onError = () => { imageListeners.delete(img); gate(); };
-
-					imageListeners.set(img, { load: onLoad, error: onError });
-					img.addEventListener("load", onLoad, { once: true });
-					img.addEventListener("error", onError, { once: true });
+					img.addEventListener("load", gate, { once: true, signal });
+					img.addEventListener("error", gate, { once: true, signal });
 				}
 
 				return;
 			}
 
-			// Stacking escape check
-			const currentSnapshot = domSnapshot.current;
+			pipelineEl.setAttribute("data-pictel-pending", "true");
 
-			if (currentSnapshot && !flatten) {
-				const escaped = checkStackingEscape(childrenEl, currentSnapshot.stackingOrder);
-
-				if (escaped) {
-					reportError(
-						createPipelineError(
-							id,
-							new Error(
-								`CompositeEffect child escapes stacking context. Element "${escaped.tagName.toLowerCase()}" appears before its CompositeEffect parent in the stacking order. Add the "flatten" prop to the CompositeEffect or fix the child's z-index.`,
-							),
-						),
-					);
-
-					return;
-				}
-			}
-
-			// All preconditions met — schedule execution
 			void Promise.resolve().then(() => execute());
 		}
 
-		const contentObserver = new MutationObserver((mutations) => {
-			if (hasOwnMutations(mutations, childrenEl, childrenEl)) gate();
-		});
-		observers.push(contentObserver);
-		observeSubtree(contentObserver, childrenEl);
-
-		const mapObserver = new MutationObserver((mutations) => {
-			if (hasOwnMutations(mutations, mapEl)) gate();
-		});
-		observers.push(mapObserver);
-		observeSubtree(mapObserver, mapEl);
-
-		for (const behindElement of behindElements) {
-			const behindObserver = new MutationObserver((mutations) => {
-				// Ignore mutations that originate inside our own pipeline element.
-				// Behind elements are, by definition, ancestors or siblings that
-				// sit under the same canvas root — when they're ancestors of the
-				// pipeline (e.g. the wrapping positioned container), subtree:true
-				// would otherwise catch every write we make to our own DOM and
-				// loop gate() indefinitely.
-				if (hasExternalMutations(mutations, pipelineEl)) gate();
-			});
-			behindObservers.push(behindObserver);
-			observeSubtree(behindObserver, behindElement);
-		}
-
 		async function execute() {
-			if (disposed || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
-
-			const currentSnapshot = domSnapshot.current;
-
-			if (!currentSnapshot) return;
-
-			const canvasRoot = canvasRootRef.current;
-
-			if (!canvasRoot) return;
-
-			const maskDefs = maskDefsRef.current;
-
-			if (!maskDefs) return;
-
-			const label = `pictel:CompositeEffect(${id})`;
-
 			try {
-				for (const obs of observers) obs.disconnect();
+				if (signal.aborted || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
 
-				// Drop stale behind observers (from a previous execute cycle or
-				// from the initial setup) — they'll be rebuilt below after the
-				// effect completes. Keeping them would grow the array unboundedly
-				// across rerun cycles.
-				for (const obs of behindObservers) obs.disconnect();
+				const currentSnapshot = domSnapshot.current;
 
-				behindObservers = [];
+				if (!currentSnapshot) return;
 
-				performance.mark(`${label}:capture:start`);
-				const selfPromise = captureChildren(childrenEl, captureDimensions);
-				const behindPromise = captureBehind(
-					childrenEl,
-					canvasRoot,
-					captureDimensions,
-					currentSnapshot.stackingOrder,
-					currentSnapshot.rects,
-					isDisposed,
-				);
-				const mapPromise = maps.length > 0
-					? captureChildren(mapEl, captureDimensions)
-					: undefined;
+				const canvasRoot = canvasRootRef.current;
 
-				const [selfPixels, behindPixels, mapPixels] = await Promise.all([selfPromise, behindPromise, mapPromise]);
-				performance.mark(`${label}:capture:end`);
-				performance.measure(`${label}:capture`, `${label}:capture:start`, `${label}:capture:end`);
+				if (!canvasRoot) return;
+
+				const maskDefs = maskDefsRef.current;
+
+				if (!maskDefs) return;
+
+				// Size map container to match post-load content so nested effects
+				// render at correct dimensions and map capture rasterizes a
+				// non-zero region. Gate has already waited for images to decode.
+				const contentRect = childrenEl.getBoundingClientRect();
+				mapEl.style.width = `${String(contentRect.width)}px`;
+				mapEl.style.height = `${String(contentRect.height)}px`;
+
+				// Self and behind captures cannot run in parallel: captureBehind
+				// sets `visibility: hidden` on childrenEl and its descendants-in-front
+				// (a DOM element's own descendants sit higher in the stacking order
+				// than the element itself, so they land in the "in front" set).
+				// snapdom inside captureChildren observes that cascade mid-clone and
+				// produces transparent pixels. Capture self first, then run behind
+				// and map in parallel.
+				const selfPixels = await captureChildren(childrenEl, captureDimensions);
 
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (disposed) return;
+				if (signal.aborted) return;
 
-				performance.mark(`${label}:effect:start`);
+				// Detach our previous cutouts synchronously before captureBehind
+				// runs snapdom — otherwise the behind elements are still masked
+				// at our component's region and the captured pixels there are
+				// transparent. Re-attach in finally so an error or abort mid-
+				// capture doesn't leave the mask defs in a broken state; the
+				// cleanupCutouts() call below removes them entirely before the
+				// new positions are applied.
+				const detachedCutouts = cutoutsRef.current.map((cutout) => ({ cutout, parent: cutout.parentNode }));
+
+				for (const { cutout } of detachedCutouts) cutout.remove();
+
+				let behindPixels: ImageData;
+				let mapPixels: ImageData | undefined;
+
+				try {
+					const behindPromise = captureBehind(childrenEl, canvasRoot, captureDimensions, currentSnapshot.stackingOrder, currentSnapshot.rects, signal);
+					const mapPromise = maps.length > 0 ? captureChildren(mapEl, captureDimensions) : undefined;
+
+					[behindPixels, mapPixels] = await Promise.all([behindPromise, mapPromise]);
+				} finally {
+					for (const { cutout, parent } of detachedCutouts) {
+						if (parent) parent.appendChild(cutout);
+					}
+				}
+
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (signal.aborted) return;
+
 				const rawResult = await effect(selfPixels, behindPixels, mapPixels);
-				performance.mark(`${label}:effect:end`);
-				performance.measure(`${label}:effect`, `${label}:effect:start`, `${label}:effect:end`);
 
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (disposed) return;
+				if (signal.aborted) return;
 
 				const { pixels, overflow } = normalizeResult(rawResult);
 
 				drawToCanvas(canvasEl, pixels);
 
-				const childrenRect = childrenEl.getBoundingClientRect();
-				rasterEl.style.top = `-${String(overflow.top)}px`;
-				rasterEl.style.left = `-${String(overflow.left)}px`;
-				rasterEl.style.width = `${String(childrenRect.width + overflow.left + overflow.right)}px`;
-				rasterEl.style.height = `${String(childrenRect.height + overflow.top + overflow.bottom)}px`;
+				pipelineEl.dataset.pictelOverflowTop = String(overflow.top);
+				pipelineEl.dataset.pictelOverflowRight = String(overflow.right);
+				pipelineEl.dataset.pictelOverflowBottom = String(overflow.bottom);
+				pipelineEl.dataset.pictelOverflowLeft = String(overflow.left);
 
-				const sourceRect = childrenEl.getBoundingClientRect();
+				// Reveal the canvas; hide children with visibility:hidden (not
+				// display:none) so children stay in flow and drive the pipeline's
+				// layout size. display:none would collapse the pipeline to zero
+				// and, more importantly, take nested pipelines out of layout so
+				// they can't recompute on parameter changes.
+				rasterEl.style.display = "";
+				childrenEl.style.visibility = "hidden";
+
+				// Cutouts match our visible footprint — the pipeline div, which is
+				// sized by children-in-flow.
+				const sourceRect = pipelineEl.getBoundingClientRect();
 				const canvasRect = currentSnapshot.canvasRect;
+
+				cleanupCutouts();
 
 				for (const behindElement of behindElements) {
 					const sharedMask = ensureSharedMask(behindElement, maskDefs);
@@ -279,89 +215,88 @@ export function CompositeEffect({ effect, flatten, children }: CompositeEffectPr
 
 					cutoutsRef.current.push(cutout);
 				}
-
-				pipelineEl.removeAttribute("data-pictel-pending");
-				childrenEl.style.visibility = "hidden";
-				rasterEl.style.display = "";
-
-				for (const obs of observers) {
-					if (obs === contentObserver) observeSubtree(obs, childrenEl);
-					else if (obs === mapObserver) observeSubtree(obs, mapEl);
-				}
-
-				for (const behindElement of behindElements) {
-					const behindObserver = new MutationObserver((mutations) => {
-						if (hasExternalMutations(mutations, pipelineEl)) gate();
-					});
-					behindObservers.push(behindObserver);
-					observeSubtree(behindObserver, behindElement);
-				}
 			} catch (error: unknown) {
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (disposed) return;
+				if (signal.aborted) return;
 
-				observeSubtree(contentObserver, childrenEl);
-				observeSubtree(mapObserver, mapEl);
 				reportError(createPipelineError(id, error));
+			} finally {
+				pipelineEl?.removeAttribute("data-pictel-pending");
 			}
 		}
 
-		function onResize() {
-			gate();
+		const contentObserver = new MutationObserver((mutations) => {
+			if (hasOwnMutations(mutations, childrenEl, childrenEl)) gate();
+		});
+
+		observeSubtree(contentObserver, childrenEl);
+
+		const mapObserver = new MutationObserver((mutations) => {
+			if (hasOwnMutations(mutations, mapEl, mapEl)) gate();
+		});
+
+		observeSubtree(mapObserver, mapEl);
+
+		const behindObservers: Array<MutationObserver> = [];
+
+		for (const behindElement of behindElements) {
+			// Behind elements may be ancestors of pipelineEl. Filter mutations
+			// that originate inside our own pipeline so our writes don't loop
+			// gate() indefinitely.
+			const behindObserver = new MutationObserver((mutations) => {
+				if (hasExternalMutations(mutations, pipelineEl)) gate();
+			});
+
+			behindObservers.push(behindObserver);
+			observeSubtree(behindObserver, behindElement);
 		}
 
-		pipelineEl.addEventListener("pictel:resize", onResize);
+		pipelineEl.addEventListener("pictel:resize", gate, { signal });
 
-		// Initial gate check
 		gate();
 
 		return () => {
-			disposed = true;
+			controller.abort();
 
-			pipelineEl.removeEventListener("pictel:resize", onResize);
-
-			for (const obs of observers) {
-				obs.disconnect();
-			}
+			contentObserver.disconnect();
+			mapObserver.disconnect();
 
 			for (const obs of behindObservers) {
 				obs.disconnect();
 			}
 
-			behindObservers = [];
-			clearImageListeners();
 			cleanupCutouts();
 
 			pipelineEl.setAttribute("data-pictel-pending", "true");
 			childrenEl.style.visibility = "";
+			rasterEl.style.display = "none";
+
+			delete pipelineEl.dataset.pictelOverflowTop;
+			delete pipelineEl.dataset.pictelOverflowRight;
+			delete pipelineEl.dataset.pictelOverflowBottom;
+			delete pipelineEl.dataset.pictelOverflowLeft;
 		};
-	}, [id, effect, flatten, maps, domSnapshot, maskDefsRef, canvasRootRef, captureDimensions, reportError]);
+	}, [id, effect, maps, domSnapshot, maskDefsRef, canvasRootRef, captureDimensions, reportError]);
 
 	return (
 		<div
 			ref={pipelineRef}
 			data-pictel-pipeline
 			data-pictel-pending
-			style={flatten ? { isolation: "isolate" } : undefined}
+			style={{ position: "relative", isolation: "isolate" }}
 		>
-			<div style={{ position: "relative", height: 0 }}>
-				<div
-					ref={rasterRef}
-					style={{ position: "absolute" }}
-				>
-					<canvas ref={canvasElRef} style={{ width: "100%", height: "100%" }} />
-				</div>
+			<div ref={childrenRef}>{content}</div>
+			<div style={{ position: "absolute", left: "-10000px", pointerEvents: "none" }}>
+				<div ref={mapRef}>{maps}</div>
 			</div>
-			<div style={{ position: "relative", height: 0 }}>
-				<div
-					ref={mapRef}
-					style={{ position: "absolute", left: "-10000px", pointerEvents: "none" }}
-				>
-					{maps}
-				</div>
-			</div>
-			<div ref={childrenRef}>
-				{content}
+			<div
+				ref={rasterRef}
+				data-pictel-raster
+				style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+			>
+				<canvas
+					ref={canvasElRef}
+					style={{ display: "block", width: "100%", height: "100%" }}
+				/>
 			</div>
 		</div>
 	);

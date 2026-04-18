@@ -45,7 +45,6 @@ interface PosterizeProps {
 	/** Number of discrete color levels per channel. Minimum 2. */
 	levels: number
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -57,7 +56,7 @@ interface PosterizeProps {
  * @param props
  * @category Effects
  */
-export function Posterize({ levels, backdrop, flatten, children }: PosterizeProps) {
+export function Posterize({ levels, backdrop, children }: PosterizeProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyPosterize(pixels, levels),
 		[levels],
@@ -69,7 +68,7 @@ export function Posterize({ levels, backdrop, flatten, children }: PosterizeProp
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

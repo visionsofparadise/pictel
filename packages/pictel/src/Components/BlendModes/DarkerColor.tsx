@@ -12,7 +12,6 @@ export const darkerColor: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 
 interface DarkerColorProps {
 	opacity?: number;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -23,9 +22,9 @@ interface DarkerColorProps {
  * @param props
  * @category Blend Modes
  */
-export function DarkerColor({ opacity, flatten, children }: DarkerColorProps) {
+export function DarkerColor({ opacity, children }: DarkerColorProps) {
 	return (
-		<RasterBlend blend={darkerColor} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={darkerColor} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	);

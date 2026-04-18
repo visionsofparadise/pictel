@@ -6,7 +6,6 @@ export const linearBurn: BlendFormula = (sr, sg, sb, dr, dg, db) => [Math.max(0,
 
 interface LinearBurnProps {
 	opacity?: number;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -17,9 +16,9 @@ interface LinearBurnProps {
  * @param props
  * @category Blend Modes
  */
-export function LinearBurn({ opacity, flatten, children }: LinearBurnProps) {
+export function LinearBurn({ opacity, children }: LinearBurnProps) {
 	return (
-		<RasterBlend blend={linearBurn} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={linearBurn} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	);

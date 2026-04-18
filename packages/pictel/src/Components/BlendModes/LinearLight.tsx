@@ -10,7 +10,6 @@ export const linearLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [linearLigh
 
 interface LinearLightProps {
 	opacity?: number;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -21,9 +20,9 @@ interface LinearLightProps {
  * @param props
  * @category Blend Modes
  */
-export function LinearLight({ opacity, flatten, children }: LinearLightProps) {
+export function LinearLight({ opacity, children }: LinearLightProps) {
 	return (
-		<RasterBlend blend={linearLight} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={linearLight} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	);

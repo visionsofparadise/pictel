@@ -10,7 +10,6 @@ export const screen: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 
 interface ScreenProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -21,9 +20,9 @@ interface ScreenProps {
  * @param props
  * @category Blend Modes
  */
-export function Screen({ opacity, flatten, children }: ScreenProps) {
+export function Screen({ opacity, children }: ScreenProps) {
 	return (
-		<RasterBlend blend={screen} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={screen} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

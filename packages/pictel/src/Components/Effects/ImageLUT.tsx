@@ -74,7 +74,6 @@ interface ImageLUTProps {
 	/** Grid dimension of the LUT (e.g., 16 for a 16x16x16 LUT). */
 	size: number
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -87,7 +86,7 @@ interface ImageLUTProps {
  * @param props
  * @category Effects
  */
-export function ImageLUT({ src, size, backdrop, flatten, children }: ImageLUTProps) {
+export function ImageLUT({ src, size, backdrop, children }: ImageLUTProps) {
 	const [lutImage, setLutImage] = useState<ImageData | null>(null)
 
 	useEffect(() => {
@@ -124,7 +123,7 @@ export function ImageLUT({ src, size, backdrop, flatten, children }: ImageLUTPro
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

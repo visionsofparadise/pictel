@@ -13,7 +13,6 @@ export const saturation: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 
 interface SaturationProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -24,9 +23,9 @@ interface SaturationProps {
  * @param props
  * @category Blend Modes
  */
-export function Saturation({ opacity, flatten, children }: SaturationProps) {
+export function Saturation({ opacity, children }: SaturationProps) {
 	return (
-		<RasterBlend blend={saturation} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={saturation} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

@@ -14,7 +14,6 @@ interface RasterEffectProps {
 	mappedEffect?: (pixels: ImageData, map: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 	mode?: "parameter" | "mix";
 	backdrop?: boolean;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -33,7 +32,6 @@ export function RasterEffect({
 	mappedEffect,
 	mode = "mix",
 	backdrop,
-	flatten,
 	children,
 }: RasterEffectProps) {
 	const useComposite = (backdrop ?? false) || !hasTargetChildren(children);
@@ -66,14 +64,14 @@ export function RasterEffect({
 
 	if (useComposite) {
 		return (
-			<CompositeEffect effect={compositeCallback} flatten={flatten}>
+			<CompositeEffect effect={compositeCallback}>
 				{children}
 			</CompositeEffect>
 		);
 	}
 
 	return (
-		<TargetEffect effect={targetCallback} flatten={flatten}>
+		<TargetEffect effect={targetCallback}>
 			{children}
 		</TargetEffect>
 	);

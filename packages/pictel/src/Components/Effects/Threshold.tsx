@@ -45,7 +45,6 @@ interface ThresholdProps {
 	/** Luminance threshold (0-255). Pixels at or above become white. */
 	threshold: number
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -57,7 +56,7 @@ interface ThresholdProps {
  * @param props
  * @category Effects
  */
-export function Threshold({ threshold, backdrop, flatten, children }: ThresholdProps) {
+export function Threshold({ threshold, backdrop, children }: ThresholdProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyThreshold(pixels, threshold),
 		[threshold],
@@ -69,7 +68,7 @@ export function Threshold({ threshold, backdrop, flatten, children }: ThresholdP
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

@@ -1,11 +1,10 @@
 import { useId, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { useCanvasContext } from "../../context/canvas";
-import { captureChildren } from "./utils/capture";
 import { createPipelineError } from "../../utils/errors";
 import { observeSubtree } from "../../utils/observe";
 import { drawToCanvas, normalizeResult, type EffectResult } from "../utils/raster";
+import { captureChildren } from "./utils/capture";
 import { getOwnUnloadedImages, hasOwnMutations } from "./utils/scope";
-import { checkStackingEscape } from "./utils/stacking-check";
 import { separateChildren } from "./utils/separate-children";
 
 export type TargetEffectCallback = (children: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
@@ -13,7 +12,6 @@ export type TargetEffectCallback = (children: ImageData, map?: ImageData) => Ima
 interface TargetEffectProps {
 	/** Pixel callback receiving children pixels and optional map pixels. Returns processed ImageData. */
 	effect: TargetEffectCallback;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -26,7 +24,7 @@ interface TargetEffectProps {
  * @param props
  * @category Pipeline
  */
-export function TargetEffect({ effect, flatten, children }: TargetEffectProps) {
+export function TargetEffect({ effect, children }: TargetEffectProps) {
 	const id = useId();
 	const pipelineRef = useRef<HTMLDivElement>(null);
 	const childrenRef = useRef<HTMLDivElement>(null);
@@ -34,7 +32,7 @@ export function TargetEffect({ effect, flatten, children }: TargetEffectProps) {
 	const rasterRef = useRef<HTMLDivElement>(null);
 	const canvasElRef = useRef<HTMLCanvasElement>(null);
 
-	const { domSnapshot, captureDimensions, reportError } = useCanvasContext();
+	const { captureDimensions, reportError } = useCanvasContext();
 	const { content, maps } = useMemo(() => separateChildren(children), [children]);
 
 	useLayoutEffect(() => {
@@ -46,202 +44,140 @@ export function TargetEffect({ effect, flatten, children }: TargetEffectProps) {
 
 		if (!pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
 
+		// Initial: canvas hidden until first resolve.
 		rasterEl.style.display = "none";
-		// Size map container to match content so nested effects render at correct dimensions
-		const contentRect = childrenEl.getBoundingClientRect();
-		mapEl.style.width = `${String(contentRect.width)}px`;
-		mapEl.style.height = `${String(contentRect.height)}px`;
 
-		let disposed = false;
-		const observers: Array<MutationObserver> = [];
-		const imageListeners = new Map<HTMLImageElement, { load: () => void; error: () => void }>();
+		const controller = new AbortController();
+		const { signal } = controller;
 
-		function clearImageListeners() {
-			for (const [img, handlers] of imageListeners) {
-				img.removeEventListener("load", handlers.load);
-				img.removeEventListener("error", handlers.error);
-			}
-
-			imageListeners.clear();
-		}
-
-		/** Gated entry point — checks preconditions before scheduling execute. */
+		/** Validate-only gate. No DOM writes except installing image listeners when waiting. */
 		function gate() {
-			if (disposed || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
+			if (signal.aborted || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
 
-			// Reset to pre-execution state
-			clearImageListeners();
-			pipelineEl.setAttribute("data-pictel-pending", "true");
-			childrenEl.style.visibility = "";
-			rasterEl.style.display = "none";
-
-			// Check for pending nested effects
+			// Check for pending nested effects.
 			if (childrenEl.querySelector("[data-pictel-pending]") !== null) return;
 
 			if (mapEl.querySelector("[data-pictel-pending]") !== null) return;
 
-			// Check for unloaded images (scoped to our subtree)
-			const unloaded = [
-				...getOwnUnloadedImages(childrenEl),
-				...getOwnUnloadedImages(mapEl),
-			];
+			// Check for unloaded images (scoped to our subtree).
+			const unloaded = [...getOwnUnloadedImages(childrenEl), ...getOwnUnloadedImages(mapEl)];
 
 			if (unloaded.length > 0) {
 				for (const img of unloaded) {
-					if (imageListeners.has(img)) continue;
-
-					const onLoad = () => { imageListeners.delete(img); gate(); };
-					const onError = () => { imageListeners.delete(img); gate(); };
-
-					imageListeners.set(img, { load: onLoad, error: onError });
-					img.addEventListener("load", onLoad, { once: true });
-					img.addEventListener("error", onError, { once: true });
+					img.addEventListener("load", gate, { once: true, signal });
+					img.addEventListener("error", gate, { once: true, signal });
 				}
 
 				return;
 			}
 
-			// Stacking escape check
-			const snapshot = domSnapshot.current;
+			pipelineEl.setAttribute("data-pictel-pending", "true");
 
-			if (snapshot && !flatten) {
-				const escaped = checkStackingEscape(childrenEl, snapshot.stackingOrder);
-
-				if (escaped) {
-					reportError(
-						createPipelineError(
-							id,
-							new Error(
-								`TargetEffect child escapes stacking context. Element "${escaped.tagName.toLowerCase()}" appears before its TargetEffect parent in the stacking order. Add the "flatten" prop to the TargetEffect or fix the child's z-index.`,
-							),
-						),
-					);
-
-					return;
-				}
-			}
-
-			// All preconditions met — schedule execution
 			void Promise.resolve().then(() => execute());
 		}
 
-		const contentObserver = new MutationObserver((mutations) => {
-			if (hasOwnMutations(mutations, childrenEl, childrenEl)) gate();
-		});
-		observers.push(contentObserver);
-		observeSubtree(contentObserver, childrenEl);
-
-		const mapObserver = new MutationObserver((mutations) => {
-			if (hasOwnMutations(mutations, mapEl)) gate();
-		});
-		observers.push(mapObserver);
-		observeSubtree(mapObserver, mapEl);
-
 		async function execute() {
-			if (disposed || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
-
-			const label = `pictel:TargetEffect(${id})`;
-
 			try {
-				for (const obs of observers) obs.disconnect();
+				if (signal.aborted || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
 
-				performance.mark(`${label}:capture:start`);
+				// Size map container to match post-load content so nested effects
+				// render at correct dimensions and map capture rasterizes a
+				// non-zero region. Gate has already waited for images to decode.
+				const contentRect = childrenEl.getBoundingClientRect();
+				mapEl.style.width = `${String(contentRect.width)}px`;
+				mapEl.style.height = `${String(contentRect.height)}px`;
+
 				const contentPromise = captureChildren(childrenEl, captureDimensions);
-				const mapPromise = maps.length > 0
-					? captureChildren(mapEl, captureDimensions)
-					: undefined;
+				const mapPromise = maps.length > 0 ? captureChildren(mapEl, captureDimensions) : undefined;
 
 				const [contentPixels, mapPixels] = await Promise.all([contentPromise, mapPromise]);
-				performance.mark(`${label}:capture:end`);
-				performance.measure(`${label}:capture`, `${label}:capture:start`, `${label}:capture:end`);
 
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (disposed) return;
+				if (signal.aborted) return;
 
-				performance.mark(`${label}:effect:start`);
 				const rawResult = await effect(contentPixels, mapPixels);
-				performance.mark(`${label}:effect:end`);
-				performance.measure(`${label}:effect`, `${label}:effect:start`, `${label}:effect:end`);
 
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (disposed) return;
+				if (signal.aborted) return;
 
 				const { pixels, overflow } = normalizeResult(rawResult);
 
 				drawToCanvas(canvasEl, pixels);
 
-				const childrenRect = childrenEl.getBoundingClientRect();
-				rasterEl.style.top = `-${String(overflow.top)}px`;
-				rasterEl.style.left = `-${String(overflow.left)}px`;
-				rasterEl.style.width = `${String(childrenRect.width + overflow.left + overflow.right)}px`;
-				rasterEl.style.height = `${String(childrenRect.height + overflow.top + overflow.bottom)}px`;
+				pipelineEl.dataset.pictelOverflowTop = String(overflow.top);
+				pipelineEl.dataset.pictelOverflowRight = String(overflow.right);
+				pipelineEl.dataset.pictelOverflowBottom = String(overflow.bottom);
+				pipelineEl.dataset.pictelOverflowLeft = String(overflow.left);
 
-				pipelineEl.removeAttribute("data-pictel-pending");
-				childrenEl.style.visibility = "hidden";
+				// Reveal the canvas; hide children with visibility:hidden (not
+				// display:none) so children stay in flow and drive the pipeline's
+				// layout size. display:none would collapse the pipeline to zero
+				// and, more importantly, take nested pipelines out of layout so
+				// they can't recompute on parameter changes.
 				rasterEl.style.display = "";
-
-				for (const obs of observers) {
-					observeSubtree(obs, obs === contentObserver ? childrenEl : mapEl);
-				}
+				childrenEl.style.visibility = "hidden";
 			} catch (error: unknown) {
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (disposed) return;
-
-				for (const obs of observers) {
-					observeSubtree(obs, obs === contentObserver ? childrenEl : mapEl);
-				}
+				if (signal.aborted) return;
 
 				reportError(createPipelineError(id, error));
+			} finally {
+				pipelineEl?.removeAttribute("data-pictel-pending");
 			}
 		}
 
-		function onResize() {
-			gate();
-		}
+		const contentObserver = new MutationObserver((mutations) => {
+			if (hasOwnMutations(mutations, childrenEl, childrenEl)) gate();
+		});
 
-		pipelineEl.addEventListener("pictel:resize", onResize);
+		observeSubtree(contentObserver, childrenEl);
 
-		// Initial gate check
+		const mapObserver = new MutationObserver((mutations) => {
+			if (hasOwnMutations(mutations, mapEl, mapEl)) gate();
+		});
+
+		observeSubtree(mapObserver, mapEl);
+
+		pipelineEl.addEventListener("pictel:resize", gate, { signal });
+
 		gate();
 
 		return () => {
-			disposed = true;
+			controller.abort();
 
-			pipelineEl.removeEventListener("pictel:resize", onResize);
+			contentObserver.disconnect();
+			mapObserver.disconnect();
 
-			for (const obs of observers) obs.disconnect();
-
-			clearImageListeners();
 			pipelineEl.setAttribute("data-pictel-pending", "true");
 			childrenEl.style.visibility = "";
+			rasterEl.style.display = "none";
+
+			delete pipelineEl.dataset.pictelOverflowTop;
+			delete pipelineEl.dataset.pictelOverflowRight;
+			delete pipelineEl.dataset.pictelOverflowBottom;
+			delete pipelineEl.dataset.pictelOverflowLeft;
 		};
-	}, [id, effect, flatten, maps, domSnapshot, captureDimensions, reportError]);
+	}, [id, effect, maps, captureDimensions, reportError]);
 
 	return (
 		<div
 			ref={pipelineRef}
 			data-pictel-pipeline
 			data-pictel-pending
-			style={flatten ? { isolation: "isolate" } : undefined}
+			style={{ position: "relative", isolation: "isolate" }}
 		>
-			<div style={{ position: "relative", height: 0 }}>
-				<div
-					ref={rasterRef}
-					style={{ position: "absolute" }}
-				>
-					<canvas ref={canvasElRef} style={{ width: "100%", height: "100%" }} />
-				</div>
+			<div ref={childrenRef}>{content}</div>
+			<div style={{ position: "absolute", left: "-10000px", pointerEvents: "none" }}>
+				<div ref={mapRef}>{maps}</div>
 			</div>
-			<div style={{ position: "relative", height: 0 }}>
-				<div
-					ref={mapRef}
-					style={{ position: "absolute", left: "-10000px", pointerEvents: "none" }}
-				>
-					{maps}
-				</div>
-			</div>
-			<div ref={childrenRef}>
-				{content}
+			<div
+				ref={rasterRef}
+				data-pictel-raster
+				style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+			>
+				<canvas
+					ref={canvasElRef}
+					style={{ display: "block", width: "100%", height: "100%" }}
+				/>
 			</div>
 		</div>
 	);

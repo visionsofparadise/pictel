@@ -10,7 +10,6 @@ export const difference: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 
 interface DifferenceProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -21,9 +20,9 @@ interface DifferenceProps {
  * @param props
  * @category Blend Modes
  */
-export function Difference({ opacity, flatten, children }: DifferenceProps) {
+export function Difference({ opacity, children }: DifferenceProps) {
 	return (
-		<RasterBlend blend={difference} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={difference} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

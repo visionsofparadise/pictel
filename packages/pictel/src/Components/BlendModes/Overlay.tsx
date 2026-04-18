@@ -14,7 +14,6 @@ export const overlay: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 
 interface OverlayProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -25,9 +24,9 @@ interface OverlayProps {
  * @param props
  * @category Blend Modes
  */
-export function Overlay({ opacity, flatten, children }: OverlayProps) {
+export function Overlay({ opacity, children }: OverlayProps) {
 	return (
-		<RasterBlend blend={overlay} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={overlay} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

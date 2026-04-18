@@ -25,7 +25,6 @@ interface InvertProps {
 	/** Inversion amount. 0 is unchanged, 1 is fully inverted. Default 1. */
 	amount?: number
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -37,14 +36,14 @@ interface InvertProps {
  * @param props
  * @category Effects
  */
-export function Invert({ amount = 1, backdrop, flatten, children }: InvertProps) {
+export function Invert({ amount = 1, backdrop, children }: InvertProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyInvert(pixels, amount),
 		[amount],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

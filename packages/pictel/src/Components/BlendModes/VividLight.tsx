@@ -7,7 +7,6 @@ export const vividLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [vividLightC
 
 interface VividLightProps {
 	opacity?: number;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -18,9 +17,9 @@ interface VividLightProps {
  * @param props
  * @category Blend Modes
  */
-export function VividLight({ opacity, flatten, children }: VividLightProps) {
+export function VividLight({ opacity, children }: VividLightProps) {
 	return (
-		<RasterBlend blend={vividLight} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={vividLight} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	);

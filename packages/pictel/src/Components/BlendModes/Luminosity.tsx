@@ -13,7 +13,6 @@ export const luminosity: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 
 interface LuminosityProps {
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -24,9 +23,9 @@ interface LuminosityProps {
  * @param props
  * @category Blend Modes
  */
-export function Luminosity({ opacity, flatten, children }: LuminosityProps) {
+export function Luminosity({ opacity, children }: LuminosityProps) {
 	return (
-		<RasterBlend blend={luminosity} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={luminosity} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	)

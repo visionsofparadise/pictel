@@ -6,7 +6,6 @@ export const divide: BlendFormula = (sr, sg, sb, dr, dg, db) => [sr === 0 ? 1 : 
 
 interface DivideProps {
 	opacity?: number;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -17,9 +16,9 @@ interface DivideProps {
  * @param props
  * @category Blend Modes
  */
-export function Divide({ opacity, flatten, children }: DivideProps) {
+export function Divide({ opacity, children }: DivideProps) {
 	return (
-		<RasterBlend blend={divide} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={divide} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	);

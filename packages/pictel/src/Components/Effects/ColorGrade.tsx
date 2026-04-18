@@ -64,7 +64,6 @@ export function applyColorGrade(pixels: ImageData, adjustments: ColorGradeAdjust
 
 interface ColorGradeProps extends ColorGradeAdjustments {
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -87,7 +86,6 @@ export function ColorGrade({
 	temperature,
 	tint,
 	backdrop,
-	flatten,
 	children,
 }: ColorGradeProps) {
 	const effect = useCallback(
@@ -97,7 +95,7 @@ export function ColorGrade({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

@@ -46,7 +46,6 @@ interface DisplacementMapProps {
 	/** Maximum vertical displacement in pixels. Default 20. */
 	scaleY?: number
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -64,7 +63,6 @@ export function DisplacementMap({
 	scaleX = 20,
 	scaleY = 20,
 	backdrop,
-	flatten,
 	children,
 }: DisplacementMapProps) {
 	const effect = useCallback(
@@ -78,7 +76,7 @@ export function DisplacementMap({
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

@@ -12,7 +12,6 @@ export const lighterColor: BlendFormula = (sr, sg, sb, dr, dg, db) => {
 
 interface LighterColorProps {
 	opacity?: number;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -23,9 +22,9 @@ interface LighterColorProps {
  * @param props
  * @category Blend Modes
  */
-export function LighterColor({ opacity, flatten, children }: LighterColorProps) {
+export function LighterColor({ opacity, children }: LighterColorProps) {
 	return (
-		<RasterBlend blend={lighterColor} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={lighterColor} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	);

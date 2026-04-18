@@ -10,7 +10,6 @@ export const pinLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [pinLightChann
 
 interface PinLightProps {
 	opacity?: number;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
@@ -21,9 +20,9 @@ interface PinLightProps {
  * @param props
  * @category Blend Modes
  */
-export function PinLight({ opacity, flatten, children }: PinLightProps) {
+export function PinLight({ opacity, children }: PinLightProps) {
 	return (
-		<RasterBlend blend={pinLight} opacity={opacity} flatten={flatten}>
+		<RasterBlend blend={pinLight} opacity={opacity}>
 			{children}
 		</RasterBlend>
 	);

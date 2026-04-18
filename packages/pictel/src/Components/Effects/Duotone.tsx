@@ -33,7 +33,6 @@ interface DuotoneProps {
 	/** RGB triple [r, g, b] (0-255) for highlight tones. */
 	light: [number, number, number]
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -46,14 +45,14 @@ interface DuotoneProps {
  * @param props
  * @category Effects
  */
-export function Duotone({ dark, light, backdrop, flatten, children }: DuotoneProps) {
+export function Duotone({ dark, light, backdrop, children }: DuotoneProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyDuotone(pixels, dark, light),
 		[dark, light],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

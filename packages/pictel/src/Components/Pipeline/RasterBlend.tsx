@@ -10,7 +10,6 @@ interface RasterBlendProps {
 	/** Per-pixel blend formula function. Receives normalized source and destination RGB, returns blended RGB. */
 	blend: BlendFormula
 	opacity?: number
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -25,7 +24,7 @@ interface RasterBlendProps {
  * @param props
  * @category Pipeline
  */
-export function RasterBlend({ blend, opacity = 1, flatten, children }: RasterBlendProps) {
+export function RasterBlend({ blend, opacity = 1, children }: RasterBlendProps) {
 	const hasContent = hasTargetChildren(children)
 
 	const effect = useCallback(
@@ -71,7 +70,7 @@ export function RasterBlend({ blend, opacity = 1, flatten, children }: RasterBle
 	}
 
 	return (
-		<CompositeEffect effect={effect} flatten={flatten}>
+		<CompositeEffect effect={effect}>
 			{children}
 		</CompositeEffect>
 	)

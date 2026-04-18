@@ -51,7 +51,6 @@ interface HueRotateProps {
 	angle: number
 	mode?: "parameter" | "mix"
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -63,7 +62,7 @@ interface HueRotateProps {
  * @param props
  * @category Effects
  */
-export function HueRotate({ angle, mode = "mix", backdrop, flatten, children }: HueRotateProps) {
+export function HueRotate({ angle, mode = "mix", backdrop, children }: HueRotateProps) {
 	const effect = useCallback(
 		(pixels: ImageData) => applyHueRotate(pixels, angle),
 		[angle],
@@ -75,7 +74,7 @@ export function HueRotate({ angle, mode = "mix", backdrop, flatten, children }: 
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

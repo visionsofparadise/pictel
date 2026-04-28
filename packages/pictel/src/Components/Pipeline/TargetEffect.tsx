@@ -4,6 +4,7 @@ import { createPipelineError } from "../../utils/errors";
 import { observeSubtree } from "../../utils/observe";
 import { drawToCanvas, normalizeResult, type EffectResult } from "../utils/raster";
 import { captureChildren } from "./utils/capture";
+import { acquirePending, releasePending } from "./utils/pending";
 import { getOwnUnloadedImages, hasOwnMutations } from "./utils/scope";
 import { separateChildren } from "./utils/separate-children";
 
@@ -64,14 +65,14 @@ export function TargetEffect({ effect, children }: TargetEffectProps) {
 
 			if (unloaded.length > 0) {
 				for (const img of unloaded) {
-					img.addEventListener("load", gate, { once: true, signal });
-					img.addEventListener("error", gate, { once: true, signal });
+					img.addEventListener("load", () => gate(), { once: true, signal });
+					img.addEventListener("error", () => gate(), { once: true, signal });
 				}
 
 				return;
 			}
 
-			pipelineEl.setAttribute("data-pictel-pending", "true");
+			acquirePending(pipelineEl);
 
 			void Promise.resolve().then(() => execute());
 		}
@@ -86,6 +87,13 @@ export function TargetEffect({ effect, children }: TargetEffectProps) {
 				const contentRect = childrenEl.getBoundingClientRect();
 				mapEl.style.width = `${String(contentRect.width)}px`;
 				mapEl.style.height = `${String(contentRect.height)}px`;
+
+				// On rerun, the previous execute set childrenEl visibility:hidden
+				// to keep children in flow without painting. snapdom's foreignObject
+				// SVG render of a visibility:hidden subtree produces transparent
+				// pixels (the deepest non-pipeline IMG/HTML inherits hidden), so
+				// reset before capture and restore after the canvas is drawn.
+				childrenEl.style.visibility = "";
 
 				const contentPromise = captureChildren(childrenEl, captureDimensions);
 				const mapPromise = maps.length > 0 ? captureChildren(mapEl, captureDimensions) : undefined;
@@ -121,7 +129,11 @@ export function TargetEffect({ effect, children }: TargetEffectProps) {
 
 				reportError(createPipelineError(id, error));
 			} finally {
-				pipelineEl?.removeAttribute("data-pictel-pending");
+				// Always release: this execute's acquire (issued in gate)
+				// must be balanced. Aborted executes still release — under
+				// StrictMode, a second mount has already acquired, so the count
+				// stays > 0 and the attribute stays "true" for outer readers.
+				if (pipelineEl) releasePending(pipelineEl);
 			}
 		}
 
@@ -137,8 +149,6 @@ export function TargetEffect({ effect, children }: TargetEffectProps) {
 
 		observeSubtree(mapObserver, mapEl);
 
-		pipelineEl.addEventListener("pictel:resize", gate, { signal });
-
 		gate();
 
 		return () => {
@@ -147,7 +157,9 @@ export function TargetEffect({ effect, children }: TargetEffectProps) {
 			contentObserver.disconnect();
 			mapObserver.disconnect();
 
-			pipelineEl.setAttribute("data-pictel-pending", "true");
+			// Reset visibility/display so the next mount starts from a clean
+			// "children visible, raster hidden" state — the same state that
+			// renders right after first JSX commit.
 			childrenEl.style.visibility = "";
 			rasterEl.style.display = "none";
 
@@ -155,6 +167,12 @@ export function TargetEffect({ effect, children }: TargetEffectProps) {
 			delete pipelineEl.dataset.pictelOverflowRight;
 			delete pipelineEl.dataset.pictelOverflowBottom;
 			delete pipelineEl.dataset.pictelOverflowLeft;
+
+			// The in-flight execute (if any) will run its finally and release
+			// the pending count. The next mount's gate.proceed will acquire
+			// fresh. Refcount semantics in pending.ts handle the StrictMode
+			// concurrent acquire/release safely. We do NOT directly write
+			// data-pictel-pending here.
 		};
 	}, [id, effect, maps, captureDimensions, reportError]);
 

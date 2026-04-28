@@ -4,7 +4,7 @@ import cityPhoto from "../../assets/city overview.jpg";
 
 export default function TiltShift() {
 	return (
-		<Canvas mode="display">
+		<Canvas mode="display" dimensions={{ width: 1024, height: 683 }}>
 			<Clip>
 				<Blur
 					radius={7}

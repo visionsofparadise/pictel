@@ -2,7 +2,6 @@ import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
 import alea from "alea"
 import { createNoise2D } from "simplex-noise"
-import { useContainerSize } from "../../hooks/useContainerSize"
 
 export function fbm(
 	noise2D: (x: number, y: number) => number,
@@ -28,6 +27,10 @@ export function fbm(
 }
 
 interface ProceduralNoiseProps extends ComponentProps<"div"> {
+	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
+	width: number
+	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
+	height: number
 	/** Noise algorithm. `"simplex"` or `"perlin"` (uses simplex with seed offset). */
 	type: "simplex" | "perlin"
 	/** Random seed for reproducible patterns. */
@@ -47,6 +50,12 @@ interface ProceduralNoiseProps extends ComponentProps<"div"> {
 /**
  * Generates procedural noise textures using simplex noise with fractal Brownian motion.
  *
+ * Produces pixels at intrinsic dimensions like an `<img>`: the host/agent specifies
+ * `width` and `height` explicitly. The component does not respond to its container's
+ * size — the host CSS positions or scales the natural pixel footprint visually if needed.
+ *
+ * - `width` — Output width in pixels. Required.
+ * - `height` — Output height in pixels. Required.
  * - `type` — Noise algorithm. `"simplex"` or `"perlin"` (uses simplex with seed offset).
  * - `seed` — Random seed for reproducible patterns.
  * - `scale` — Frequency scale. Smaller values produce larger features. Default 0.01.
@@ -58,6 +67,8 @@ interface ProceduralNoiseProps extends ComponentProps<"div"> {
  * @category Generative
  */
 export function ProceduralNoise({
+	width,
+	height,
 	type,
 	seed,
 	scale = 0.01,
@@ -67,7 +78,6 @@ export function ProceduralNoise({
 	style,
 	...rest
 }: ProceduralNoiseProps) {
-	const { ref, width, height } = useContainerSize()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
 	useEffect(() => {
@@ -117,8 +127,8 @@ export function ProceduralNoise({
 	}, [width, height, type, seed, scale, octaves, persistence, tint?.[0], tint?.[1], tint?.[2]])
 
 	return (
-		<div ref={ref} style={{ width: "100%", height: "100%", ...style }} {...rest}>
-			<canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
+		<div style={{ width, height, ...style }} {...rest}>
+			<canvas ref={canvasRef} width={width} height={height} style={{ width, height, display: "block" }} />
 		</div>
 	)
 }

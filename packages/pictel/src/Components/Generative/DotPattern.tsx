@@ -1,8 +1,11 @@
 import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
-import { useContainerSize } from "../../hooks/useContainerSize"
 
 interface DotPatternProps extends ComponentProps<"div"> {
+	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
+	width: number
+	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
+	height: number
 	/** Random seed (reserved for future jitter support). */
 	seed: number
 	/** Distance between dot centers in pixels. */
@@ -38,8 +41,14 @@ export function drawDotPattern(
 }
 
 /**
- * Renders a repeating dot pattern on a regular grid.
+ * Renders a repeating dot pattern on a regular grid, at intrinsic dimensions.
  *
+ * Produces pixels at intrinsic dimensions like an `<img>`: the host/agent specifies
+ * `width` and `height` explicitly. The component does not respond to its container's
+ * size — the host CSS positions or scales the natural pixel footprint visually if needed.
+ *
+ * - `width` — Output width in pixels. Required.
+ * - `height` — Output height in pixels. Required.
  * - `seed` — Random seed (reserved for future jitter support).
  * - `spacing` — Distance between dot centers in pixels.
  * - `radius` — Dot radius in pixels.
@@ -50,6 +59,8 @@ export function drawDotPattern(
  * @category Generative
  */
 export function DotPattern({
+	width,
+	height,
 	seed: _seed,
 	spacing,
 	radius,
@@ -58,7 +69,6 @@ export function DotPattern({
 	style,
 	...rest
 }: DotPatternProps) {
-	const { ref, width, height } = useContainerSize()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
 	useEffect(() => {
@@ -77,8 +87,8 @@ export function DotPattern({
 	}, [width, height, _seed, spacing, radius, color, background])
 
 	return (
-		<div ref={ref} style={{ width: "100%", height: "100%", ...style }} {...rest}>
-			<canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
+		<div style={{ width, height, ...style }} {...rest}>
+			<canvas ref={canvasRef} width={width} height={height} style={{ width, height, display: "block" }} />
 		</div>
 	)
 }

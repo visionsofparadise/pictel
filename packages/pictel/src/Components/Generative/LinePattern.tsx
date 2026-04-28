@@ -1,8 +1,11 @@
 import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
-import { useContainerSize } from "../../hooks/useContainerSize"
 
 interface LinePatternProps extends ComponentProps<"div"> {
+	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
+	width: number
+	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
+	height: number
 	/** Random seed (reserved for future jitter support). */
 	seed: number
 	/** Distance between lines in pixels. */
@@ -56,8 +59,14 @@ export function drawLinePattern(
 }
 
 /**
- * Renders a repeating pattern of parallel lines at a configurable angle.
+ * Renders a repeating pattern of parallel lines at a configurable angle, at intrinsic dimensions.
  *
+ * Produces pixels at intrinsic dimensions like an `<img>`: the host/agent specifies
+ * `width` and `height` explicitly. The component does not respond to its container's
+ * size — the host CSS positions or scales the natural pixel footprint visually if needed.
+ *
+ * - `width` — Output width in pixels. Required.
+ * - `height` — Output height in pixels. Required.
  * - `seed` — Random seed (reserved for future jitter support).
  * - `spacing` — Distance between lines in pixels.
  * - `thickness` — Line thickness in pixels.
@@ -69,6 +78,8 @@ export function drawLinePattern(
  * @category Generative
  */
 export function LinePattern({
+	width,
+	height,
 	seed: _seed,
 	spacing,
 	thickness,
@@ -78,7 +89,6 @@ export function LinePattern({
 	style,
 	...rest
 }: LinePatternProps) {
-	const { ref, width, height } = useContainerSize()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
 	useEffect(() => {
@@ -97,8 +107,8 @@ export function LinePattern({
 	}, [width, height, _seed, spacing, thickness, angle, color, background])
 
 	return (
-		<div ref={ref} style={{ width: "100%", height: "100%", ...style }} {...rest}>
-			<canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
+		<div style={{ width, height, ...style }} {...rest}>
+			<canvas ref={canvasRef} width={width} height={height} style={{ width, height, display: "block" }} />
 		</div>
 	)
 }

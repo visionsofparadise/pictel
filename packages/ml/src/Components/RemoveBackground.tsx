@@ -12,8 +12,9 @@ const DEFAULT_REVISION = "c552aa82688edce09f0ac9d2e31ad53d9d629010"
 export async function removeBackground(pixels: ImageData, pipe: Pipeline): Promise<ImageData> {
 	const raw = imageDataToRawImage(pixels)
 	const result = await pipe(raw)
+	const single = Array.isArray(result) ? result[0] : result
 
-	return rawImageToImageData(result)
+	return rawImageToImageData(single)
 }
 /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
 

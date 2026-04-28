@@ -6,6 +6,7 @@ import { getElementsBehind } from "../../utils/stacking";
 import { drawToCanvas, normalizeResult, type EffectResult } from "../utils/raster";
 import { captureBehind, captureChildren } from "./utils/capture";
 import { addCutout, ensureSharedMask, removeCutouts } from "./utils/masking";
+import { acquirePending, releasePending } from "./utils/pending";
 import { getOwnUnloadedImages, hasExternalMutations, hasOwnMutations } from "./utils/scope";
 import { separateChildren } from "./utils/separate-children";
 
@@ -105,14 +106,14 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 
 			if (unloaded.length > 0) {
 				for (const img of unloaded) {
-					img.addEventListener("load", gate, { once: true, signal });
-					img.addEventListener("error", gate, { once: true, signal });
+					img.addEventListener("load", () => gate(), { once: true, signal });
+					img.addEventListener("error", () => gate(), { once: true, signal });
 				}
 
 				return;
 			}
 
-			pipelineEl.setAttribute("data-pictel-pending", "true");
+			acquirePending(pipelineEl);
 
 			void Promise.resolve().then(() => execute());
 		}
@@ -139,6 +140,14 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 				const contentRect = childrenEl.getBoundingClientRect();
 				mapEl.style.width = `${String(contentRect.width)}px`;
 				mapEl.style.height = `${String(contentRect.height)}px`;
+
+				// On rerun, the previous execute set childrenEl visibility:hidden
+				// to keep children in flow without painting. snapdom's foreignObject
+				// SVG render of a visibility:hidden subtree produces transparent
+				// pixels (the deepest non-pipeline IMG/HTML inherits hidden), so
+				// reset before capture and restore after the final canvas draw.
+				// This must precede ALL captures (self + behind + map).
+				childrenEl.style.visibility = "";
 
 				// Self and behind captures cannot run in parallel: captureBehind
 				// sets `visibility: hidden` on childrenEl and its descendants-in-front
@@ -220,7 +229,11 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 
 				reportError(createPipelineError(id, error));
 			} finally {
-				pipelineEl?.removeAttribute("data-pictel-pending");
+				// Always release: this execute's acquire (issued in gate)
+				// must be balanced. See pending.ts for the refcount semantics;
+				// aborted executes still release safely because a sibling
+				// mount has already acquired.
+				if (pipelineEl) releasePending(pipelineEl);
 			}
 		}
 
@@ -250,8 +263,6 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 			observeSubtree(behindObserver, behindElement);
 		}
 
-		pipelineEl.addEventListener("pictel:resize", gate, { signal });
-
 		gate();
 
 		return () => {
@@ -266,7 +277,6 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 
 			cleanupCutouts();
 
-			pipelineEl.setAttribute("data-pictel-pending", "true");
 			childrenEl.style.visibility = "";
 			rasterEl.style.display = "none";
 
@@ -274,6 +284,11 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 			delete pipelineEl.dataset.pictelOverflowRight;
 			delete pipelineEl.dataset.pictelOverflowBottom;
 			delete pipelineEl.dataset.pictelOverflowLeft;
+
+			// Pending state: do NOT directly write data-pictel-pending. The
+			// in-flight execute (if any) will run its finally and release the
+			// count; the next mount's gate.proceed will acquire fresh. See
+			// pending.ts for refcount semantics under StrictMode.
 		};
 	}, [id, effect, maps, domSnapshot, maskDefsRef, canvasRootRef, captureDimensions, reportError]);
 

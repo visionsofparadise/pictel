@@ -49,17 +49,11 @@ describe("captureChildren", () => {
 		});
 	});
 
-	it("calls snapdom with dpr:1 and fast:true", async () => {
+	it("calls snapdom with dpr:1, fast:true, and the requested dimensions", async () => {
 		const result = await captureChildren(element, { width: 100, height: 100 });
 
 		expect(mockToCanvas).toHaveBeenCalledWith(element, { dpr: 1, fast: true, width: 100, height: 100 });
 		expect(result).toBeDefined();
-	});
-
-	it("omits size options when dimensions are null", async () => {
-		await captureChildren(element, null);
-
-		expect(mockToCanvas).toHaveBeenCalledWith(element, { dpr: 1, fast: true });
 	});
 });
 
@@ -95,7 +89,7 @@ describe("captureBehind", () => {
 	});
 
 	it("hides element, captures, then restores visibility", async () => {
-		await captureBehind(element, canvasRoot, null, stackingOrder, rects);
+		await captureBehind(element, canvasRoot, { width: 100, height: 100 }, stackingOrder, rects);
 
 		expect(element.style.visibility).toBe("");
 	});
@@ -106,14 +100,14 @@ describe("captureBehind", () => {
 		} as unknown as HTMLElement;
 		mockGetElementsInFront.mockReturnValue([inFrontElement]);
 
-		await captureBehind(element, canvasRoot, null, stackingOrder, rects);
+		await captureBehind(element, canvasRoot, { width: 100, height: 100 }, stackingOrder, rects);
 
 		expect(element.style.visibility).toBe("");
 		expect(inFrontElement.style.visibility).toBe("");
 	});
 
 	it("clips to element bounding region", async () => {
-		await captureBehind(element, canvasRoot, null, stackingOrder, rects);
+		await captureBehind(element, canvasRoot, { width: 100, height: 100 }, stackingOrder, rects);
 
 		expect(mockGetImageData).toHaveBeenCalledWith(10, 10, 50, 50);
 	});
@@ -126,7 +120,7 @@ describe("captureBehind", () => {
 		mockGetElementsInFront.mockReturnValue([inFrontElement]);
 		mockToCanvas.mockRejectedValueOnce(new Error("snapdom failure"));
 
-		await expect(captureBehind(element, canvasRoot, null, stackingOrder, rects)).rejects.toThrow("snapdom failure");
+		await expect(captureBehind(element, canvasRoot, { width: 100, height: 100 }, stackingOrder, rects)).rejects.toThrow("snapdom failure");
 		expect(element.style.visibility).toBe("visible");
 		expect(inFrontElement.style.visibility).toBe("visible");
 	});

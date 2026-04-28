@@ -17,7 +17,7 @@ import { waitForPipeline } from "../utils/wait-for-pipeline";
 describe.sequential("Clip component", () => {
 	test("without Clip, pipeline stays at content size; canvas CSS is squished to fit", async () => {
 		const handle = renderCanvas(
-			<Canvas mode="display" dimensions={{ reference: { width: 100, height: 100 } }}>
+			<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
 				<Blur radius={10}>
 					<img
 						src={solidImage("#ff0000", 100, 100)}
@@ -57,7 +57,7 @@ describe.sequential("Clip component", () => {
 
 	test("with Clip, outer is content-size; raster is expanded with negative offset", async () => {
 		const handle = renderCanvas(
-			<Canvas mode="display" dimensions={{ reference: { width: 100, height: 100 } }}>
+			<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
 				<Clip>
 					<Blur radius={10}>
 						<img

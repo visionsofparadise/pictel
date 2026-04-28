@@ -1,9 +1,12 @@
 import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
 import type { GradientStop } from "./LinearGradient"
-import { useContainerSize } from "../../hooks/useContainerSize"
 
 interface ConicGradientProps extends ComponentProps<"div"> {
+	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
+	width: number
+	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
+	height: number
 	/** Array of color stops with `color` and `position` (0-1). */
 	stops: Array<GradientStop>
 	/** Horizontal center as a fraction of width. Default 0.5. */
@@ -42,8 +45,14 @@ export function drawConicGradient(
 }
 
 /**
- * Renders a conic (angular) gradient sweep around a center point.
+ * Renders a conic (angular) gradient sweep around a center point at intrinsic dimensions.
  *
+ * Produces pixels at intrinsic dimensions like an `<img>`: the host/agent specifies
+ * `width` and `height` explicitly. The component does not respond to its container's
+ * size — the host CSS positions or scales the natural pixel footprint visually if needed.
+ *
+ * - `width` — Output width in pixels. Required.
+ * - `height` — Output height in pixels. Required.
  * - `stops` — Array of color stops with `color` and `position` (0-1).
  * - `centerX` — Horizontal center as a fraction of width. Default 0.5.
  * - `centerY` — Vertical center as a fraction of height. Default 0.5.
@@ -53,6 +62,8 @@ export function drawConicGradient(
  * @category Generative
  */
 export function ConicGradient({
+	width,
+	height,
 	stops,
 	centerX = 0.5,
 	centerY = 0.5,
@@ -60,7 +71,6 @@ export function ConicGradient({
 	style,
 	...rest
 }: ConicGradientProps) {
-	const { ref, width, height } = useContainerSize()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
 	const stopsKey = JSON.stringify(stops)
@@ -78,12 +88,12 @@ export function ConicGradient({
 		if (!context) return
 
 		drawConicGradient(context, width, height, stops, centerX, centerY, startAngle)
-		 
+
 	}, [width, height, stopsKey, centerX, centerY, startAngle])
 
 	return (
-		<div ref={ref} style={{ width: "100%", height: "100%", ...style }} {...rest}>
-			<canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
+		<div style={{ width, height, ...style }} {...rest}>
+			<canvas ref={canvasRef} width={width} height={height} style={{ width, height, display: "block" }} />
 		</div>
 	)
 }

@@ -1,6 +1,5 @@
 import type { ComponentProps } from "react"
 import { useEffect, useRef } from "react"
-import { useContainerSize } from "../../hooks/useContainerSize"
 
 export interface GradientStop {
 	color: string
@@ -8,6 +7,10 @@ export interface GradientStop {
 }
 
 interface LinearGradientProps extends ComponentProps<"div"> {
+	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
+	width: number
+	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
+	height: number
 	/** Array of color stops with `color` and `position` (0-1). */
 	stops: Array<GradientStop>
 	/** Gradient angle in degrees. 0 is left-to-right. Default 0. */
@@ -46,8 +49,14 @@ export function drawLinearGradient(
 }
 
 /**
- * Renders a linear gradient across the component area.
+ * Renders a linear gradient at intrinsic dimensions.
  *
+ * Produces pixels at intrinsic dimensions like an `<img>`: the host/agent specifies
+ * `width` and `height` explicitly. The component does not respond to its container's
+ * size — the host CSS positions or scales the natural pixel footprint visually if needed.
+ *
+ * - `width` — Output width in pixels. Required.
+ * - `height` — Output height in pixels. Required.
  * - `stops` — Array of color stops with `color` and `position` (0-1).
  * - `angle` — Gradient angle in degrees. 0 is left-to-right. Default 0.
  *
@@ -55,12 +64,13 @@ export function drawLinearGradient(
  * @category Generative
  */
 export function LinearGradient({
+	width,
+	height,
 	stops,
 	angle = 0,
 	style,
 	...rest
 }: LinearGradientProps) {
-	const { ref, width, height } = useContainerSize()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
 	const stopsKey = JSON.stringify(stops)
@@ -78,12 +88,12 @@ export function LinearGradient({
 		if (!context) return
 
 		drawLinearGradient(context, width, height, stops, angle)
-		 
+
 	}, [width, height, stopsKey, angle])
 
 	return (
-		<div ref={ref} style={{ width: "100%", height: "100%", ...style }} {...rest}>
-			<canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
+		<div style={{ width, height, ...style }} {...rest}>
+			<canvas ref={canvasRef} width={width} height={height} style={{ width, height, display: "block" }} />
 		</div>
 	)
 }

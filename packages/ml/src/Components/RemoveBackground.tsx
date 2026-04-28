@@ -24,7 +24,6 @@ interface RemoveBackgroundProps {
 	/** Model revision hash. Overridable alongside `model`. */
 	revision?: string
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -41,7 +40,6 @@ export function RemoveBackground({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
 	backdrop,
-	flatten,
 	children,
 }: RemoveBackgroundProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
@@ -63,7 +61,7 @@ export function RemoveBackground({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

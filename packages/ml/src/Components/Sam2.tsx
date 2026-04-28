@@ -135,7 +135,6 @@ interface Sam2Props {
 	/** Negative point prompts indicating regions to exclude. */
 	negativePoints?: Array<Point>
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -156,7 +155,6 @@ export function Sam2({
 	points = [],
 	negativePoints = [],
 	backdrop,
-	flatten,
 	children,
 }: Sam2Props) {
 	const resourcesRef = useRef<Promise<Sam2Resources>>(undefined)
@@ -176,7 +174,7 @@ export function Sam2({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

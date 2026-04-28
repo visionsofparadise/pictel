@@ -69,7 +69,6 @@ interface SegFormerProps {
 	/** Model revision. Overridable alongside `model`. */
 	revision?: string
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -86,7 +85,6 @@ export function SegFormer({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
 	backdrop,
-	flatten,
 	children,
 }: SegFormerProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
@@ -108,7 +106,7 @@ export function SegFormer({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

@@ -23,7 +23,6 @@ interface DepthMapProps {
 	/** Model revision hash. Overridable alongside `model`. */
 	revision?: string
 	backdrop?: boolean
-	flatten?: boolean
 	children: ReactNode
 }
 
@@ -40,7 +39,6 @@ export function DepthMap({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
 	backdrop,
-	flatten,
 	children,
 }: DepthMapProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
@@ -62,7 +60,7 @@ export function DepthMap({
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop} flatten={flatten}>
+		<RasterEffect effect={effect} backdrop={backdrop}>
 			{children}
 		</RasterEffect>
 	)

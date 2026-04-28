@@ -123,3 +123,105 @@ describe("applyHalftone", () => {
 		expect(input.data).toEqual(original)
 	})
 })
+
+/**
+ * Build a source image whose left half is pure black and right half is pure white.
+ */
+function leftBlackRightWhiteImage(width: number, height: number): ImageData {
+	const data = new Uint8ClampedArray(width * height * 4)
+	const half = width / 2
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			const i = (y * width + x) * 4
+			const v = x < half ? 0 : 255
+			data[i] = v
+			data[i + 1] = v
+			data[i + 2] = v
+			data[i + 3] = 255
+		}
+	}
+	return new ImageData(data, width, height)
+}
+
+/**
+ * For each `arc()` mock call, the first arg is the dot's screen-space x
+ * (post-fix the dot is drawn at the screen-space cell center). Count how many
+ * fall in the left half vs the right half of the screen.
+ */
+function countDotSidesByScreenX(arcCalls: readonly unknown[][], halfWidth: number) {
+	let left = 0
+	let right = 0
+	for (const call of arcCalls) {
+		const dotCx = call[0] as number
+		if (dotCx < halfWidth) left++
+		else right++
+	}
+	return { left, right }
+}
+
+describe("applyHalftone with non-zero angle", () => {
+	it("at angle=0, left-black/right-white source produces left-heavy dot coverage", () => {
+		const width = 100
+		const height = 100
+		const dotSize = 8
+		const outputData = new Uint8ClampedArray(width * height * 4)
+		mockCtx.getImageData.mockReturnValue(new ImageData(outputData, width, height))
+		mockCtx.arc.mockClear()
+		mockCtx.rotate.mockClear()
+		mockCtx.translate.mockClear()
+
+		const input = leftBlackRightWhiteImage(width, height)
+		applyHalftone(input, dotSize, 0)
+
+		const { left, right } = countDotSidesByScreenX(mockCtx.arc.mock.calls, width / 2)
+
+		// Baseline: source-left is black so dots appear on the screen-left.
+		expect(left).toBeGreaterThan(0)
+		expect(left).toBeGreaterThan(right * 5)
+	})
+
+	it("at angle=45, image content stays aligned (dots remain on the side that was black in source)", () => {
+		const width = 100
+		const height = 100
+		const dotSize = 8
+		const outputData = new Uint8ClampedArray(width * height * 4)
+		mockCtx.getImageData.mockReturnValue(new ImageData(outputData, width, height))
+		mockCtx.arc.mockClear()
+		mockCtx.rotate.mockClear()
+		mockCtx.translate.mockClear()
+
+		const input = leftBlackRightWhiteImage(width, height)
+		applyHalftone(input, dotSize, 45)
+
+		// The dot grid rotates, but the image content (which side is dark) does
+		// not. With the fix, the screen-space dot positions still skew toward
+		// the screen-left because that's where the back-rotated source is in
+		// the source-left (black) half-plane. Pre-fix, the canvas rotation
+		// would have spread the black band diagonally across the output and
+		// the screen-x distribution would be roughly 1:1.
+		const { left, right } = countDotSidesByScreenX(mockCtx.arc.mock.calls, width / 2)
+		expect(left).toBeGreaterThan(0)
+		// At 45° the rotated half-plane geometrically yields ~3:1 left:right
+		// dots; assert a loose threshold above 1:1 (which is what the bug
+		// produced) without overspecifying the exact ratio.
+		expect(left).toBeGreaterThan(right * 2)
+	})
+
+	it("at angle=45, no canvas rotation transform is applied (content stays put)", () => {
+		const width = 80
+		const height = 80
+		const outputData = new Uint8ClampedArray(width * height * 4)
+		mockCtx.getImageData.mockReturnValue(new ImageData(outputData, width, height))
+		mockCtx.rotate.mockClear()
+		mockCtx.translate.mockClear()
+
+		const input = solidImage(width, height, 128, 128, 128)
+		applyHalftone(input, 8, 45)
+
+		// The fix moves rotation out of the canvas transform and into per-cell
+		// coordinate math. If a regression reintroduces context.rotate/translate
+		// the photo will rotate again.
+		expect(mockCtx.rotate).not.toHaveBeenCalled()
+		expect(mockCtx.translate).not.toHaveBeenCalled()
+	})
+})

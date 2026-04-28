@@ -32,13 +32,13 @@ export function applyHalftone(pixels: ImageData, dotSize: number, angle = 0): Im
 	context.fillRect(0, 0, width, height)
 
 	const rad = (angle * Math.PI) / 180
+	const cosA = Math.cos(rad)
+	const sinA = Math.sin(rad)
+	const cx = width / 2
+	const cy = height / 2
 
-	if (angle !== 0) {
-		context.translate(width / 2, height / 2)
-		context.rotate(rad)
-		context.translate(-width / 2, -height / 2)
-	}
-
+	// Iterate the dot grid in rotated screen space. Oversize the iteration
+	// extent so rotated cells covering the image corners aren't missed.
 	const expand = angle !== 0 ? Math.ceil(Math.hypot(width, height) - Math.min(width, height)) / 2 : 0
 	const startX = -expand
 	const startY = -expand
@@ -49,32 +49,46 @@ export function applyHalftone(pixels: ImageData, dotSize: number, angle = 0): Im
 
 	for (let cellY = startY; cellY < endY; cellY += dotSize) {
 		for (let cellX = startX; cellX < endX; cellX += dotSize) {
+			// Screen-space cell center.
+			const sx = cellX + dotSize / 2
+			const sy = cellY + dotSize / 2
+
+			// Rotate the screen-space cell center back into source-image space
+			// (rotation by -angle around the image center).
+			const dx = sx - cx
+			const dy = sy - cy
+			const sourceCxF = cx + dx * cosA + dy * sinA
+			const sourceCyF = cy - dx * sinA + dy * cosA
+
+			// Sample a dotSize-sized neighborhood around the source-space cell
+			// center, clamped to image bounds. If the entire window falls
+			// outside the source, treat it as white (no dot).
+			const sampleStartX = Math.max(0, Math.floor(sourceCxF - dotSize / 2))
+			const sampleStartY = Math.max(0, Math.floor(sourceCyF - dotSize / 2))
+			const sampleEndX = Math.min(width, Math.ceil(sourceCxF + dotSize / 2))
+			const sampleEndY = Math.min(height, Math.ceil(sourceCyF + dotSize / 2))
+
 			let lumSum = 0
 			let count = 0
 
-			const sampleStartX = Math.max(0, Math.floor(cellX))
-			const sampleStartY = Math.max(0, Math.floor(cellY))
-			const sampleEndX = Math.min(width, Math.ceil(cellX + dotSize))
-			const sampleEndY = Math.min(height, Math.ceil(cellY + dotSize))
-
-			for (let sy = sampleStartY; sy < sampleEndY; sy++) {
-				for (let sx = sampleStartX; sx < sampleEndX; sx++) {
-					const px = (sy * width + sx) * 4
-					lumSum += luminance(src[px]!, src[px + 1]!, src[px + 2]!)
+			for (let pixelY = sampleStartY; pixelY < sampleEndY; pixelY++) {
+				for (let pixelX = sampleStartX; pixelX < sampleEndX; pixelX++) {
+					const offset = (pixelY * width + pixelX) * 4
+					lumSum += luminance(src[offset]!, src[offset + 1]!, src[offset + 2]!)
 					count++
 				}
 			}
 
+			// No source coverage — falls back to white (no dot).
 			if (count === 0) continue
 
 			const avgLum = lumSum / count
 			const radius = (1 - avgLum / 255) * (dotSize / 2)
 
 			if (radius > 0.5) {
-				const dotCx = cellX + dotSize / 2
-				const dotCy = cellY + dotSize / 2
+				// Draw at the unrotated screen-space cell center.
 				context.beginPath()
-				context.arc(dotCx, dotCy, radius, 0, Math.PI * 2)
+				context.arc(sx, sy, radius, 0, Math.PI * 2)
 				context.fill()
 			}
 		}

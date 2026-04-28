@@ -108,27 +108,43 @@ export { applySaturate, applyMappedSaturate } from "./Components/Effects/Saturat
 export { applySepia } from "./Components/Effects/Sepia";
 
 // Pixel effects
+export { Bilateral } from "./Components/Effects/Bilateral";
 export { ChannelMixer } from "./Components/Effects/ChannelMixer";
 export { ColorGrade } from "./Components/Effects/ColorGrade";
 export { CubeLUT } from "./Components/Effects/CubeLUT";
+export { Direction } from "./Components/Effects/Sobel/Direction";
 export { DisplacementMap } from "./Components/Effects/DisplacementMap";
 export { Duotone } from "./Components/Effects/Duotone";
+export { EdgeDetect } from "./Components/Effects/Sobel/EdgeDetect";
 export { Grain } from "./Components/Effects/Grain";
 export { Halftone } from "./Components/Effects/Halftone";
+export { Hatch } from "./Components/Effects/Hatch";
 export { ImageLUT } from "./Components/Effects/ImageLUT";
+export { LIC } from "./Components/Effects/LIC";
+export { LuminanceBands } from "./Components/Effects/LuminanceBands";
+export { Outline } from "./Components/Effects/Outline";
 export { Posterize } from "./Components/Effects/Posterize";
+export { Quantize } from "./Components/Effects/Quantize";
 export { Sharpen } from "./Components/Effects/Sharpen";
 export { Threshold } from "./Components/Effects/Threshold";
 
+export { applyBilateral, applyMappedBilateral } from "./Components/Effects/Bilateral";
 export { applyChannelMix } from "./Components/Effects/ChannelMixer";
 export { applyColorGrade, type ColorGradeAdjustments } from "./Components/Effects/ColorGrade";
 export { applyLut, parseCubeFile } from "./Components/Effects/CubeLUT";
+export { applyDirection } from "./Components/Effects/Sobel/Direction";
 export { applyDisplacement } from "./Components/Effects/DisplacementMap";
 export { applyDuotone } from "./Components/Effects/Duotone";
+export { applyEdgeDetect } from "./Components/Effects/Sobel/EdgeDetect";
 export { applyGrain } from "./Components/Effects/Grain";
 export { applyHalftone } from "./Components/Effects/Halftone";
+export { applyHatch, applyHatchFieldAligned } from "./Components/Effects/Hatch";
 export { applyImageLut } from "./Components/Effects/ImageLUT";
+export { applyLIC } from "./Components/Effects/LIC";
+export { applyLuminanceBands, applyMappedLuminanceBands } from "./Components/Effects/LuminanceBands";
+export { applyOutline, applyMappedOutline } from "./Components/Effects/Outline";
 export { applyPosterize, applyMappedPosterize } from "./Components/Effects/Posterize";
+export { applyQuantize, applyMappedQuantize, derivePalette, type DitherMode, type QuantizeProps } from "./Components/Effects/Quantize";
 export { applySharpen, applyMappedSharpen } from "./Components/Effects/Sharpen";
 export { applyThreshold, applyMappedThreshold } from "./Components/Effects/Threshold";
 

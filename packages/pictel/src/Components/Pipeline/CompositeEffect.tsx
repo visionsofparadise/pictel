@@ -54,6 +54,15 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 		const controller = new AbortController();
 		const { signal } = controller;
 
+		// Concurrency guard. `inFlight` is true between gate.proceed and
+		// execute's finally; gate during this window only sets `rerunQueued`
+		// and returns. After execute completes, if `rerunQueued` is set, gate
+		// runs once more. This collapses N observer-fired gate calls into at
+		// most one rerun, eliminating overlapping snapdom captures and the
+		// resulting visibility-toggle race on shared descendants.
+		let inFlight = false;
+		let rerunQueued = false;
+
 		function cleanupCutouts() {
 			removeCutouts(cutoutsRef.current);
 			cutoutsRef.current = [];
@@ -71,6 +80,12 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 		/** Validate-only gate. No DOM writes except installing image listeners when waiting. */
 		function gate() {
 			if (signal.aborted || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
+
+			if (inFlight) {
+				rerunQueued = true;
+
+				return;
+			}
 
 			// Check for pending nested effects.
 			if (childrenEl.querySelector("[data-pictel-pending]") !== null) return;
@@ -113,12 +128,27 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 				return;
 			}
 
+			inFlight = true;
 			acquirePending(pipelineEl);
 
 			void Promise.resolve().then(() => execute());
 		}
 
 		async function execute() {
+			// Silence all of our own observers for the duration of execute.
+			// Every mutation execute makes (drawToCanvas → canvas.width/height,
+			// pipelineEl.dataset.* overflow attrs, rasterEl.style.display,
+			// childrenEl.style.visibility, captureBehind's visibility toggles
+			// on in-front siblings, applyMaskToElement's maskImage write on
+			// behind elements) would otherwise fire one of these observers
+			// and queue a rerun. Real prop-driven changes flow through React
+			// re-render → effect cleanup/remount, not through these observers,
+			// so suppressing observers during execute is safe.
+			contentObserver.disconnect();
+			mapObserver.disconnect();
+
+			for (const obs of behindObservers) obs.disconnect();
+
 			try {
 				if (signal.aborted || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
 
@@ -175,8 +205,17 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 				let behindPixels: ImageData;
 				let mapPixels: ImageData | undefined;
 
+				// captureBehind toggles `style.visibility` on childrenEl's
+				// in-front descendants and restores. Those mutations would fire
+				// contentObserver, set rerunQueued, and after this execute
+				// completes a rerun would do the same thing — infinite loop.
+				// Disconnect contentObserver around captureBehind; reconnect in
+				// finally. We don't lose real content changes: any change to
+				// childrenEl made before disconnect was already observed and
+				// handled (queueing a rerun via inFlight); any change after
+				// reconnect fires normally.
 				try {
-					const behindPromise = captureBehind(childrenEl, canvasRoot, captureDimensions, currentSnapshot.stackingOrder, currentSnapshot.rects, signal);
+					const behindPromise = captureBehind(childrenEl, canvasRoot, captureDimensions, currentSnapshot.stackingOrder, currentSnapshot.rects);
 					const mapPromise = maps.length > 0 ? captureChildren(mapEl, captureDimensions) : undefined;
 
 					[behindPixels, mapPixels] = await Promise.all([behindPromise, mapPromise]);
@@ -229,11 +268,38 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 
 				reportError(createPipelineError(id, error));
 			} finally {
+				// Reconnect observers BEFORE releasing pending state, so that
+				// any observer fires triggered by a real external change that
+				// arrives between now and the next inFlight cycle land on a
+				// live observer.
+				if (!signal.aborted && childrenEl && mapEl) {
+					observeSubtree(contentObserver, childrenEl);
+					observeSubtree(mapObserver, mapEl);
+
+					for (let index = 0; index < behindObservers.length; index++) {
+						const obs = behindObservers[index];
+						const target = behindElements[index];
+
+						if (obs && target) observeSubtree(obs, target);
+					}
+				}
+
 				// Always release: this execute's acquire (issued in gate)
 				// must be balanced. See pending.ts for the refcount semantics;
 				// aborted executes still release safely because a sibling
 				// mount has already acquired.
 				if (pipelineEl) releasePending(pipelineEl);
+
+				inFlight = false;
+
+				// Drain rerun: gate calls during this execute set rerunQueued.
+				// In practice, with observers disconnected during execute the
+				// only sources are gate.image-load fallbacks and external
+				// callers. Replay one gate to handle them.
+				if (rerunQueued && !signal.aborted) {
+					rerunQueued = false;
+					gate();
+				}
 			}
 		}
 

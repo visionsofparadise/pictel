@@ -60,7 +60,6 @@ export async function captureBehind(
 	dimensions: { width: number; height: number },
 	stackingOrder: StackingOrder,
 	rects: ReadonlyMap<HTMLElement, DOMRect>,
-	signal?: AbortSignal,
 ): Promise<ImageData> {
 	const inFront = getElementsInFront(element, stackingOrder, rects);
 	const allToHide = [element, ...inFront];
@@ -88,18 +87,21 @@ export async function captureBehind(
 
 		return context.getImageData(offsetX, offsetY, width, height);
 	} finally {
-		// If the caller was aborted while snapdom was pending, skip the
-		// visibility restore: the snapshotted "previous" values are stale and
-		// writing them back would clobber state belonging to a subsequent
-		// mount's in-flight captureBehind (StrictMode double-mount race).
-		if (!signal?.aborted) {
-			for (let elementIndex = 0; elementIndex < allToHide.length; elementIndex++) {
-				const hidden = allToHide[elementIndex];
-				const previous = previousVisibilities[elementIndex];
+		// Always restore visibility, even on abort. The previous-skip-on-abort
+		// approach left descendants stuck `visibility: hidden` when a StrictMode
+		// double-mount aborted us mid-snapdom — and a later mount's captureBehind
+		// would then snapshot that "hidden" as its `previous`, painting it
+		// permanent. The race the skip was guarding against (a sibling mount's
+		// in-flight captureBehind reading our restored visibility before its own
+		// hide step runs) is moot at our level: the sibling mount runs its own
+		// hide-then-restore pair, and the only safe terminal state is "elements
+		// are visible" — which is what we restore to.
+		for (let elementIndex = 0; elementIndex < allToHide.length; elementIndex++) {
+			const hidden = allToHide[elementIndex];
+			const previous = previousVisibilities[elementIndex];
 
-				if (hidden && previous !== undefined) {
-					hidden.style.visibility = previous;
-				}
+			if (hidden && previous !== undefined) {
+				hidden.style.visibility = previous;
 			}
 		}
 	}

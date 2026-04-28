@@ -1,0 +1,36 @@
+import { Canvas, Quantize } from "pictel";
+import headshot from "../../assets/headshot.jpg";
+
+const MAC_BW = [[0, 0, 0], [255, 255, 255]] as const;
+const GAMEBOY = [[15, 56, 15], [48, 98, 48], [139, 172, 15], [155, 188, 15]] as const;
+
+const SIZE = 192;
+
+/** 4 dither configs: Mac System, Game Boy, NES, GIF.
+ *  Small buffer (192px) so dither pixels are visible at typical gallery scale. */
+export default function Dithering() {
+	return (
+		<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, imageRendering: "pixelated" }}>
+			<Canvas mode="display" dimensions={{ width: SIZE, height: SIZE }}>
+				<Quantize palette={MAC_BW} dither="atkinson">
+					<img src={headshot} crossOrigin="anonymous" style={{ display: "block", width: SIZE, height: SIZE, objectFit: "cover" }} />
+				</Quantize>
+			</Canvas>
+			<Canvas mode="display" dimensions={{ width: SIZE, height: SIZE }}>
+				<Quantize palette={GAMEBOY} dither="floyd-steinberg">
+					<img src={headshot} crossOrigin="anonymous" style={{ display: "block", width: SIZE, height: SIZE, objectFit: "cover" }} />
+				</Quantize>
+			</Canvas>
+			<Canvas mode="display" dimensions={{ width: SIZE, height: SIZE }}>
+				<Quantize count={16} dither="bayer-4">
+					<img src={headshot} crossOrigin="anonymous" style={{ display: "block", width: SIZE, height: SIZE, objectFit: "cover" }} />
+				</Quantize>
+			</Canvas>
+			<Canvas mode="display" dimensions={{ width: SIZE, height: SIZE }}>
+				<Quantize count={32} dither="floyd-steinberg">
+					<img src={headshot} crossOrigin="anonymous" style={{ display: "block", width: SIZE, height: SIZE, objectFit: "cover" }} />
+				</Quantize>
+			</Canvas>
+		</div>
+	);
+}

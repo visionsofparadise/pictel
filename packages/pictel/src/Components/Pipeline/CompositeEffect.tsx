@@ -68,18 +68,94 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 			cutoutsRef.current = [];
 		}
 
-		// Behind elements are discovered once at setup. Filter out the pipeline
-		// itself and anything inside it — those are our own DOM, not a layer we
-		// composite against. Without this filter the pipeline div (and its
-		// infrastructure wrappers) appear in behindElements because they precede
-		// childrenRef in the stacking order and intersect its rect.
-		const setupSnapshot = domSnapshot.current;
-		const rawBehind = setupSnapshot ? getElementsBehind(childrenEl, setupSnapshot.stackingOrder, setupSnapshot.rects) : [];
-		const behindElements = rawBehind.filter((candidate) => candidate !== pipelineEl && !pipelineEl.contains(candidate));
+		// Behind elements are recomputed at every gate() call from the current
+		// domSnapshot, with observers added/removed as the live "what's behind
+		// me" set changes. A setup-time computation is unreliable: Canvas's
+		// useDomSnapshot effect fires AFTER children's effects (parent-after-child
+		// for layout effects), so on first mount the snapshot is null, the
+		// initial behind set is empty, and the gate's behind-pending check
+		// trivially passes — letting captureBehind run before the base layer
+		// has finished rendering. The filter excludes the pipeline itself and
+		// anything inside it: those are our own DOM, not layers we composite
+		// against, but they still appear in stacking order before childrenRef
+		// and intersect its rect.
+		let behindElements: Array<HTMLElement> = [];
+		const behindObserverMap = new Map<HTMLElement, MutationObserver>();
+
+		function syncBehindElements(): void {
+			if (!pipelineEl || !childrenEl) return;
+
+			const currentSnapshot = domSnapshot.current;
+
+			if (!currentSnapshot) return;
+
+			const rawBehind = getElementsBehind(childrenEl, currentSnapshot.stackingOrder, currentSnapshot.rects);
+			// Filter:
+			//   - exclude self (pipelineEl)
+			//   - exclude descendants (our own infrastructure DOM, not layers)
+			//   - exclude ancestors (they paint before us in CSS but are "around"
+			//     us, not "behind" — including them in behind-pending checks
+			//     creates circular waits when this pipeline is nested inside
+			//     another, and adding cutouts to ancestors masks too much).
+			//   - keep only pictel pipeline elements: those are the ones that
+			//     have a meaningful pending state to wait for, and the ones we
+			//     want to add cutouts to (so their canvas doesn't double-render
+			//     under us). Non-pipeline behind (raw <img>, <div>) will paint
+			//     normally and snapdom will capture it correctly without any
+			//     coordination from us.
+			const newBehind = rawBehind.filter(
+				(candidate) =>
+					candidate !== pipelineEl
+					&& !pipelineEl.contains(candidate)
+					&& !candidate.contains(pipelineEl)
+					&& candidate.hasAttribute("data-pictel-pipeline"),
+			);
+			const newBehindSet = new Set(newBehind);
+
+			// Remove observers for elements no longer behind us.
+			for (const [element, obs] of behindObserverMap) {
+				if (!newBehindSet.has(element)) {
+					obs.disconnect();
+					behindObserverMap.delete(element);
+				}
+			}
+
+			// Add observers for newly-behind elements. New observers start live;
+			// if gate is proceeding, the disconnect step below will turn them
+			// off symmetrically with content/mapObserver.
+			for (const element of newBehind) {
+				if (!behindObserverMap.has(element)) {
+					const obs = new MutationObserver(() => gate());
+
+					behindObserverMap.set(element, obs);
+					observeSubtree(obs, element);
+				}
+			}
+
+			behindElements = newBehind;
+		}
 
 		/** Validate-only gate. No DOM writes except installing image listeners when waiting. */
 		function gate() {
 			if (signal.aborted || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
+
+			// On the first gate after mount, Canvas's useDomSnapshot effect may
+			// not have run yet (parent-after-child for layout effects), so the
+			// snapshot is null and we cannot identify behind elements. Defer to
+			// a microtask: by then Canvas's setup has fired and the snapshot is
+			// built. Without this retry, the behind-pending check trivially
+			// passes (empty list) and the composite executes against an
+			// un-rendered base.
+			if (domSnapshot.current === null) {
+				void Promise.resolve().then(() => gate());
+
+				return;
+			}
+
+			// Recompute behind elements + observers from the current snapshot
+			// before any pending check. The behind set may have changed since
+			// the previous gate (pipelines rendered/remounted, dimensions changed).
+			syncBehindElements();
 
 			if (inFlight) {
 				rerunQueued = true;
@@ -140,7 +216,7 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 			contentObserver.disconnect();
 			mapObserver.disconnect();
 
-			for (const obs of behindObservers) obs.disconnect();
+			for (const obs of behindObserverMap.values()) obs.disconnect();
 
 			acquirePending(pipelineEl);
 
@@ -290,11 +366,8 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 					observeSubtree(contentObserver, childrenEl);
 					observeSubtree(mapObserver, mapEl);
 
-					for (let index = 0; index < behindObservers.length; index++) {
-						const obs = behindObservers[index];
-						const target = behindElements[index];
-
-						if (obs && target) observeSubtree(obs, target);
+					for (const [element, obs] of behindObserverMap) {
+						observeSubtree(obs, element);
 					}
 				}
 			}
@@ -319,15 +392,6 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 
 		observeSubtree(mapObserver, mapEl);
 
-		const behindObservers: Array<MutationObserver> = [];
-
-		for (const behindElement of behindElements) {
-			const behindObserver = new MutationObserver(() => gate());
-
-			behindObservers.push(behindObserver);
-			observeSubtree(behindObserver, behindElement);
-		}
-
 		gate();
 
 		return () => {
@@ -336,9 +400,11 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 			contentObserver.disconnect();
 			mapObserver.disconnect();
 
-			for (const obs of behindObservers) {
+			for (const obs of behindObserverMap.values()) {
 				obs.disconnect();
 			}
+
+			behindObserverMap.clear();
 
 			cleanupCutouts();
 

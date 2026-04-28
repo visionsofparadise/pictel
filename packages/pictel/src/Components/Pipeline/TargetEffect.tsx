@@ -5,7 +5,7 @@ import { observeSubtree } from "../../utils/observe";
 import { drawToCanvas, normalizeResult, type EffectResult } from "../utils/raster";
 import { captureChildren } from "./utils/capture";
 import { acquirePending, releasePending } from "./utils/pending";
-import { getOwnUnloadedImages, hasOwnMutations } from "./utils/scope";
+import { getOwnUnloadedImages } from "./utils/scope";
 import { separateChildren } from "./utils/separate-children";
 
 export type TargetEffectCallback = (children: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
@@ -51,9 +51,22 @@ export function TargetEffect({ effect, children }: TargetEffectProps) {
 		const controller = new AbortController();
 		const { signal } = controller;
 
+		// Concurrency guard. `inFlight` is true between gate.proceed and
+		// execute's finally; gate during this window only sets `rerunQueued`
+		// and returns. After execute completes, if `rerunQueued` is set, gate
+		// runs once more.
+		let inFlight = false;
+		let rerunQueued = false;
+
 		/** Validate-only gate. No DOM writes except installing image listeners when waiting. */
 		function gate() {
 			if (signal.aborted || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
+
+			if (inFlight) {
+				rerunQueued = true;
+
+				return;
+			}
 
 			// Check for pending nested effects.
 			if (childrenEl.querySelector("[data-pictel-pending]") !== null) return;
@@ -72,12 +85,24 @@ export function TargetEffect({ effect, children }: TargetEffectProps) {
 				return;
 			}
 
+			inFlight = true;
+
+			// Disconnect observers BEFORE any mutation. `acquirePending` and
+			// `releasePending` write data-pictel-pending on pipelineEl;
+			// `drawToCanvas` and the post-success block write canvas/dataset/
+			// style. Cover the entire acquire → execute body → release window
+			// with one disconnect/reconnect pair. See observer setup site for
+			// the full invariant.
+			contentObserver.disconnect();
+			mapObserver.disconnect();
+
 			acquirePending(pipelineEl);
 
 			void Promise.resolve().then(() => execute());
 		}
 
 		async function execute() {
+
 			try {
 				if (signal.aborted || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
 
@@ -129,23 +154,40 @@ export function TargetEffect({ effect, children }: TargetEffectProps) {
 
 				reportError(createPipelineError(id, error));
 			} finally {
-				// Always release: this execute's acquire (issued in gate)
-				// must be balanced. Aborted executes still release — under
-				// StrictMode, a second mount has already acquired, so the count
-				// stays > 0 and the attribute stays "true" for outer readers.
+				// Release before reconnecting — releasePending writes
+				// data-pictel-pending=removed on pipelineEl. Doing it while
+				// observers are still off keeps the off-window symmetric with
+				// acquire.
 				if (pipelineEl) releasePending(pipelineEl);
+
+				inFlight = false;
+
+				if (rerunQueued && !signal.aborted) {
+					// Drain without reconnecting: gate() will disconnect again
+					// on proceed.
+					rerunQueued = false;
+					gate();
+				} else if (!signal.aborted && childrenEl && mapEl) {
+					// No rerun queued — reconnect observers so future external
+					// mutations can trigger gate.
+					observeSubtree(contentObserver, childrenEl);
+					observeSubtree(mapObserver, mapEl);
+				}
 			}
 		}
 
-		const contentObserver = new MutationObserver((mutations) => {
-			if (hasOwnMutations(mutations, childrenEl, childrenEl)) gate();
-		});
+		// Observers are bare gate() callbacks — no per-mutation filtering. The
+		// invariant is that observers are LIVE only between executes. During
+		// execute, all observers are disconnected so our own DOM writes
+		// (drawToCanvas → canvas.width/height, dataset overflow attrs,
+		// rasterEl/childrenEl style, mapEl style) don't loop. Real prop-driven
+		// changes flow through React effect cleanup/remount, not these
+		// observers, so disconnecting during execute is safe.
+		const contentObserver = new MutationObserver(() => gate());
 
 		observeSubtree(contentObserver, childrenEl);
 
-		const mapObserver = new MutationObserver((mutations) => {
-			if (hasOwnMutations(mutations, mapEl, mapEl)) gate();
-		});
+		const mapObserver = new MutationObserver(() => gate());
 
 		observeSubtree(mapObserver, mapEl);
 

@@ -7,7 +7,7 @@ import { drawToCanvas, normalizeResult, type EffectResult } from "../utils/raste
 import { captureBehind, captureChildren } from "./utils/capture";
 import { addCutout, ensureSharedMask, removeCutouts } from "./utils/masking";
 import { acquirePending, releasePending } from "./utils/pending";
-import { getOwnUnloadedImages, hasExternalMutations, hasOwnMutations } from "./utils/scope";
+import { getOwnUnloadedImages } from "./utils/scope";
 import { separateChildren } from "./utils/separate-children";
 
 export type CompositeEffectCallback = (self: ImageData, behind: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
@@ -129,25 +129,25 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 			}
 
 			inFlight = true;
+
+			// Disconnect observers BEFORE any mutation that we're about to make.
+			// `acquirePending` writes data-pictel-pending on pipelineEl, which
+			// is inside every behind element's subtree, so a behindObserver
+			// would otherwise fire and queue a rerun before execute even
+			// starts. The off-window covers acquire → execute body → release;
+			// reconnection happens at the END of execute when we're done
+			// mutating. See observer setup site for the full invariant.
+			contentObserver.disconnect();
+			mapObserver.disconnect();
+
+			for (const obs of behindObservers) obs.disconnect();
+
 			acquirePending(pipelineEl);
 
 			void Promise.resolve().then(() => execute());
 		}
 
 		async function execute() {
-			// Silence all of our own observers for the duration of execute.
-			// Every mutation execute makes (drawToCanvas → canvas.width/height,
-			// pipelineEl.dataset.* overflow attrs, rasterEl.style.display,
-			// childrenEl.style.visibility, captureBehind's visibility toggles
-			// on in-front siblings, applyMaskToElement's maskImage write on
-			// behind elements) would otherwise fire one of these observers
-			// and queue a rerun. Real prop-driven changes flow through React
-			// re-render → effect cleanup/remount, not through these observers,
-			// so suppressing observers during execute is safe.
-			contentObserver.disconnect();
-			mapObserver.disconnect();
-
-			for (const obs of behindObservers) obs.disconnect();
 
 			try {
 				if (signal.aborted || !pipelineEl || !childrenEl || !mapEl || !rasterEl || !canvasEl) return;
@@ -268,11 +268,25 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 
 				reportError(createPipelineError(id, error));
 			} finally {
-				// Reconnect observers BEFORE releasing pending state, so that
-				// any observer fires triggered by a real external change that
-				// arrives between now and the next inFlight cycle land on a
-				// live observer.
-				if (!signal.aborted && childrenEl && mapEl) {
+				// Release before reconnecting — releasePending writes
+				// data-pictel-pending=removed on pipelineEl, which is inside
+				// every behind element. Doing it while observers are still off
+				// keeps the off-window symmetric with acquire.
+				if (pipelineEl) releasePending(pipelineEl);
+
+				inFlight = false;
+
+				if (rerunQueued && !signal.aborted) {
+					// Drain a queued rerun without reconnecting: gate() will
+					// proceed (or return early), and on proceed it disconnects
+					// again immediately. Reconnecting and re-disconnecting
+					// would just open a window for the rerun's acquire mutation
+					// to fire observers.
+					rerunQueued = false;
+					gate();
+				} else if (!signal.aborted && childrenEl && mapEl) {
+					// No rerun queued — reconnect observers so future external
+					// mutations can trigger gate.
 					observeSubtree(contentObserver, childrenEl);
 					observeSubtree(mapObserver, mapEl);
 
@@ -283,47 +297,32 @@ export function CompositeEffect({ effect, children }: CompositeEffectProps) {
 						if (obs && target) observeSubtree(obs, target);
 					}
 				}
-
-				// Always release: this execute's acquire (issued in gate)
-				// must be balanced. See pending.ts for the refcount semantics;
-				// aborted executes still release safely because a sibling
-				// mount has already acquired.
-				if (pipelineEl) releasePending(pipelineEl);
-
-				inFlight = false;
-
-				// Drain rerun: gate calls during this execute set rerunQueued.
-				// In practice, with observers disconnected during execute the
-				// only sources are gate.image-load fallbacks and external
-				// callers. Replay one gate to handle them.
-				if (rerunQueued && !signal.aborted) {
-					rerunQueued = false;
-					gate();
-				}
 			}
 		}
 
-		const contentObserver = new MutationObserver((mutations) => {
-			if (hasOwnMutations(mutations, childrenEl, childrenEl)) gate();
-		});
+		// Observers are bare gate() callbacks — no per-mutation filtering. The
+		// invariant is that observers are LIVE only between executes. During
+		// execute, all observers are disconnected (every write the pipeline
+		// makes — drawToCanvas's canvas.width/height, dataset overflow attrs,
+		// rasterEl/childrenEl style, captureBehind's visibility toggles on
+		// in-front siblings, applyMaskToElement's maskImage on behind elements)
+		// would otherwise fire one of these observers and queue a rerun. With
+		// observers off during execute, only real external changes that arrive
+		// between executes can fire gate(). React-driven changes flow through
+		// effect cleanup/remount, so this is the only DOM-mutation channel
+		// pictel needs.
+		const contentObserver = new MutationObserver(() => gate());
 
 		observeSubtree(contentObserver, childrenEl);
 
-		const mapObserver = new MutationObserver((mutations) => {
-			if (hasOwnMutations(mutations, mapEl, mapEl)) gate();
-		});
+		const mapObserver = new MutationObserver(() => gate());
 
 		observeSubtree(mapObserver, mapEl);
 
 		const behindObservers: Array<MutationObserver> = [];
 
 		for (const behindElement of behindElements) {
-			// Behind elements may be ancestors of pipelineEl. Filter mutations
-			// that originate inside our own pipeline so our writes don't loop
-			// gate() indefinitely.
-			const behindObserver = new MutationObserver((mutations) => {
-				if (hasExternalMutations(mutations, pipelineEl)) gate();
-			});
+			const behindObserver = new MutationObserver(() => gate());
 
 			behindObservers.push(behindObserver);
 			observeSubtree(behindObserver, behindElement);

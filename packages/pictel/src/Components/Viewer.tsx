@@ -1,41 +1,36 @@
 import { type CSSProperties, type ComponentProps, Children, isValidElement } from "react";
+import type { CanvasDimensions } from "../context/canvas";
+import { Sidebar, type SidebarItem } from "../design-system/Sidebar";
+import { tokens } from "../design-system/tokens";
 import { useMode } from "../hooks/useMode";
 import { useSearchParam } from "../hooks/useSearchParam";
+import type { Mode } from "../modes";
 import { Canvas } from "./Canvas";
 
 interface ViewerProps extends ComponentProps<"div"> {
-	/** Overrides URL-based mode detection for all child canvases. */
-	mode?: string;
+	/** Overrides URL-based mode detection for all child canvases. One of `"preview"`, `"display"`, or `"render"`. */
+	mode?: Mode;
 }
 
-const panelStyle: CSSProperties = {
-	width: 240,
-	minWidth: 240,
+function formatDimensions(dimensions: CanvasDimensions | undefined): string {
+	if (dimensions === undefined) return "—";
+
+	return `${String(dimensions.width)}×${String(dimensions.height)}`;
+}
+
+const wrapperStyle: CSSProperties = {
+	display: "flex",
+	width: "100%",
 	height: "100%",
-	borderRight: "1px solid #e0e0e0",
-	backgroundColor: "#fafafa",
-	overflowY: "auto",
-	padding: "8px 0",
+	overflow: "hidden",
+	backgroundColor: tokens.color.bg,
 };
 
 const mainStyle: CSSProperties = {
 	flex: 1,
 	height: "100%",
 	overflow: "hidden",
-};
-
-const baseItemStyle: CSSProperties = {
-	padding: "8px 16px",
-	cursor: "pointer",
-	fontSize: 14,
-	fontFamily: "system-ui, sans-serif",
-	color: "#333",
-};
-
-const selectedItemStyle: CSSProperties = {
-	...baseItemStyle,
-	backgroundColor: "#e8e8e8",
-	fontWeight: 600,
+	position: "relative",
 };
 
 /**
@@ -51,16 +46,17 @@ export function Viewer({ children, mode: modeProp, style, ...rest }: ViewerProps
 	const mode = modeProp ?? urlMode;
 	const isPreview = mode === "preview";
 
-	const canvasElements: Array<{ element: React.ReactElement; name: string }> = [];
+	const canvasElements: Array<{ element: React.ReactElement; name: string; dimensions: CanvasDimensions | undefined }> = [];
 
 	let unnamedCount = 0;
 
 	for (const child of Children.toArray(children)) {
 		if (isValidElement(child) && child.type === Canvas) {
-			const rawName = (child.props as { name?: string }).name;
-			const name = rawName ?? `Canvas ${(unnamedCount += 1)}`;
+			const childProps = child.props as { name?: string; dimensions?: CanvasDimensions };
+			const rawName = childProps.name;
+			const name = rawName ?? `Canvas ${String((unnamedCount += 1))}`;
 
-			canvasElements.push({ element: child, name });
+			canvasElements.push({ element: child, name, dimensions: childProps.dimensions });
 		}
 	}
 
@@ -95,22 +91,21 @@ export function Viewer({ children, mode: modeProp, style, ...rest }: ViewerProps
 		);
 	}
 
+	const items: Array<SidebarItem> = canvasElements.map((entry) => ({
+		name: entry.name,
+		dimensions: formatDimensions(entry.dimensions),
+	}));
+
 	return (
 		<div
-			style={{ display: "flex", width: "100%", height: "100%", overflow: "hidden", ...style }}
+			style={{ ...wrapperStyle, ...style }}
 			{...rest}
 		>
-			<div style={panelStyle}>
-				{canvasElements.map((entry) => (
-					<div
-						key={entry.name}
-						style={entry.name === active.name ? selectedItemStyle : baseItemStyle}
-						onClick={() => handleSelect(entry.name)}
-					>
-						{entry.name}
-					</div>
-				))}
-			</div>
+			<Sidebar
+				items={items}
+				activeName={active.name}
+				onSelect={handleSelect}
+			/>
 			<div style={mainStyle}>{active.element}</div>
 		</div>
 	);

@@ -2,15 +2,16 @@ import { createContext, useContext } from "react";
 import type { PipelineError } from "../utils/errors";
 import type { StackingOrder } from "../utils/stacking";
 
-export interface ReferenceDimensions {
-	reference: { width: number; height: number };
+/**
+ * Fixed pixel dimensions for the canvas's compositing buffer. The capture
+ * pipeline rasterizes to exactly these dimensions; visual scale (preview
+ * fit-to-viewport, display fit-to-container) is applied by Frame as a CSS
+ * transform and does not affect buffer size.
+ */
+export interface CanvasDimensions {
+	width: number;
+	height: number;
 }
-
-export interface AspectRatioDimensions {
-	aspectRatio: number;
-}
-
-export type CanvasDimensions = ReferenceDimensions | AspectRatioDimensions;
 
 export interface CanvasSnapshot {
 	readonly stackingOrder: StackingOrder;
@@ -25,12 +26,12 @@ export interface Viewport {
 
 export interface CanvasContextValue {
 	mode: string;
-	dimensions: CanvasDimensions | null;
+	dimensions: CanvasDimensions;
 	viewport: Viewport;
 	domSnapshot: React.RefObject<CanvasSnapshot | null>;
 	maskDefs: React.RefObject<SVGDefsElement | null>;
 	canvasRoot: React.RefObject<HTMLDivElement | null>;
-	captureDimensions: { width: number; height: number } | null;
+	captureDimensions: CanvasDimensions;
 	reportError: (error: PipelineError) => void;
 }
 

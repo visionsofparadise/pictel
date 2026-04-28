@@ -2,13 +2,20 @@
 export { Canvas } from "./Components/Canvas";
 export { Clip } from "./Components/Pipeline/Clip";
 export { CompositeEffect } from "./Components/Pipeline/CompositeEffect";
-export { ErrorOverlay } from "./Components/ErrorOverlay";
 export { Map } from "./Components/Pipeline/Map";
 export { Overflow } from "./Components/Pipeline/Overflow";
 export { RasterBlend } from "./Components/Pipeline/RasterBlend";
 export { RasterEffect } from "./Components/Pipeline/RasterEffect";
 export { TargetEffect } from "./Components/Pipeline/TargetEffect";
 export { Viewer } from "./Components/Viewer";
+
+// Design system
+export { tokens, type Tokens } from "./design-system/tokens";
+export { MODES, DEFAULT_MODE, type Mode } from "./modes";
+export { ErrorChip } from "./design-system/ErrorChip";
+export { LoadingOverlay } from "./design-system/LoadingOverlay";
+export { RenderStrip } from "./design-system/RenderStrip";
+export { SidebarRow, type SidebarItem } from "./design-system/Sidebar";
 
 // Blend modes
 export { Color } from "./Components/BlendModes/Color";
@@ -130,7 +137,7 @@ export { mixBlend } from "./Components/Effects/utils/mix-blend";
 export { padImageData } from "./Components/Effects/utils/pad-image-data";
 
 // Hooks
-export { useCanvasContext } from "./context/canvas";
+export { CanvasContext, useCanvasContext } from "./context/canvas";
 export { useContainerSize } from "./hooks/useContainerSize";
 export { useMode } from "./hooks/useMode";
 export { useSearchParam } from "./hooks/useSearchParam";
@@ -144,4 +151,4 @@ export { type EffectResult } from "./Components/utils/raster";
 export { type PipelineError } from "./utils/errors";
 
 // Types
-export { type AspectRatioDimensions, type CanvasContextValue, type CanvasDimensions, type CanvasSnapshot, type ReferenceDimensions, type Viewport } from "./context/canvas";
+export { type CanvasContextValue, type CanvasDimensions, type CanvasSnapshot, type Viewport } from "./context/canvas";

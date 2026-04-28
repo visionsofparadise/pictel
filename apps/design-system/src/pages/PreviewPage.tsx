@@ -124,13 +124,21 @@ const entries: Array<PreviewEntry> = [
 	},
 ];
 
-function formatDimensions(d: { width: number; height: number }): string {
-	return `${String(d.width)}×${String(d.height)}`;
+function formatDimensions(dims: { width: number; height: number }): string {
+	return `${String(dims.width)}×${String(dims.height)}`;
+}
+
+function firstEntry(): PreviewEntry {
+	const entry = entries[0];
+
+	if (!entry) throw new Error("PreviewPage: entries must be non-empty");
+
+	return entry;
 }
 
 export function PreviewPage() {
-	const [activeName, setActiveName] = useState(entries[0].name);
-	const active = entries.find((e) => e.name === activeName) ?? entries[0];
+	const [activeName, setActiveName] = useState(firstEntry().name);
+	const active = entries.find((entry) => entry.name === activeName) ?? firstEntry();
 
 	return (
 		<div style={wrapperStyle}>

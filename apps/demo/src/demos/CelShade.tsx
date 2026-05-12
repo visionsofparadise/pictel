@@ -1,4 +1,4 @@
-import { Bilateral, Canvas, LuminanceBands, Multiply, Outline, Saturate, Threshold } from "pictel";
+import { Bilateral, Canvas, Image, LuminanceBands, Multiply, Outline, Saturate, Threshold } from "pictel";
 import headshot from "../../assets/headshot.jpg";
 
 const canvasW = 512;
@@ -16,7 +16,7 @@ export default function CelShade() {
 				apply={
 					<Threshold threshold={128}>
 						<Outline sigma={1.0} k={1.6} epsilon={0.01} phi={200}>
-							<img src={headshot} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
+							<Image src={headshot} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
 						</Outline>
 					</Threshold>
 				}
@@ -24,7 +24,7 @@ export default function CelShade() {
 				<Saturate amount={1.3}>
 					<LuminanceBands bands={4}>
 						<Bilateral spatialSigma={2} colorSigma={30}>
-							<img src={headshot} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
+							<Image src={headshot} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
 						</Bilateral>
 					</LuminanceBands>
 				</Saturate>

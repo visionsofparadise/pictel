@@ -1,4 +1,4 @@
-import { Canvas, Color, Pipeline, type PipelineCallback } from "pictel";
+import { Canvas, Color, Image, Pipeline, type PipelineCallback } from "pictel";
 import { RemoveBackground } from "@pictel/ml";
 import { useCallback } from "react";
 import headshot from "../../assets/headshot.jpg";
@@ -42,14 +42,14 @@ export default function HolographicFoil() {
 
 	const subject = (
 		<RemoveBackground>
-			<img src={headshot} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
+			<Image src={headshot} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
 		</RemoveBackground>
 	);
 
 	return (
 		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>
 			<Pipeline effect={maskToSubject} map={subject}>
-				<Color apply={<img src={foil} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />}>
+				<Color apply={<Image src={foil} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />}>
 					{subject}
 				</Color>
 			</Pipeline>

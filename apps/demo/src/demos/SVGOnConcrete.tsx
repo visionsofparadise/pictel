@@ -1,4 +1,4 @@
-import { Canvas, DisplacementMap, Overlay } from "pictel";
+import { Canvas, DisplacementMap, Image, Overlay } from "pictel";
 import wall from "../../assets/Wall.jpg";
 import mark from "../../assets/Mark.svg";
 
@@ -25,27 +25,25 @@ export default function SVGOnConcrete() {
 					<DisplacementMap
 						scaleX={6}
 						scaleY={6}
-						map={<img src={wall} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />}
+						map={<Image src={wall} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />}
 					>
 						<div style={{ position: "relative", width: "100%", height: "100%" }}>
-							<img
-								src={mark}
+							<div
 								style={{
 									position: "absolute",
 									top: `${String(MARK_OFFSET_TOP)}px`,
 									right: `${String(MARK_OFFSET_RIGHT)}px`,
-									width: MARK_SIZE,
-									height: MARK_SIZE,
-									objectFit: "contain",
 									opacity: 0.95,
 									filter: "invert(0.2) sepia(1) saturate(6) hue-rotate(-20deg)",
 								}}
-							/>
+							>
+								<Image src={mark} width={MARK_SIZE} height={MARK_SIZE} fit="contain" />
+							</div>
 						</div>
 					</DisplacementMap>
 				}
 			>
-				<img src={wall} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
+				<Image src={wall} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
 			</Overlay>
 		</Canvas>
 	);

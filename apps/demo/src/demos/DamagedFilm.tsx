@@ -1,4 +1,4 @@
-import { Canvas, Lighten, Screen } from "pictel";
+import { Canvas, Image, Lighten, Screen } from "pictel";
 import landscape from "../../assets/Evening Landscape.jpg";
 import degradedFilm from "../../assets/Degraded Film.jpg";
 import lightLeak from "../../assets/Light Leak.jpg";
@@ -22,27 +22,24 @@ const LEAK_OFFSET_RIGHT = -Math.round(canvasW * 0.06);
 export default function DamagedFilm() {
 	return (
 		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>
-			<Screen apply={<img src={degradedFilm} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />}>
+			<Screen apply={<Image src={degradedFilm} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />}>
 				<Lighten
 					opacity={0.6}
 					apply={
 						<div style={{ position: "relative", width: "100%", height: "100%", backgroundColor: "black" }}>
-							<img
-								src={lightLeak}
-								crossOrigin="anonymous"
+							<div
 								style={{
 									position: "absolute",
 									top: `${String(LEAK_OFFSET_TOP)}px`,
 									right: `${String(LEAK_OFFSET_RIGHT)}px`,
-									width: LEAK_W,
-									height: LEAK_H,
-									objectFit: "cover",
 								}}
-							/>
+							>
+								<Image src={lightLeak} width={LEAK_W} height={LEAK_H} fit="cover" crossOrigin="anonymous" />
+							</div>
 						</div>
 					}
 				>
-					<img src={landscape} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
+					<Image src={landscape} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
 				</Lighten>
 			</Screen>
 		</Canvas>

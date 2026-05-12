@@ -1,4 +1,4 @@
-import { Canvas, Direction, Duotone, Hatch, Multiply } from "pictel";
+import { Canvas, Direction, Duotone, Hatch, Image, Multiply } from "pictel";
 import { RemoveBackground } from "@pictel/ml";
 import headshot from "../../assets/headshot.jpg";
 
@@ -25,7 +25,7 @@ const canvasH = 512;
 export default function Banknote() {
 	const subject = (
 		<RemoveBackground>
-			<img src={headshot} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
+			<Image src={headshot} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
 		</RemoveBackground>
 	);
 

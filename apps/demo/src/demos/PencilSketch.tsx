@@ -1,4 +1,4 @@
-import { Blur, Canvas, Clip, ColorDodge, Grayscale, Invert, Multiply } from "pictel";
+import { Blur, Canvas, Clip, ColorDodge, Grayscale, Image, Invert, Multiply } from "pictel";
 import headshot from "../../assets/headshot.jpg";
 import pencilTexture from "../../assets/Pencil Texture.jpg";
 
@@ -15,14 +15,14 @@ const canvasH = 1024;
 export default function PencilSketch() {
 	return (
 		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>
-			<Multiply apply={<img src={pencilTexture} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />}>
+			<Multiply apply={<Image src={pencilTexture} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />}>
 				<ColorDodge
 					apply={
 						<Clip>
 							<Blur radius={20}>
 								<Invert>
 									<Grayscale>
-										<img src={headshot} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
+										<Image src={headshot} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
 									</Grayscale>
 								</Invert>
 							</Blur>
@@ -30,7 +30,7 @@ export default function PencilSketch() {
 					}
 				>
 					<Grayscale>
-						<img src={headshot} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
+						<Image src={headshot} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
 					</Grayscale>
 				</ColorDodge>
 			</Multiply>

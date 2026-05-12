@@ -118,7 +118,7 @@ const demos: Array<Demo> = [
 		slug: "anaglyph",
 		name: "Anaglyph 3D",
 		description:
-			"DepthMap (Depth Anything V2) provides per-pixel depth. A custom TargetEffect shifts the red channel left and the cyan channels right by amounts proportional to depth. View through red-cyan glasses for actual 3D parallax.",
+			"DepthMap (Depth Anything V2) provides per-pixel depth. A custom Pipeline effect shifts the red channel left and the cyan channels right by amounts proportional to depth. View through red-cyan glasses for actual 3D parallax.",
 		original: cityPhoto,
 		component: Anaglyph,
 		source: anaglyphSource,
@@ -182,7 +182,9 @@ const demos: Array<Demo> = [
 function readSlug(): string {
 	const hash = typeof window === "undefined" ? "" : window.location.hash.slice(1);
 
-	return hash || demos[0]!.slug;
+	const first = demos[0];
+
+	return hash || (first ? first.slug : "");
 }
 
 function useHashSlug(): string {
@@ -210,19 +212,20 @@ function DemoView({ demo }: { demo: Demo }) {
 			<div
 				style={{
 					display: "grid",
-					gridTemplateColumns: "1fr 1fr",
+					gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
 					gap: 20,
 					marginBottom: 20,
+					alignItems: "start",
 				}}
 			>
-				<div>
+				<div style={{ minWidth: 0 }}>
 					<p style={{ fontSize: 12, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
 						Original
 					</p>
-					<img src={demo.original} style={{ width: "100%", borderRadius: 4, display: "block" }} />
+					<img src={demo.original} style={{ width: "100%", height: "auto", borderRadius: 4, display: "block" }} />
 				</div>
 
-				<div>
+				<div style={{ minWidth: 0 }}>
 					<p style={{ fontSize: 12, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
 						After
 					</p>
@@ -244,7 +247,11 @@ function DemoView({ demo }: { demo: Demo }) {
 
 export function App() {
 	const slug = useHashSlug();
-	const active = demos.find((d) => d.slug === slug) ?? demos[0]!;
+	const first = demos[0];
+
+	if (!first) throw new Error("demos must be non-empty");
+
+	const active = demos.find((demo) => demo.slug === slug) ?? first;
 
 	return (
 		<div

@@ -1,12 +1,17 @@
-import type { ComponentProps } from "react"
-import { useEffect, useRef } from "react"
+/* eslint-disable react-hooks/preserve-manual-memoization -- The `stops` array
+ * may be passed as an inline JSX literal (fresh identity each render). We use
+ * `stopsKey` (a serialized content hash) in deps so `draw` stays referentially
+ * stable. React Compiler infers `stops` as the dep and flags this; the
+ * substitution is intentional. */
+import { useCallback } from "react"
+import { RasterSource } from "../Pipeline/RasterSource"
 
 export interface GradientStop {
 	color: string
 	position: number
 }
 
-interface LinearGradientProps extends ComponentProps<"div"> {
+interface LinearGradientProps {
 	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	width: number
 	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
@@ -53,7 +58,7 @@ export function drawLinearGradient(
  *
  * Produces pixels at intrinsic dimensions like an `<img>`: the host/agent specifies
  * `width` and `height` explicitly. The component does not respond to its container's
- * size — the host CSS positions or scales the natural pixel footprint visually if needed.
+ * size. Wrap in a styled div if positioning is needed.
  *
  * - `width` — Output width in pixels. Required.
  * - `height` — Output height in pixels. Required.
@@ -68,32 +73,23 @@ export function LinearGradient({
 	height,
 	stops,
 	angle = 0,
-	style,
-	...rest
 }: LinearGradientProps) {
-	const canvasRef = useRef<HTMLCanvasElement>(null)
+	// Content-based key keeps `draw` referentially stable when callers pass
+	// inline `stops` array literals (fresh identity each render). Without this
+	// the leaf's useLayoutEffect would re-acquire pending every parent render.
+	const stopsKey = stops.map((stop) => `${stop.color}@${String(stop.position)}`).join("|")
 
-	const stopsKey = JSON.stringify(stops)
+	 
+	const draw = useCallback(
+		(canvas: HTMLCanvasElement) => {
+			const context = canvas.getContext("2d")
 
-	useEffect(() => {
-		const canvas = canvasRef.current
+			if (!context) return
 
-		if (!canvas || width === 0 || height === 0) return
-
-		canvas.width = width
-		canvas.height = height
-
-		const context = canvas.getContext("2d")
-
-		if (!context) return
-
-		drawLinearGradient(context, width, height, stops, angle)
-
-	}, [width, height, stopsKey, angle])
-
-	return (
-		<div style={{ width, height, ...style }} {...rest}>
-			<canvas ref={canvasRef} width={width} height={height} style={{ width, height, display: "block" }} />
-		</div>
+			drawLinearGradient(context, width, height, stops, angle)
+		},
+		[width, height, stopsKey, angle],
 	)
+
+	return <RasterSource width={width} height={height} draw={draw} />
 }

@@ -1,7 +1,12 @@
-import type { ComponentProps } from "react"
-import { useEffect, useRef } from "react"
+/* eslint-disable react-hooks/preserve-manual-memoization -- The `tint` tuple
+ * may be passed as an inline JSX literal (fresh identity each render). We use
+ * `tintKey` (a serialized content hash) in deps so `draw` stays referentially
+ * stable. React Compiler infers `tint` as the dep and flags this; the
+ * substitution is intentional. */
+import { useCallback } from "react"
 import alea from "alea"
 import { createNoise2D } from "simplex-noise"
+import { RasterSource } from "../Pipeline/RasterSource"
 
 export function fbm(
 	noise2D: (x: number, y: number) => number,
@@ -26,7 +31,7 @@ export function fbm(
 	return (value / maxAmplitude + 1) / 2
 }
 
-interface ProceduralNoiseProps extends ComponentProps<"div"> {
+interface ProceduralNoiseProps {
 	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	width: number
 	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
@@ -41,8 +46,6 @@ interface ProceduralNoiseProps extends ComponentProps<"div"> {
 	octaves?: number
 	/** Amplitude falloff per octave. Default 0.5. */
 	persistence?: number
-	// Named "tint" instead of "color" to avoid conflict with the HTML "color"
-	// attribute inherited from ComponentProps<'div'>.
 	/** RGB tint [r, g, b] (0-255). Default: grayscale. */
 	tint?: [number, number, number]
 }
@@ -52,7 +55,7 @@ interface ProceduralNoiseProps extends ComponentProps<"div"> {
  *
  * Produces pixels at intrinsic dimensions like an `<img>`: the host/agent specifies
  * `width` and `height` explicitly. The component does not respond to its container's
- * size — the host CSS positions or scales the natural pixel footprint visually if needed.
+ * size. Wrap in a styled div if positioning is needed.
  *
  * - `width` — Output width in pixels. Required.
  * - `height` — Output height in pixels. Required.
@@ -75,60 +78,54 @@ export function ProceduralNoise({
 	octaves = 1,
 	persistence = 0.5,
 	tint,
-	style,
-	...rest
 }: ProceduralNoiseProps) {
-	const canvasRef = useRef<HTMLCanvasElement>(null)
+	// Content-based key keeps `draw` referentially stable when callers pass
+	// an inline `tint` tuple literal (fresh identity each render). Without this
+	// the leaf's useLayoutEffect would re-acquire pending every parent render.
+	const tintKey = tint ? tint.join(",") : ""
 
-	useEffect(() => {
-		const canvas = canvasRef.current
+	 
+	const draw = useCallback(
+		(canvas: HTMLCanvasElement) => {
+			const context = canvas.getContext("2d")
 
-		if (!canvas || width === 0 || height === 0) return
+			if (!context) return
 
-		canvas.width = width
-		canvas.height = height
+			// simplex-noise only provides simplex noise. "perlin" mode uses simplex
+			// with a seed offset to produce a visually distinct but structurally
+			// equivalent noise field.
+			const noiseSeed = type === "perlin" ? seed + 0.5 : seed
+			// alea's type declaration uses `any` args, requiring a cast for strict TS
+			const prng: () => number = alea(noiseSeed)
+			const noise2D = createNoise2D(prng)
 
-		const context = canvas.getContext("2d")
+			const imageData = context.createImageData(width, height)
+			const data = imageData.data
 
-		if (!context) return
+			for (let y = 0; y < height; y++) {
+				for (let x = 0; x < width; x++) {
+					const value = fbm(noise2D, x, y, scale, octaves, persistence)
+					const offset = (y * width + x) * 4
 
-		// simplex-noise only provides simplex noise. "perlin" mode uses simplex
-		// with a seed offset to produce a visually distinct but structurally
-		// equivalent noise field.
-		const noiseSeed = type === "perlin" ? seed + 0.5 : seed
-		// alea's type declaration uses `any` args, requiring a cast for strict TS
-		const prng: () => number = alea(noiseSeed)
-		const noise2D = createNoise2D(prng)
+					if (tint) {
+						data[offset] = tint[0] * value
+						data[offset + 1] = tint[1] * value
+						data[offset + 2] = tint[2] * value
+					} else {
+						const gray = value * 255
+						data[offset] = gray
+						data[offset + 1] = gray
+						data[offset + 2] = gray
+					}
 
-		const imageData = context.createImageData(width, height)
-		const data = imageData.data
-
-		for (let y = 0; y < height; y++) {
-			for (let x = 0; x < width; x++) {
-				const value = fbm(noise2D, x, y, scale, octaves, persistence)
-				const offset = (y * width + x) * 4
-
-				if (tint) {
-					data[offset] = tint[0] * value
-					data[offset + 1] = tint[1] * value
-					data[offset + 2] = tint[2] * value
-				} else {
-					const gray = value * 255
-					data[offset] = gray
-					data[offset + 1] = gray
-					data[offset + 2] = gray
+					data[offset + 3] = 255
 				}
-
-				data[offset + 3] = 255
 			}
-		}
 
-		context.putImageData(imageData, 0, 0)
-	}, [width, height, type, seed, scale, octaves, persistence, tint?.[0], tint?.[1], tint?.[2]])
-
-	return (
-		<div style={{ width, height, ...style }} {...rest}>
-			<canvas ref={canvasRef} width={width} height={height} style={{ width, height, display: "block" }} />
-		</div>
+			context.putImageData(imageData, 0, 0)
+		},
+		[width, height, type, seed, scale, octaves, persistence, tintKey],
 	)
+
+	return <RasterSource width={width} height={height} draw={draw} />
 }

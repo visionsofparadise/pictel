@@ -1,5 +1,5 @@
 import { DepthMap } from "@pictel/ml";
-import { Canvas, Pipeline, type PipelineCallback } from "pictel";
+import { Canvas, Image, Pipeline, type PipelineCallback } from "pictel";
 import { useCallback } from "react";
 import cityPhoto from "../../assets/city overview.jpg";
 
@@ -46,11 +46,11 @@ export default function Anaglyph() {
 				effect={effect}
 				map={
 					<DepthMap>
-						<img src={cityPhoto} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
+						<Image src={cityPhoto} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
 					</DepthMap>
 				}
 			>
-				<img src={cityPhoto} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
+				<Image src={cityPhoto} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
 			</Pipeline>
 		</Canvas>
 	);

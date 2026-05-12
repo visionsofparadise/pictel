@@ -1,7 +1,7 @@
-import type { ComponentProps } from "react"
-import { useEffect, useRef } from "react"
+import { useCallback } from "react"
+import { RasterSource } from "../Pipeline/RasterSource"
 
-interface DotPatternProps extends ComponentProps<"div"> {
+interface DotPatternProps {
 	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	width: number
 	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
@@ -45,7 +45,7 @@ export function drawDotPattern(
  *
  * Produces pixels at intrinsic dimensions like an `<img>`: the host/agent specifies
  * `width` and `height` explicitly. The component does not respond to its container's
- * size — the host CSS positions or scales the natural pixel footprint visually if needed.
+ * size. Wrap in a styled div if positioning is needed.
  *
  * - `width` — Output width in pixels. Required.
  * - `height` — Output height in pixels. Required.
@@ -66,29 +66,17 @@ export function DotPattern({
 	radius,
 	color,
 	background,
-	style,
-	...rest
 }: DotPatternProps) {
-	const canvasRef = useRef<HTMLCanvasElement>(null)
+	const draw = useCallback(
+		(canvas: HTMLCanvasElement) => {
+			const context = canvas.getContext("2d")
 
-	useEffect(() => {
-		const canvas = canvasRef.current
+			if (!context) return
 
-		if (!canvas || width === 0 || height === 0) return
-
-		canvas.width = width
-		canvas.height = height
-
-		const context = canvas.getContext("2d")
-
-		if (!context) return
-
-		drawDotPattern(context, width, height, { spacing, radius, color, background })
-	}, [width, height, _seed, spacing, radius, color, background])
-
-	return (
-		<div style={{ width, height, ...style }} {...rest}>
-			<canvas ref={canvasRef} width={width} height={height} style={{ width, height, display: "block" }} />
-		</div>
+			drawDotPattern(context, width, height, { spacing, radius, color, background })
+		},
+		[width, height, _seed, spacing, radius, color, background],
 	)
+
+	return <RasterSource width={width} height={height} draw={draw} />
 }

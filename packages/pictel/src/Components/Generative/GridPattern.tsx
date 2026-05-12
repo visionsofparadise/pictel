@@ -1,7 +1,7 @@
-import type { ComponentProps } from "react"
-import { useEffect, useRef } from "react"
+import { useCallback } from "react"
+import { RasterSource } from "../Pipeline/RasterSource"
 
-interface GridPatternProps extends ComponentProps<"div"> {
+interface GridPatternProps {
 	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	width: number
 	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
@@ -56,7 +56,7 @@ export function drawGridPattern(
  *
  * Produces pixels at intrinsic dimensions like an `<img>`: the host/agent specifies
  * `width` and `height` explicitly. The component does not respond to its container's
- * size — the host CSS positions or scales the natural pixel footprint visually if needed.
+ * size. Wrap in a styled div if positioning is needed.
  *
  * - `width` — Output width in pixels. Required.
  * - `height` — Output height in pixels. Required.
@@ -79,31 +79,17 @@ export function GridPattern({
 	thickness,
 	color,
 	background,
-	style,
-	...rest
 }: GridPatternProps) {
-	const canvasRef = useRef<HTMLCanvasElement>(null)
+	const draw = useCallback(
+		(canvas: HTMLCanvasElement) => {
+			const context = canvas.getContext("2d")
 
-	const resolvedSpacingY = spacingY ?? spacingX
+			if (!context) return
 
-	useEffect(() => {
-		const canvas = canvasRef.current
-
-		if (!canvas || width === 0 || height === 0) return
-
-		canvas.width = width
-		canvas.height = height
-
-		const context = canvas.getContext("2d")
-
-		if (!context) return
-
-		drawGridPattern(context, width, height, { spacingX, spacingY, thickness, color, background })
-	}, [width, height, _seed, spacingX, resolvedSpacingY, thickness, color, background])
-
-	return (
-		<div style={{ width, height, ...style }} {...rest}>
-			<canvas ref={canvasRef} width={width} height={height} style={{ width, height, display: "block" }} />
-		</div>
+			drawGridPattern(context, width, height, { spacingX, spacingY, thickness, color, background })
+		},
+		[width, height, _seed, spacingX, spacingY, thickness, color, background],
 	)
+
+	return <RasterSource width={width} height={height} draw={draw} />
 }

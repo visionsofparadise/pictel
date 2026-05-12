@@ -2,6 +2,7 @@
 export { Canvas } from "./Components/Canvas";
 export { Clip } from "./Components/Pipeline/Clip";
 export { Pipeline, type PipelineCallback } from "./Components/Pipeline/Pipeline";
+export { RasterSource, type RasterSourceProps } from "./Components/Pipeline/RasterSource";
 export { Overflow } from "./Components/Pipeline/Overflow";
 export { Viewer } from "./Components/Viewer";
 
@@ -78,6 +79,9 @@ export { LinearGradient, type GradientStop } from "./Components/Generative/Linea
 export { LinePattern } from "./Components/Generative/LinePattern";
 export { ProceduralNoise } from "./Components/Generative/ProceduralNoise";
 export { RadialGradient } from "./Components/Generative/RadialGradient";
+
+// Raster sources
+export { Image } from "./Components/Image/Image";
 
 // Effects
 export { Blur } from "./Components/Effects/Blur";

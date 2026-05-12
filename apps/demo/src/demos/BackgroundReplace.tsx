@@ -1,5 +1,5 @@
 /** First load downloads the BEN2 model (~50MB). */
-import { Canvas, Clip, ConicGradient, DropShadow } from "pictel";
+import { Canvas, Clip, ConicGradient, DropShadow, Image } from "pictel";
 import { RemoveBackground } from "@pictel/ml";
 import portrait from "../../assets/Portrait with Background 2.jpg";
 
@@ -24,7 +24,7 @@ export default function BackgroundReplace() {
 					<Clip>
 						<DropShadow offsetX={0} offsetY={20} blurRadius={30} color="#000000">
 							<RemoveBackground>
-								<img src={portrait} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "contain" }} />
+								<Image src={portrait} width={canvasW} height={canvasH} fit="contain" crossOrigin="anonymous" />
 							</RemoveBackground>
 						</DropShadow>
 					</Clip>

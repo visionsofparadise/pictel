@@ -1,6 +1,7 @@
-import type { ReactNode } from "react"
+import { useCallback, type ReactNode } from "react"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import type { BlendFormula } from "./utils/blend-pixels"
-import { RasterBlend } from "../Pipeline/RasterBlend"
+import { blendPixels } from "./utils/blend-pixels"
 
 function softLightD(x: number): number {
 	return x <= 0.25 ? ((16 * x - 12) * x + 4) * x : Math.sqrt(x)
@@ -19,6 +20,7 @@ export const softLight: BlendFormula = (sr, sg, sb, dr, dg, db) => [
 ]
 
 interface SoftLightProps {
+	apply: ReactNode
 	opacity?: number
 	children: ReactNode
 }
@@ -30,10 +32,36 @@ interface SoftLightProps {
  * @param props
  * @category Blend Modes
  */
-export function SoftLight({ opacity, children }: SoftLightProps) {
+export function SoftLight({ apply, opacity = 1, children }: SoftLightProps) {
+	/* eslint-disable @typescript-eslint/no-non-null-assertion */
+	const effectCallback = useCallback<PipelineCallback>(
+		(target, applyPixels) => {
+			const blended = blendPixels(applyPixels!, target, softLight)
+
+			if (opacity < 1) {
+				const blendedData = blended.data
+				const targetData = target.data
+				const out = new Uint8ClampedArray(targetData.length)
+
+				for (let px = 0; px < targetData.length; px += 4) {
+					out[px] = targetData[px]! + opacity * (blendedData[px]! - targetData[px]!)
+					out[px + 1] = targetData[px + 1]! + opacity * (blendedData[px + 1]! - targetData[px + 1]!)
+					out[px + 2] = targetData[px + 2]! + opacity * (blendedData[px + 2]! - targetData[px + 2]!)
+					out[px + 3] = targetData[px + 3]! + opacity * (blendedData[px + 3]! - targetData[px + 3]!)
+				}
+
+				return { pixels: new ImageData(out, target.width, target.height) }
+			}
+
+			return { pixels: blended }
+		},
+		[opacity],
+	)
+	/* eslint-enable @typescript-eslint/no-non-null-assertion */
+
 	return (
-		<RasterBlend blend={softLight} opacity={opacity}>
+		<Pipeline effect={effectCallback} apply={apply}>
 			{children}
-		</RasterBlend>
+		</Pipeline>
 	)
 }

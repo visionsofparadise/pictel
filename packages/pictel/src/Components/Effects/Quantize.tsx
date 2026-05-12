@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -337,8 +337,7 @@ export interface QuantizeProps {
 	count?: number
 	/** Dithering algorithm. Default `"none"`. */
 	dither?: DitherMode
-	mode?: "parameter" | "mix"
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -356,7 +355,7 @@ export interface QuantizeProps {
  * @param props
  * @category Effects
  */
-export function Quantize({ palette, count, dither, mode, backdrop, children }: QuantizeProps) {
+export function Quantize({ palette, count, dither, map, children }: QuantizeProps) {
 	if (palette !== undefined && count !== undefined) {
 		throw new Error(
 			"Quantize: `palette` and `count` are mutually exclusive — supply one or the other, not both.",
@@ -371,27 +370,22 @@ export function Quantize({ palette, count, dither, mode, backdrop, children }: Q
 
 	const ditherMode = dither ?? "none"
 
-	const effect = useCallback(
-		(pixels: ImageData) => {
-			const resolvedPalette = palette ?? derivePalette(pixels, count ?? 0)
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			const resolvedPalette = palette ?? derivePalette(target, count ?? 0)
 
-			return applyQuantize(pixels, resolvedPalette, ditherMode)
-		},
-		[palette, count, ditherMode],
-	)
+			if (mapPixels !== undefined) {
+				return applyMappedQuantize(target, mapPixels, resolvedPalette, ditherMode)
+			}
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) => {
-			const resolvedPalette = palette ?? derivePalette(pixels, count ?? 0)
-
-			return applyMappedQuantize(pixels, map, resolvedPalette, ditherMode)
+			return applyQuantize(target, resolvedPalette, ditherMode)
 		},
 		[palette, count, ditherMode],
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

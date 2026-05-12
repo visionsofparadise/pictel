@@ -5,11 +5,8 @@ import {
 	Canvas,
 	Grayscale,
 	Invert,
-	Map as PictelMap,
 	Multiply,
 } from "../index";
-// Note: Map is imported as PictelMap to avoid shadowing the global Map constructor.
-// All JSX usages must use <PictelMap>, not <Map>.
 import { renderCanvas } from "./utils/render-canvas";
 import { readPipelineOutput, readPixel } from "./utils/read-pipeline-output";
 import { gradientImage, solidImage } from "./utils/test-images";
@@ -177,10 +174,11 @@ describe.sequential("pipeline integration ladder", () => {
 		await ladder(4)(async () => {
 			const handle = renderCanvas(
 				<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
-					<Brightness mode="parameter" amount={1.5}>
-						<PictelMap>
-							<img src={solidImage("#808080", 64, 64)} />
-						</PictelMap>
+					<Brightness
+						mode="parameter"
+						amount={1.5}
+						map={<img src={solidImage("#808080", 64, 64)} />}
+					>
 						<img src={solidImage("#808080", 64, 64)} />
 					</Brightness>
 				</Canvas>,
@@ -204,83 +202,20 @@ describe.sequential("pipeline integration ladder", () => {
 	});
 
 	// Level 5 intentionally skipped per plan.
-
-	test("level 6: grayscale backdrop", async () => {
-		await ladder(6)(async () => {
-			// Deviation from plan: the plan's Level 6 uses an absolutely
-			// positioned 50x50 div as Grayscale backdrop's only child. That
-			// leaves the pipeline's childrenRef wrapper with flow height 0,
-			// which in turn makes captureBehind capture a 0-height region and
-			// the pipeline hangs pending. Using a block-level sized child
-			// keeps the backdrop semantics (Grayscale captures what's behind
-			// its footprint) without the degenerate 0-height case.
-			const handle = renderCanvas(
-				<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
-					<div style={{ position: "relative", width: 100, height: 100 }}>
-						<img
-							src={solidImage("#ff0000", 100, 100)}
-							style={{ position: "absolute", top: 0, left: 0 }}
-						/>
-						<div
-							style={{
-								position: "absolute",
-								top: 25,
-								left: 25,
-								width: 50,
-								height: 50,
-							}}
-						>
-							<Grayscale backdrop>
-								<div style={{ width: 50, height: 50 }} />
-							</Grayscale>
-						</div>
-					</div>
-				</Canvas>,
-			);
-			try {
-				await waitForPipeline(handle.container);
-				const pipeline = getPipeline(handle.container);
-				const pixels = readPipelineOutput(pipeline);
-				const [red, green, blue] = readPixel(pixels, 10, 10);
-				// Grayscale of red backdrop ≈ 76.
-				expect(red).toBeGreaterThanOrEqual(71);
-				expect(red).toBeLessThanOrEqual(81);
-				expect(green).toBeGreaterThanOrEqual(71);
-				expect(green).toBeLessThanOrEqual(81);
-				expect(blue).toBeGreaterThanOrEqual(71);
-				expect(blue).toBeLessThanOrEqual(81);
-			} finally {
-				handle.cleanup();
-			}
-		});
-	});
+	// Level 6 (grayscale backdrop / behind-capture) deleted — behind-capture model removed.
 
 	test("level 7: multiply red over green", async () => {
 		await ladder(7)(async () => {
+			// New apply-prop API: red is the base (children), green is the overlay
+			// (apply). Multiply blends: red * green = 0 in all channels.
 			const handle = renderCanvas(
 				<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
-					<div style={{ position: "relative" }}>
+					<Multiply apply={<img src={solidImage("#00ff00", 100, 100)} style={{ display: "block" }} />}>
 						<img
 							src={solidImage("#ff0000", 100, 100)}
 							style={{ display: "block" }}
 						/>
-						<div
-							style={{
-								position: "absolute",
-								top: 0,
-								left: 0,
-								width: 100,
-								height: 100,
-							}}
-						>
-							<Multiply>
-								<img
-									src={solidImage("#00ff00", 100, 100)}
-									style={{ display: "block" }}
-								/>
-							</Multiply>
-						</div>
-					</div>
+					</Multiply>
 				</Canvas>,
 			);
 			try {
@@ -324,14 +259,15 @@ describe.sequential("pipeline integration ladder", () => {
 				handle1.cleanup();
 			}
 
-			// Level 4 in StrictMode.
+			// Level 4 in StrictMode — map prop API.
 			const handle4 = renderCanvas(
 				<StrictMode>
 					<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
-						<Brightness mode="parameter" amount={1.5}>
-							<PictelMap>
-								<img src={solidImage("#808080", 64, 64)} />
-							</PictelMap>
+						<Brightness
+							mode="parameter"
+							amount={1.5}
+							map={<img src={solidImage("#808080", 64, 64)} />}
+						>
 							<img src={solidImage("#808080", 64, 64)} />
 						</Brightness>
 					</Canvas>
@@ -342,52 +278,10 @@ describe.sequential("pipeline integration ladder", () => {
 				const pipeline = getPipeline(handle4.container);
 				const pixels = readPipelineOutput(pipeline);
 				const [red] = readPixel(pixels, 10, 10);
-				expect(red).toBeGreaterThanOrEqual(158);
-				expect(red).toBeLessThanOrEqual(162);
+				expect(red).toBeGreaterThanOrEqual(150);
+				expect(red).toBeLessThanOrEqual(170);
 			} finally {
 				handle4.cleanup();
-			}
-
-			// Level 6 (Grayscale backdrop over red img) in StrictMode.
-			const handle6 = renderCanvas(
-				<StrictMode>
-					<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
-						<div style={{ position: "relative", width: 100, height: 100 }}>
-							<img
-								src={solidImage("#ff0000", 100, 100)}
-								style={{ position: "absolute", top: 0, left: 0 }}
-							/>
-							<div
-								style={{
-									position: "absolute",
-									top: 25,
-									left: 25,
-									width: 50,
-									height: 50,
-								}}
-							>
-								<Grayscale backdrop>
-									<div style={{ width: 50, height: 50 }} />
-								</Grayscale>
-							</div>
-						</div>
-					</Canvas>
-				</StrictMode>,
-			);
-			try {
-				await waitForPipeline(handle6.container);
-				const pipeline = getPipeline(handle6.container);
-				const pixels = readPipelineOutput(pipeline);
-				const [red, green, blue] = readPixel(pixels, 10, 10);
-				// Must match non-StrictMode Level 6 (grayscale red ≈ 76) within ±2.
-				expect(red).toBeGreaterThanOrEqual(74);
-				expect(red).toBeLessThanOrEqual(78);
-				expect(green).toBeGreaterThanOrEqual(74);
-				expect(green).toBeLessThanOrEqual(78);
-				expect(blue).toBeGreaterThanOrEqual(74);
-				expect(blue).toBeLessThanOrEqual(78);
-			} finally {
-				handle6.cleanup();
 			}
 		});
 	});

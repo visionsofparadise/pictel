@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
+import { mixBlend } from "./utils/mix-blend"
 
 function mulberry32(seed: number): () => number {
 	let state = seed | 0
@@ -41,7 +42,7 @@ interface GrainProps {
 	intensity: number
 	/** Random seed for reproducible grain patterns. */
 	seed: number
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -54,15 +55,23 @@ interface GrainProps {
  * @param props
  * @category Effects
  */
-export function Grain({ intensity, seed, backdrop, children }: GrainProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyGrain(pixels, intensity, seed),
+export function Grain({ intensity, seed, map, children }: GrainProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			const result = applyGrain(target, intensity, seed)
+
+			if (mapPixels !== undefined) {
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return result
+		},
 		[intensity, seed],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

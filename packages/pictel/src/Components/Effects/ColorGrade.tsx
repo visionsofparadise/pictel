@@ -1,7 +1,8 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { luminance } from "./utils/luminance"
+import { mixBlend } from "./utils/mix-blend"
 
 export interface ColorGradeAdjustments {
 	/** Brightness multiplier. Default 1. */
@@ -63,7 +64,7 @@ export function applyColorGrade(pixels: ImageData, adjustments: ColorGradeAdjust
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface ColorGradeProps extends ColorGradeAdjustments {
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -85,18 +86,25 @@ export function ColorGrade({
 	saturation,
 	temperature,
 	tint,
-	backdrop,
+	map,
 	children,
 }: ColorGradeProps) {
-	const effect = useCallback(
-		(pixels: ImageData) =>
-			applyColorGrade(pixels, { brightness, contrast, saturation, temperature, tint }),
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			const result = applyColorGrade(target, { brightness, contrast, saturation, temperature, tint })
+
+			if (mapPixels !== undefined) {
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return result
+		},
 		[brightness, contrast, saturation, temperature, tint],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { applyGrayscale } from "./Grayscale"
 import { applyLIC } from "./LIC"
 import { applyPosterize } from "./Posterize"
@@ -209,7 +209,7 @@ export function applyHatchFieldAligned(
 interface HatchProps {
 	/** Number of tonal bands. Minimum 2. Default 4. */
 	bands?: number
-	/** Per-band line angles in radians. Required in constant-angle mode (no `<Map>` child). Length must equal `bands`. */
+	/** Per-band line angles in radians. Required in constant-angle mode (no `map` prop). Length must equal `bands`. */
 	angles?: Array<number>
 	/** Per-band line spacing in pixels. Length must equal `bands`. */
 	spacing: Array<number>
@@ -217,8 +217,7 @@ interface HatchProps {
 	length?: number
 	/** Field-aligned LIC step size in pixels. Default 1.0. */
 	stepSize?: number
-	mode?: "parameter" | "mix"
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -227,9 +226,9 @@ interface HatchProps {
  * and renders per-band line layers, multiplied onto a white background. Two
  * modes:
  *
- * - **Constant-angle** (no `<Map>` child): each band uses a fixed angle and
+ * - **Constant-angle** (no `map` prop): each band uses a fixed angle and
  *   spacing. Pass `angles` and `spacing` arrays of length `bands`.
- * - **Field-aligned** (with `<Map>` child): each band's lines integrate along
+ * - **Field-aligned** (with `map` prop): each band's lines integrate along
  *   the supplied vector field via LIC. The map is expected to be a
  *   Direction-style cos/sin/magnitude encoding (see `Direction`).
  *
@@ -245,8 +244,7 @@ export function Hatch({
 	spacing,
 	length = DEFAULT_LENGTH,
 	stepSize = DEFAULT_STEP_SIZE,
-	mode,
-	backdrop,
+	map,
 	children,
 }: HatchProps) {
 	if (bands < 2) {
@@ -267,33 +265,28 @@ export function Hatch({
 
 	const resolvedAngles = angles ?? (bands === DEFAULT_BANDS ? DEFAULT_ANGLES : undefined)
 
-	const effect = useCallback(
-		(pixels: ImageData) => {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels !== undefined) {
+				// Field-aligned mode: map prop present, use vector field via LIC
+				return applyHatchFieldAligned(target, mapPixels, bands, spacing, length, stepSize)
+			}
+
+			// Constant-angle mode: no map prop
 			if (!resolvedAngles) {
 				throw new Error(
-					`Hatch: angles is required in constant-angle mode when bands !== ${String(DEFAULT_BANDS)} (no <Map> child supplied)`,
+					`Hatch: angles is required in constant-angle mode when bands !== ${String(DEFAULT_BANDS)} (no map prop supplied)`,
 				)
 			}
 
-			return applyHatch(pixels, bands, resolvedAngles, spacing)
+			return applyHatch(target, bands, resolvedAngles, spacing)
 		},
-		[bands, resolvedAngles, spacing],
-	)
-
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) =>
-			applyHatchFieldAligned(pixels, map, bands, spacing, length, stepSize),
-		[bands, spacing, length, stepSize],
+		[bands, resolvedAngles, spacing, length, stepSize],
 	)
 
 	return (
-		<RasterEffect
-			effect={effect}
-			mappedEffect={mappedEffect}
-			mode={mode ?? "parameter"}
-			backdrop={backdrop}
-		>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

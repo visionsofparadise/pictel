@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { luminance } from "./utils/luminance"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -86,7 +86,7 @@ export function applyMappedSharpen(pixels: ImageData, map: ImageData, amount: nu
 interface SharpenProps {
 	/** Sharpening strength. Higher values produce more aggressive edge enhancement. */
 	amount: number
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -98,20 +98,21 @@ interface SharpenProps {
  * @param props
  * @category Effects
  */
-export function Sharpen({ amount, backdrop, children }: SharpenProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applySharpen(pixels, amount),
-		[amount],
-	)
+export function Sharpen({ amount, map, children }: SharpenProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels !== undefined) {
+				return applyMappedSharpen(target, mapPixels, amount)
+			}
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) => applyMappedSharpen(pixels, map, amount),
+			return applySharpen(target, amount)
+		},
 		[amount],
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

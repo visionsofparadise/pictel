@@ -91,16 +91,38 @@ export function Frame({ children }: FrameProps) {
 	}
 
 	if (mode === "display") {
+		// Display mode renders the DOM at literal buffer dimensions and visually
+		// scales via CSS transform to fit the host container. Decoupling visual
+		// size from layout size ensures: (1) snapdom captures use the buffer-sized
+		// source DOM (so content with literal pixel widths matches the capture
+		// dimensions), (2) generative components render at the correct pixel count
+		// regardless of how the host container is sized, (3) pipeline children
+		// rect measurements via offsetWidth/offsetHeight return buffer dims.
+		// Same approach preview mode uses, without the workspace gutter.
+		const scaleFactor = viewport.width === 0 || viewport.height === 0
+			? 1
+			: Math.min(viewport.width / width, viewport.height / height, 1);
+		const outerStyle: CSSProperties = {
+			width: width * scaleFactor,
+			height: height * scaleFactor,
+			position: "relative",
+			overflow: "hidden",
+			background: "transparent",
+			flexShrink: 0,
+		};
+		const scaledStyle: CSSProperties = {
+			...containerStyle,
+			flexShrink: 0,
+			transform: `scale(${String(scaleFactor)})`,
+			transformOrigin: "top left",
+			background: "transparent",
+		};
+
 		return (
-			<div
-				style={{
-					...containerStyle,
-					maxWidth: "100%",
-					maxHeight: "100%",
-					background: "transparent",
-				}}
-			>
-				<div style={innerStyle}>{children}</div>
+			<div style={outerStyle}>
+				<div style={scaledStyle}>
+					<div style={innerStyle}>{children}</div>
+				</div>
 			</div>
 		);
 	}

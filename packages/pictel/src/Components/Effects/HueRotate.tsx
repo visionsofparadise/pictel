@@ -1,8 +1,9 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { hslToRgb, rgbToHsl } from "../BlendModes/utils/hsl"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { luminance } from "./utils/luminance"
+import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -50,7 +51,7 @@ interface HueRotateProps {
 	/** Hue rotation in degrees. 180 inverts all colors; 360 returns to original. */
 	angle: number
 	mode?: "parameter" | "mix"
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -62,20 +63,27 @@ interface HueRotateProps {
  * @param props
  * @category Effects
  */
-export function HueRotate({ angle, mode = "mix", backdrop, children }: HueRotateProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyHueRotate(pixels, angle),
-		[angle],
-	)
+export function HueRotate({ angle, mode = "mix", map, children }: HueRotateProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels !== undefined) {
+				if (mode === "parameter") {
+					return applyMappedHueRotate(target, mapPixels, angle)
+				}
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) => applyMappedHueRotate(pixels, map, angle),
-		[angle],
+				const result = applyHueRotate(target, angle)
+
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return applyHueRotate(target, angle)
+		},
+		[angle, mode],
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

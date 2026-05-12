@@ -1,8 +1,9 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { lerp } from "./utils/lerp"
 import { luminance } from "./utils/luminance"
+import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -44,7 +45,7 @@ interface BrightnessProps {
 	/** Brightness multiplier. 1 is unchanged, 0 is black, greater than 1 brightens. */
 	amount?: number
 	mode?: "parameter" | "mix"
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -56,20 +57,27 @@ interface BrightnessProps {
  * @param props
  * @category Effects
  */
-export function Brightness({ amount = 1, mode = "mix", backdrop, children }: BrightnessProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyBrightness(pixels, amount),
-		[amount],
-	)
+export function Brightness({ amount = 1, mode = "mix", map, children }: BrightnessProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels !== undefined) {
+				if (mode === "parameter") {
+					return applyMappedBrightness(target, mapPixels, amount)
+				}
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) => applyMappedBrightness(pixels, map, amount),
-		[amount],
+				const result = applyBrightness(target, amount)
+
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return applyBrightness(target, amount)
+		},
+		[amount, mode],
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

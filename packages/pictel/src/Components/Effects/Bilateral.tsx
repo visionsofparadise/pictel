@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -88,7 +88,7 @@ interface BilateralProps {
 	colorSigma: number
 	/** `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance. */
 	mode?: "parameter" | "mix"
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -110,28 +110,29 @@ export function Bilateral({
 	spatialSigma,
 	colorSigma,
 	mode = "parameter",
-	backdrop,
+	map,
 	children,
 }: BilateralProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyBilateral(pixels, spatialSigma, colorSigma),
-		[spatialSigma, colorSigma],
-	)
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels !== undefined) {
+				if (mode === "parameter") {
+					return applyMappedBilateral(target, mapPixels, spatialSigma, colorSigma)
+				}
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) =>
-			applyMappedBilateral(pixels, map, spatialSigma, colorSigma),
-		[spatialSigma, colorSigma],
+				const result = applyBilateral(target, spatialSigma, colorSigma)
+
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return applyBilateral(target, spatialSigma, colorSigma)
+		},
+		[spatialSigma, colorSigma, mode],
 	)
 
 	return (
-		<RasterEffect
-			effect={effect}
-			mappedEffect={mappedEffect}
-			mode={mode}
-			backdrop={backdrop}
-		>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

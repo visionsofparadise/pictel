@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type ReactNode } from "react"
-import { RasterEffect } from "pictel"
+import { Pipeline as PictelPipeline, type PipelineCallback } from "pictel"
 import type { Pipeline } from "@huggingface/transformers"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
 import { getOrLoadPipeline } from "../registry"
@@ -23,7 +23,6 @@ interface RemoveBackgroundProps {
 	model?: string
 	/** Model revision hash. Overridable alongside `model`. */
 	revision?: string
-	backdrop?: boolean
 	children: ReactNode
 }
 
@@ -39,7 +38,6 @@ interface RemoveBackgroundProps {
 export function RemoveBackground({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
-	backdrop,
 	children,
 }: RemoveBackgroundProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
@@ -50,19 +48,20 @@ export function RemoveBackground({
 		)
 	}, [model, revision])
 
-	const effect = useCallback(
-		async (pixels: ImageData) => {
+	const effect = useCallback<PipelineCallback>(
+		async (target) => {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const pipe = await pipelineRef.current!
+			const pixels = await removeBackground(target, pipe)
 
-			return removeBackground(pixels, pipe)
+			return { pixels }
 		},
 		[model, revision],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<PictelPipeline effect={effect}>
 			{children}
-		</RasterEffect>
+		</PictelPipeline>
 	)
 }

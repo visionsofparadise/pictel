@@ -1,6 +1,5 @@
 import { createContext, useContext } from "react";
 import type { PipelineError } from "../utils/errors";
-import type { StackingOrder } from "../utils/stacking";
 
 /**
  * Fixed pixel dimensions for the canvas's compositing buffer. The capture
@@ -13,12 +12,6 @@ export interface CanvasDimensions {
 	height: number;
 }
 
-export interface CanvasSnapshot {
-	readonly stackingOrder: StackingOrder;
-	readonly rects: ReadonlyMap<HTMLElement, DOMRect>;
-	readonly canvasRect: DOMRect;
-}
-
 export interface Viewport {
 	width: number;
 	height: number;
@@ -28,9 +21,6 @@ export interface CanvasContextValue {
 	mode: string;
 	dimensions: CanvasDimensions;
 	viewport: Viewport;
-	domSnapshot: React.RefObject<CanvasSnapshot | null>;
-	maskDefs: React.RefObject<SVGDefsElement | null>;
-	canvasRoot: React.RefObject<HTMLDivElement | null>;
 	captureDimensions: CanvasDimensions;
 	reportError: (error: PipelineError) => void;
 }

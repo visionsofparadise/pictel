@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 import { useCallback } from "react";
 import { normalizeResult, type EffectResult } from "../utils/raster";
-import { RasterEffect } from "../Pipeline/RasterEffect";
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline";
 import { luminance } from "./utils/luminance";
+import { mixBlend } from "./utils/mix-blend";
+import { padImageData } from "./utils/pad-image-data";
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -284,7 +286,7 @@ interface BlurProps {
 	radius: number;
 	/** `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance. */
 	mode?: "parameter" | "mix";
-	backdrop?: boolean;
+	map?: ReactNode;
 	children: ReactNode;
 }
 
@@ -297,25 +299,32 @@ interface BlurProps {
  * @param props
  * @category Effects
  */
-export function Blur({ radius, mode = "parameter", backdrop, children }: BlurProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyUniformBlur(pixels, radius),
-		[radius],
-	);
+export function Blur({ radius, mode = "parameter", map, children }: BlurProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels !== undefined) {
+				if (mode === "parameter") {
+					return applyVariableBlur(target, mapPixels, radius)
+				}
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) => applyVariableBlur(pixels, map, radius),
-		[radius],
+				// Mix mode: blur at full intensity, then blend with original per map.
+				// The blur result has overflow (padding), so pad original and map to match.
+				const result = normalizeResult(applyUniformBlur(target, radius))
+				const { overflow } = result
+				const paddedTarget = padImageData(target, overflow.top, overflow.right, overflow.bottom, overflow.left)
+				const paddedMap = padImageData(mapPixels, overflow.top, overflow.right, overflow.bottom, overflow.left)
+
+				return { pixels: mixBlend(paddedTarget, result.pixels, paddedMap), overflow }
+			}
+
+			return applyUniformBlur(target, radius)
+		},
+		[radius, mode],
 	);
 
 	return (
-		<RasterEffect
-			effect={effect}
-			mappedEffect={mappedEffect}
-			mode={mode}
-			backdrop={backdrop}
-		>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	);
 }

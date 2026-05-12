@@ -1,37 +1,32 @@
 import { DepthMap } from "@pictel/ml";
-import { Blur, Brightness, Canvas, Clip, Contrast, Invert, Map, Saturate } from "pictel";
+import { Blur, Brightness, Canvas, Clip, Contrast, Invert, Saturate } from "pictel";
 import cityPhoto from "../../assets/city overview.jpg";
+
+const canvasW = 1024;
+const canvasH = 683;
 
 export default function TiltShift() {
 	return (
-		<Canvas mode="display" dimensions={{ width: 1024, height: 683 }}>
+		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>
 			<Clip>
 				<Blur
 					radius={7}
 					mode="parameter"
-				>
-					<Map>
+					map={
 						<Invert>
 							<Brightness amount={2}>
 								<Contrast amount={0.35}>
 									<DepthMap>
-										<img
-											src={cityPhoto}
-											crossOrigin="anonymous"
-											style={{ display: "block", maxWidth: "100%" }}
-										/>
+										<img src={cityPhoto} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
 									</DepthMap>
 								</Contrast>
 							</Brightness>
 						</Invert>
-					</Map>
+					}
+				>
 					<Saturate amount={1.1}>
 						<Contrast amount={1.1}>
-							<img
-								src={cityPhoto}
-								crossOrigin="anonymous"
-								style={{ display: "block", maxWidth: "100%" }}
-							/>
+							<img src={cityPhoto} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "cover" }} />
 						</Contrast>
 					</Saturate>
 				</Blur>

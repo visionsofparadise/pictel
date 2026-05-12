@@ -3,16 +3,16 @@ import { Canvas, Clip, ConicGradient, DropShadow } from "pictel";
 import { RemoveBackground } from "@pictel/ml";
 import portrait from "../../assets/Portrait with Background 2.jpg";
 
-const W = 713;
-const H = 1024;
+const canvasW = 713;
+const canvasH = 1024;
 
 export default function BackgroundReplace() {
 	return (
-		<Canvas mode="display" dimensions={{ width: W, height: H }}>
+		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>
 			<div style={{ position: "relative" }}>
 				<ConicGradient
-					width={W}
-					height={H}
+					width={canvasW}
+					height={canvasH}
 					stops={[
 						{ color: "#ff7e5f", position: 0 },
 						{ color: "#feb47b", position: 0.3 },
@@ -24,11 +24,7 @@ export default function BackgroundReplace() {
 					<Clip>
 						<DropShadow offsetX={0} offsetY={20} blurRadius={30} color="#000000">
 							<RemoveBackground>
-								<img
-									src={portrait}
-									crossOrigin="anonymous"
-									style={{ display: "block", width: W, height: H, objectFit: "contain" }}
-								/>
+								<img src={portrait} crossOrigin="anonymous" style={{ display: "block", width: canvasW, height: canvasH, objectFit: "contain" }} />
 							</RemoveBackground>
 						</DropShadow>
 					</Clip>

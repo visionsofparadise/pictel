@@ -249,17 +249,10 @@ function SidebarRowsShowcase() {
  * other required fields so the chrome can render in isolation.
  */
 function ShowcaseCanvasContext({ children }: { children: ReactNode }) {
-	const noopRef = useRef<HTMLDivElement>(null);
-	const snapshotRef = useRef(null);
-	const maskDefsRef = useRef<SVGDefsElement>(null);
-
 	const value: CanvasContextValue = {
 		mode: "preview",
 		dimensions: { width: 1080, height: 1080 },
 		viewport: { width: 1080, height: 1080 },
-		domSnapshot: snapshotRef,
-		maskDefs: maskDefsRef,
-		canvasRoot: noopRef,
 		captureDimensions: { width: 1080, height: 1080 },
 		reportError: () => {
 			/* showcase noop */

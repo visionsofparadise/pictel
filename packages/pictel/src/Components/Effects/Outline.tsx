@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { normalizeResult } from "../utils/raster"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { applyUniformBlur } from "./Blur"
 import { luminance } from "./utils/luminance"
 import { mixBlend } from "./utils/mix-blend"
@@ -131,7 +131,7 @@ interface OutlineProps {
 	phi?: number
 	/** `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance. */
 	mode?: "parameter" | "mix"
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -157,23 +157,29 @@ export function Outline({
 	epsilon = 0,
 	phi = 200,
 	mode = "parameter",
-	backdrop,
+	map,
 	children,
 }: OutlineProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyOutline(pixels, sigma, kappa, epsilon, phi),
-		[sigma, kappa, epsilon, phi],
-	)
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels !== undefined) {
+				if (mode === "parameter") {
+					return applyMappedOutline(target, mapPixels, sigma, kappa, epsilon, phi)
+				}
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) =>
-			applyMappedOutline(pixels, map, sigma, kappa, epsilon, phi),
-		[sigma, kappa, epsilon, phi],
+				const result = applyOutline(target, sigma, kappa, epsilon, phi)
+
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return applyOutline(target, sigma, kappa, epsilon, phi)
+		},
+		[sigma, kappa, epsilon, phi, mode],
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

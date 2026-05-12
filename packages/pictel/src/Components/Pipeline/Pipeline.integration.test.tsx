@@ -1,0 +1,512 @@
+import { describe, expect, test } from "vitest";
+import { StrictMode, useCallback } from "react";
+import { Canvas, Invert, Outline, Threshold } from "../../index";
+import { Pipeline, type PipelineCallback } from "./Pipeline";
+import { renderCanvas } from "../utils/render-canvas";
+import { readPipelineOutput, readPixel } from "../utils/read-pipeline-output";
+import { solidImage } from "../utils/test-images";
+import { waitForPipeline } from "../utils/wait-for-pipeline";
+import { applyInvert } from "../Effects/Invert";
+
+// --- Helpers ---
+
+function getOuterPipeline(container: HTMLElement): HTMLElement {
+	const all = Array.from(
+		container.querySelectorAll<HTMLElement>("[data-pictel-pipeline]"),
+	);
+
+	if (all.length === 0) throw new Error("no [data-pictel-pipeline] found in container");
+
+	// Outer pipeline is the one with no [data-pictel-pipeline] ancestor.
+	for (const candidate of all) {
+		let hasPipelineAncestor = false;
+		let parent: HTMLElement | null = candidate.parentElement;
+
+		while (parent && parent !== container) {
+			if (parent.hasAttribute("data-pictel-pipeline")) {
+				hasPipelineAncestor = true;
+				break;
+			}
+
+			parent = parent.parentElement;
+		}
+
+		if (!hasPipelineAncestor) return candidate;
+	}
+
+	throw new Error("could not determine outer pipeline");
+}
+
+// --- Identity effect for testing ---
+
+function identityEffect(pixels: ImageData): { pixels: ImageData } {
+	return { pixels };
+}
+
+// --- Integration tests ---
+
+describe.sequential("Pipeline integration", () => {
+	test("children-only: effect receives target pixels and draws result", async () => {
+		// Invert a solid red image through Pipeline directly to verify the full
+		// children-only lifecycle: capture → callback → drawToCanvas → reveal.
+		function InvertPipeline({ children }: { children: React.ReactNode }) {
+			const effect = useCallback<PipelineCallback>((target) => {
+				return { pixels: applyInvert(target, 1) };
+			}, []);
+
+			return <Pipeline effect={effect}>{children}</Pipeline>;
+		}
+
+		const handle = renderCanvas(
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<InvertPipeline>
+					<img src={solidImage("#ff0000", 64, 64)} />
+				</InvertPipeline>
+			</Canvas>,
+		);
+
+		try {
+			await waitForPipeline(handle.container);
+			const pipeline = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
+
+			if (!pipeline) throw new Error("no pipeline found");
+
+			const pixels = readPipelineOutput(pipeline);
+			const [red, green, blue] = readPixel(pixels, 10, 10);
+
+			// Inverted red (#ff0000) = #00ffff: red ≈ 0, green ≈ 255, blue ≈ 255.
+			expect(red).toBeLessThanOrEqual(5);
+			expect(green).toBeGreaterThanOrEqual(250);
+			expect(blue).toBeGreaterThanOrEqual(250);
+		} finally {
+			handle.cleanup();
+		}
+	});
+
+	test("with apply: outer waits for inner pipeline in apply, captures via fast path", async () => {
+		// Outer Pipeline's `apply` contains an inner Pipeline (Invert).
+		// The outer effect receives target (red) and apply (inverted red = cyan).
+		// We assert the outer received non-trivial apply pixels.
+		let capturedApply: ImageData | undefined;
+
+		function BlendWithApply({ apply, children }: { apply: React.ReactNode; children: React.ReactNode }) {
+			const effect = useCallback<PipelineCallback>((target, applyPixels) => {
+				capturedApply = applyPixels;
+				// Return target unchanged for simplicity.
+				return { pixels: target };
+			}, []);
+
+			return <Pipeline effect={effect} apply={apply}>{children}</Pipeline>;
+		}
+
+		const handle = renderCanvas(
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<BlendWithApply
+					apply={
+						<Invert>
+							<img src={solidImage("#ff0000", 64, 64)} />
+						</Invert>
+					}
+				>
+					<img src={solidImage("#00ff00", 64, 64)} />
+				</BlendWithApply>
+			</Canvas>,
+		);
+
+		try {
+			await waitForPipeline(handle.container);
+
+			// Outer pipeline resolved — it captured the inner apply pipeline.
+			expect(capturedApply).toBeDefined();
+
+			// The apply pixels should be the inverted red (cyan): red≈0, green≈255, blue≈255.
+			// Test a center pixel (32, 32).
+			if (capturedApply) {
+				const index = (32 * capturedApply.width + 32) * 4;
+				const r = capturedApply.data[index] ?? 0;
+				const g = capturedApply.data[index + 1] ?? 0;
+				const b = capturedApply.data[index + 2] ?? 0;
+				expect(r).toBeLessThanOrEqual(10);
+				expect(g).toBeGreaterThanOrEqual(245);
+				expect(b).toBeGreaterThanOrEqual(245);
+			}
+		} finally {
+			handle.cleanup();
+		}
+	});
+
+	test("with map: outer waits for inner pipeline in map, receives map pixels", async () => {
+		// Outer Pipeline's `map` contains an inner Pipeline (Invert on white = black).
+		// We assert the outer received map pixels.
+		let capturedMap: ImageData | undefined;
+
+		function EffectWithMap({ map, children }: { map: React.ReactNode; children: React.ReactNode }) {
+			const effect = useCallback<PipelineCallback>((target, _apply, mapPixels) => {
+				capturedMap = mapPixels;
+
+				return { pixels: target };
+			}, []);
+
+			return <Pipeline effect={effect} map={map}>{children}</Pipeline>;
+		}
+
+		const handle = renderCanvas(
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<EffectWithMap
+					map={
+						<Invert>
+							<img src={solidImage("#ffffff", 64, 64)} />
+						</Invert>
+					}
+				>
+					<img src={solidImage("#ff0000", 64, 64)} />
+				</EffectWithMap>
+			</Canvas>,
+		);
+
+		try {
+			await waitForPipeline(handle.container);
+
+			expect(capturedMap).toBeDefined();
+
+			// The map pixels should be inverted white = black: all channels ≈ 0.
+			if (capturedMap) {
+				const index = (32 * capturedMap.width + 32) * 4;
+				const r = capturedMap.data[index] ?? 255;
+				const g = capturedMap.data[index + 1] ?? 255;
+				const b = capturedMap.data[index + 2] ?? 255;
+				expect(r).toBeLessThanOrEqual(10);
+				expect(g).toBeLessThanOrEqual(10);
+				expect(b).toBeLessThanOrEqual(10);
+			}
+		} finally {
+			handle.cleanup();
+		}
+	});
+
+	test("two-pipeline chain via apply: pending gate waits for inner before capturing", async () => {
+		// Verifies that the outer pipeline's gate correctly waits for the inner
+		// pipeline's pending flag to clear before proceeding with capture.
+		// We track call order: inner effect must complete before outer.
+		const callOrder: Array<string> = [];
+
+		function Inner({ children }: { children: React.ReactNode }) {
+			const effect = useCallback<PipelineCallback>((target) => {
+				callOrder.push("inner");
+
+				return { pixels: target };
+			}, []);
+
+			return <Pipeline effect={effect}>{children}</Pipeline>;
+		}
+
+		function Outer({ apply, children }: { apply: React.ReactNode; children: React.ReactNode }) {
+			const effect = useCallback<PipelineCallback>((target) => {
+				callOrder.push("outer");
+
+				return { pixels: target };
+			}, []);
+
+			return <Pipeline effect={effect} apply={apply}>{children}</Pipeline>;
+		}
+
+		const handle = renderCanvas(
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<Outer
+					apply={
+						<Inner>
+							<img src={solidImage("#ff0000", 64, 64)} />
+						</Inner>
+					}
+				>
+					<img src={solidImage("#00ff00", 64, 64)} />
+				</Outer>
+			</Canvas>,
+		);
+
+		try {
+			await waitForPipeline(handle.container);
+
+			// Inner must have resolved before outer ran.
+			const innerIndex = callOrder.indexOf("inner");
+			const outerIndex = callOrder.indexOf("outer");
+			expect(innerIndex).toBeGreaterThanOrEqual(0);
+			expect(outerIndex).toBeGreaterThanOrEqual(0);
+			expect(innerIndex).toBeLessThan(outerIndex);
+		} finally {
+			handle.cleanup();
+		}
+	});
+
+	test("StrictMode double-mount: resolves correctly after setup→cleanup→setup", async () => {
+		// Mirrors the level 8 pattern from Canvas.integration.test.tsx.
+		// Uses a simple children-only Pipeline in StrictMode.
+		function InvertPipeline({ children }: { children: React.ReactNode }) {
+			const effect = useCallback<PipelineCallback>((target) => {
+				return { pixels: applyInvert(target, 1) };
+			}, []);
+
+			return <Pipeline effect={effect}>{children}</Pipeline>;
+		}
+
+		const handle = renderCanvas(
+			<StrictMode>
+				<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+					<InvertPipeline>
+						<img src={solidImage("#ff0000", 64, 64)} />
+					</InvertPipeline>
+				</Canvas>
+			</StrictMode>,
+		);
+
+		try {
+			await waitForPipeline(handle.container);
+
+			const outer = getOuterPipeline(handle.container);
+			const pixels = readPipelineOutput(outer);
+			const [red, green, blue] = readPixel(pixels, 10, 10);
+
+			// Inverted red = cyan: red ≈ 0, green ≈ 255, blue ≈ 255.
+			expect(red).toBeLessThanOrEqual(5);
+			expect(green).toBeGreaterThanOrEqual(250);
+			expect(blue).toBeGreaterThanOrEqual(250);
+		} finally {
+			handle.cleanup();
+		}
+	});
+
+	test("pipeline div layout stable after resolve — children-in-flow drive size", async () => {
+		// After resolve, children are visibility:hidden but still in flow.
+		// The pipeline div must keep the same size as before resolve.
+		const handle = renderCanvas(
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<Pipeline effect={identityEffect}>
+					<img src={solidImage("#ff0000", 64, 64)} style={{ display: "block" }} />
+				</Pipeline>
+			</Canvas>,
+		);
+
+		try {
+			await waitForPipeline(handle.container);
+
+			const pipelineDiv = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
+
+			if (!pipelineDiv) throw new Error("no pipeline div");
+
+			// After resolve, the pipeline div should have non-zero dimensions
+			// driven by the children wrapper.
+			const rect = pipelineDiv.getBoundingClientRect();
+			expect(rect.width).toBeGreaterThan(0);
+			expect(rect.height).toBeGreaterThan(0);
+
+			// Children wrapper should be visibility:hidden but in flow.
+			const childrenWrapper = pipelineDiv.firstElementChild as HTMLElement;
+			expect(childrenWrapper.style.visibility).toBe("hidden");
+
+			// Raster wrapper should be visible.
+			const rasterWrapper = pipelineDiv.querySelector<HTMLElement>("[data-pictel-raster]");
+			expect(rasterWrapper?.style.display).not.toBe("none");
+		} finally {
+			handle.cleanup();
+		}
+	});
+
+	test("apply with chained effects: pending propagates through apply subtree", async () => {
+		// The apply prop contains a two-effect chain: Outline > Threshold (Outline
+		// is the inner pipeline; Threshold wraps it). The outer gate must wait for
+		// both inner pipelines to resolve before capturing the apply subtree.
+		//
+		// Bug this catches: if the gate only checks direct [data-pictel-pending]
+		// children of applyRef rather than all descendants, it fires while Outline
+		// is still pending — the outer captures a transparent/zero-pixel apply
+		// image and the chain produces incorrect output.
+		let capturedApply: ImageData | undefined;
+
+		function OuterWithChainedApply({
+			apply,
+			children,
+		}: {
+			apply: React.ReactNode;
+			children: React.ReactNode;
+		}) {
+			const effect = useCallback<PipelineCallback>((target, applyPixels) => {
+				capturedApply = applyPixels;
+
+				return { pixels: target };
+			}, []);
+
+			return <Pipeline effect={effect} apply={apply}>{children}</Pipeline>;
+		}
+
+		const handle = renderCanvas(
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<OuterWithChainedApply
+					apply={
+						// Outline a solid white image, then threshold it.
+						// Threshold(Outline(white)) → solid white (white has uniform
+						// luminance, so Outline produces white, Threshold above 0.5
+						// keeps it white). The key assertion is that the apply image
+						// has non-zero alpha (non-transparent), proving the chain
+						// resolved before the outer captured it.
+						<Threshold threshold={128}>
+							<Outline>
+								<img src={solidImage("#ffffff", 64, 64)} style={{ display: "block" }} />
+							</Outline>
+						</Threshold>
+					}
+				>
+					<img src={solidImage("#ff0000", 64, 64)} style={{ display: "block" }} />
+				</OuterWithChainedApply>
+			</Canvas>,
+		);
+
+		try {
+			await waitForPipeline(handle.container);
+
+			expect(capturedApply).toBeDefined();
+
+			if (capturedApply) {
+				// If the chain resolved correctly, at least one pixel must be
+				// non-transparent. A premature capture would have zero alpha everywhere
+				// because snapdom captures a visibility:hidden subtree as transparent.
+				const anyNonTransparent = Array.from(capturedApply.data).some(
+					(_, i) => i % 4 === 3 && capturedApply!.data[i]! > 0,
+				);
+				expect(anyNonTransparent).toBe(true);
+			}
+		} finally {
+			handle.cleanup();
+		}
+	});
+
+	test("error in effect callback: pending releases and error is reported via context", async () => {
+		// When the effect callback throws, the pipeline must still release
+		// data-pictel-pending (so waitForPipeline doesn't hang) and report the
+		// error to the Canvas's reportError handler. The raster canvas must NOT
+		// be revealed (no output drawn on error).
+		//
+		// Bug this catches: if the finally block in execute() doesn't call
+		// releasePending on error paths, the pipeline stalls with pending forever
+		// and the Canvas loading overlay never clears.
+		const reportedErrors: Array<{ message: string }> = [];
+
+		function ThrowingPipeline({ children }: { children: React.ReactNode }) {
+			const effect = useCallback<PipelineCallback>(() => {
+				throw new Error("intentional test error");
+			}, []);
+
+			return <Pipeline effect={effect}>{children}</Pipeline>;
+		}
+
+		const handle = renderCanvas(
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<ThrowingPipeline>
+					<img src={solidImage("#ff0000", 64, 64)} />
+				</ThrowingPipeline>
+			</Canvas>,
+		);
+
+		try {
+			// waitForPipeline resolves when no [data-pictel-pending] elements remain.
+			// If releasePending is not called on error, this will timeout instead.
+			await waitForPipeline(handle.container);
+
+			// After pending clears on error path, the raster should NOT be visible
+			// (no output was drawn because the effect threw before drawToCanvas).
+			const pipeline = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
+
+			if (!pipeline) throw new Error("no pipeline found");
+
+			const raster = pipeline.querySelector<HTMLElement>("[data-pictel-raster]");
+
+			// Raster stays hidden because execute() threw before revealing it.
+			expect(raster?.style.display).toBe("none");
+
+			// ErrorChip is rendered inside Canvas when errors accumulate.
+			// It returns null when there are no errors, so its presence proves
+			// the error was reported via reportError → Canvas state → ErrorChip render.
+			// The ErrorChip only renders a DOM element when errors.length > 0.
+			const errorChip = handle.container.querySelector("[data-pictel-canvas] svg");
+			expect(errorChip).not.toBeNull();
+
+			void reportedErrors;
+		} finally {
+			handle.cleanup();
+		}
+	});
+
+	test("StrictMode with apply and map both populated: resolves correctly after double-mount", async () => {
+		// Verifies that StrictMode's setup→cleanup→setup cycle (which fires
+		// useLayoutEffect twice) doesn't strand observers or corrupt state when
+		// both apply AND map offscreen subtrees are active simultaneously.
+		//
+		// Bug this catches: cleanup in the first mount's return() must disconnect
+		// ALL three observers (content, apply, map, size). If applyObserver or
+		// mapObserver is not disconnected on first cleanup, they fire gate() on
+		// the second mount's DOM mutations and race against the second mount's
+		// fresh gate, potentially double-running execute and corrupting pending
+		// refcounts.
+		let capturedApply: ImageData | undefined;
+		let capturedMap: ImageData | undefined;
+
+		function PipelineWithApplyAndMap({
+			apply,
+			map,
+			children,
+		}: {
+			apply: React.ReactNode;
+			map: React.ReactNode;
+			children: React.ReactNode;
+		}) {
+			const effect = useCallback<PipelineCallback>((target, applyPixels, mapPixels) => {
+				capturedApply = applyPixels;
+				capturedMap = mapPixels;
+
+				return { pixels: target };
+			}, []);
+
+			return (
+				<Pipeline effect={effect} apply={apply} map={map}>
+					{children}
+				</Pipeline>
+			);
+		}
+
+		const handle = renderCanvas(
+			<StrictMode>
+				<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+					<PipelineWithApplyAndMap
+						apply={<img src={solidImage("#00ff00", 64, 64)} />}
+						map={<img src={solidImage("#ffffff", 64, 64)} />}
+					>
+						<img src={solidImage("#ff0000", 64, 64)} />
+					</PipelineWithApplyAndMap>
+				</Canvas>
+			</StrictMode>,
+		);
+
+		try {
+			await waitForPipeline(handle.container);
+
+			// Both apply and map must have been captured (non-undefined) and
+			// have at least one non-transparent pixel — proving neither offscreen
+			// subtree was captured as a zero-area or aborted result.
+			expect(capturedApply).toBeDefined();
+			expect(capturedMap).toBeDefined();
+
+			if (capturedApply) {
+				const idx = (32 * capturedApply.width + 32) * 4;
+				// Apply is solid green (#00ff00): green channel should be high.
+				expect(capturedApply.data[idx + 1]).toBeGreaterThanOrEqual(200);
+			}
+
+			if (capturedMap) {
+				const idx = (32 * capturedMap.width + 32) * 4;
+				// Map is solid white: all channels should be high.
+				expect(capturedMap.data[idx]).toBeGreaterThanOrEqual(200);
+			}
+		} finally {
+			handle.cleanup();
+		}
+	});
+});

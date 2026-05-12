@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, type ReactNode } from "react"
 import type { Pipeline } from "@huggingface/transformers"
-import { RasterEffect } from "pictel"
+import { Pipeline as PictelPipeline, type PipelineCallback } from "pictel"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
 import { getOrLoadPipeline } from "../registry"
 import { requireWebGPU } from "../webgpu"
@@ -68,7 +68,6 @@ interface SegFormerProps {
 	model?: string
 	/** Model revision. Overridable alongside `model`. */
 	revision?: string
-	backdrop?: boolean
 	children: ReactNode
 }
 
@@ -84,7 +83,6 @@ interface SegFormerProps {
 export function SegFormer({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
-	backdrop,
 	children,
 }: SegFormerProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
@@ -95,19 +93,20 @@ export function SegFormer({
 		)
 	}, [model, revision])
 
-	const effect = useCallback(
-		async (pixels: ImageData) => {
+	const effect = useCallback<PipelineCallback>(
+		async (target) => {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const pipe = await pipelineRef.current!
+			const pixels = await segFormerSegment(target, pipe)
 
-			return segFormerSegment(pixels, pipe)
+			return { pixels }
 		},
 		[model, revision],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<PictelPipeline effect={effect}>
 			{children}
-		</RasterEffect>
+		</PictelPipeline>
 	)
 }

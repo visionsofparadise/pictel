@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ComponentProps } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState, type CSSProperties, type ComponentProps } from "react";
 import { CanvasContext, type CanvasContextValue, type CanvasDimensions } from "../context/canvas";
 import { ErrorChip } from "../design-system/ErrorChip";
 import { LoadingOverlay } from "../design-system/LoadingOverlay";
@@ -6,7 +6,6 @@ import { RenderStrip } from "../design-system/RenderStrip";
 import { tokens } from "../design-system/tokens";
 import { Workspace } from "../design-system/Workspace";
 import { useContainerSize } from "../hooks/useContainerSize";
-import { useDomSnapshot } from "../hooks/useDomSnapshot";
 import { useMode } from "../hooks/useMode";
 import type { Mode } from "../modes";
 import type { PipelineError } from "../utils/errors";
@@ -70,8 +69,6 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 	const urlMode = useMode();
 	const mode = modeProp ?? urlMode;
 	const { ref, width, height } = useContainerSize();
-	const domSnapshot = useDomSnapshot(ref);
-	const maskDefsRef = useRef<SVGDefsElement>(null);
 	const [errors, setErrors] = useState<Array<PipelineError>>([]);
 
 	const reportError = useCallback((error: PipelineError) => {
@@ -79,10 +76,9 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 	}, []);
 
 	// captureDimensions must be referentially stable across Canvas re-renders.
-	// TargetEffect/CompositeEffect's useLayoutEffect lists captureDimensions in
-	// deps; without memoization, a fresh object every render would force every
-	// descendant pipeline to remount on each Canvas re-render (e.g. when
-	// pending state toggles).
+	// Pipeline's useLayoutEffect lists captureDimensions in deps; without
+	// memoization, a fresh object every render would force every descendant
+	// pipeline to remount on each Canvas re-render (e.g. when pending state toggles).
 	const captureDimensions = useMemo(
 		() => ({ width: dimensions.width, height: dimensions.height }),
 		[dimensions.width, dimensions.height],
@@ -110,22 +106,9 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 		mode,
 		dimensions,
 		viewport: { width, height },
-		domSnapshot,
-		maskDefs: maskDefsRef,
-		canvasRoot: ref,
 		captureDimensions,
 		reportError,
 	};
-
-	const svgDefs = (
-		<svg
-			width="0"
-			height="0"
-			style={{ position: "absolute", pointerEvents: "none" }}
-		>
-			<defs ref={maskDefsRef} />
-		</svg>
-	);
 
 	if (mode === "render") {
 		return (
@@ -139,7 +122,6 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 				>
 					<Frame>{children}</Frame>
 				</div>
-				{svgDefs}
 			</CanvasContext.Provider>
 		);
 	}
@@ -171,7 +153,6 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 					/>
 				)}
 			</div>
-			{svgDefs}
 		</CanvasContext.Provider>
 	);
 }

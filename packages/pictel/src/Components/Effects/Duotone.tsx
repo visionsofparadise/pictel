@@ -1,7 +1,8 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { luminance } from "./utils/luminance"
+import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function applyDuotone(
@@ -32,7 +33,7 @@ interface DuotoneProps {
 	dark: [number, number, number]
 	/** RGB triple [r, g, b] (0-255) for highlight tones. */
 	light: [number, number, number]
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -45,15 +46,23 @@ interface DuotoneProps {
  * @param props
  * @category Effects
  */
-export function Duotone({ dark, light, backdrop, children }: DuotoneProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyDuotone(pixels, dark, light),
+export function Duotone({ dark, light, map, children }: DuotoneProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			const result = applyDuotone(target, dark, light)
+
+			if (mapPixels !== undefined) {
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return result
+		},
 		[dark, light],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

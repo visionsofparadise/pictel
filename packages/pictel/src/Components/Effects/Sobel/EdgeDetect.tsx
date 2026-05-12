@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../../Pipeline/Pipeline"
+import { mixBlend } from "../utils/mix-blend"
 import { applyKernels, SCHARR_X, SCHARR_Y, SOBEL_X, SOBEL_Y } from "./kernel"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -43,7 +44,7 @@ export function applyEdgeDetect(
 interface EdgeDetectProps {
 	/** Convolution kernel pair. `sobel` is the classic 3x3 operator; `scharr` produces a larger, more rotationally symmetric response. Defaults to `sobel`. */
 	kernel?: "sobel" | "scharr"
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -59,15 +60,23 @@ interface EdgeDetectProps {
  * @param props
  * @category Effects
  */
-export function EdgeDetect({ kernel = "sobel", backdrop, children }: EdgeDetectProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyEdgeDetect(pixels, kernel),
+export function EdgeDetect({ kernel = "sobel", map, children }: EdgeDetectProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			const result = applyEdgeDetect(target, kernel)
+
+			if (mapPixels !== undefined) {
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return result
+		},
 		[kernel],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

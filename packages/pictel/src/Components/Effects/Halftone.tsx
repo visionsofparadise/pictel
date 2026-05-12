@@ -1,7 +1,8 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { luminance } from "./utils/luminance"
+import { mixBlend } from "./utils/mix-blend"
 
 function createCanvas(width: number, height: number): { canvas: OffscreenCanvas | HTMLCanvasElement; context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D } {
 	if (typeof OffscreenCanvas !== "undefined") {
@@ -104,7 +105,7 @@ interface HalftoneProps {
 	dotSize: number
 	/** Rotation angle of the dot grid in degrees. Default 0. */
 	angle?: number
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -117,15 +118,23 @@ interface HalftoneProps {
  * @param props
  * @category Effects
  */
-export function Halftone({ dotSize, angle, backdrop, children }: HalftoneProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyHalftone(pixels, dotSize, angle),
+export function Halftone({ dotSize, angle, map, children }: HalftoneProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			const result = applyHalftone(target, dotSize, angle)
+
+			if (mapPixels !== undefined) {
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return result
+		},
 		[dotSize, angle],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

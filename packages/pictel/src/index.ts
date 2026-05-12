@@ -1,12 +1,8 @@
 // Components
 export { Canvas } from "./Components/Canvas";
 export { Clip } from "./Components/Pipeline/Clip";
-export { CompositeEffect } from "./Components/Pipeline/CompositeEffect";
-export { Map } from "./Components/Pipeline/Map";
+export { Pipeline, type PipelineCallback } from "./Components/Pipeline/Pipeline";
 export { Overflow } from "./Components/Pipeline/Overflow";
-export { RasterBlend } from "./Components/Pipeline/RasterBlend";
-export { RasterEffect } from "./Components/Pipeline/RasterEffect";
-export { TargetEffect } from "./Components/Pipeline/TargetEffect";
 export { Viewer } from "./Components/Viewer";
 
 // Design system
@@ -159,12 +155,8 @@ export { useMode } from "./hooks/useMode";
 export { useSearchParam } from "./hooks/useSearchParam";
 
 // Pipeline types
-export { type CompositeEffectCallback } from "./Components/Pipeline/CompositeEffect";
-export { type MapCompose } from "./Components/Pipeline/Map";
-export { type RasterEffectCallback } from "./Components/Pipeline/RasterEffect";
-export { type TargetEffectCallback } from "./Components/Pipeline/TargetEffect";
 export { type EffectResult } from "./Components/utils/raster";
 export { type PipelineError } from "./utils/errors";
 
 // Types
-export { type CanvasContextValue, type CanvasDimensions, type CanvasSnapshot, type Viewport } from "./context/canvas";
+export { type CanvasContextValue, type CanvasDimensions, type Viewport } from "./context/canvas";

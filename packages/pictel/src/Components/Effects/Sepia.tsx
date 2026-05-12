@@ -1,7 +1,8 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { lerp } from "./utils/lerp"
+import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -32,7 +33,7 @@ export function applySepia(pixels: ImageData, amount: number): ImageData {
 interface SepiaProps {
 	/** Sepia intensity. 0 is unchanged, 1 is fully sepia. Default 1. */
 	amount?: number
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -44,15 +45,23 @@ interface SepiaProps {
  * @param props
  * @category Effects
  */
-export function Sepia({ amount = 1, backdrop, children }: SepiaProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applySepia(pixels, amount),
+export function Sepia({ amount = 1, map, children }: SepiaProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			const result = applySepia(target, amount)
+
+			if (mapPixels !== undefined) {
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return result
+		},
 		[amount],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

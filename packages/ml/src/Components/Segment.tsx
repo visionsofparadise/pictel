@@ -7,16 +7,12 @@ interface Sam2SegmentProps {
 	points?: Array<Point>;
 	negativePoints?: Array<Point>;
 	revision?: string;
-	backdrop?: boolean;
-	flatten?: boolean;
 	children: ReactNode;
 }
 
 interface SegFormerSegmentProps {
 	model: "segformer";
 	revision?: string;
-	backdrop?: boolean;
-	flatten?: boolean;
 	children: ReactNode;
 }
 

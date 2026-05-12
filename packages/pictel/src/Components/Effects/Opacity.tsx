@@ -1,8 +1,9 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { lerp } from "./utils/lerp"
 import { luminance } from "./utils/luminance"
+import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -44,7 +45,7 @@ interface OpacityProps {
 	/** Opacity multiplier. 1 is unchanged, 0 is fully transparent. Default 1. */
 	amount?: number
 	mode?: "parameter" | "mix"
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -56,20 +57,27 @@ interface OpacityProps {
  * @param props
  * @category Effects
  */
-export function Opacity({ amount = 1, mode = "mix", backdrop, children }: OpacityProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyOpacity(pixels, amount),
-		[amount],
-	)
+export function Opacity({ amount = 1, mode = "mix", map, children }: OpacityProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels !== undefined) {
+				if (mode === "parameter") {
+					return applyMappedOpacity(target, mapPixels, amount)
+				}
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) => applyMappedOpacity(pixels, map, amount),
-		[amount],
+				const result = applyOpacity(target, amount)
+
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return applyOpacity(target, amount)
+		},
+		[amount, mode],
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

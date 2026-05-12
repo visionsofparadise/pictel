@@ -24,8 +24,7 @@
     "@zumer/snapdom": "latest",
     "alea": "^1.0.1",
     "lucide-react": "latest",
-    "simplex-noise": "latest",
-    "stacking-order": "latest"
+    "simplex-noise": "latest"
   },
   "peerDependencies": {
     "react": "^19.0.0",

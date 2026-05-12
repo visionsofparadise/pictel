@@ -1,5 +1,5 @@
 import { useCallback, type ReactNode } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function applyDisplacement(
@@ -45,13 +45,13 @@ interface DisplacementMapProps {
 	scaleX?: number
 	/** Maximum vertical displacement in pixels. Default 20. */
 	scaleY?: number
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
 /**
- * Displaces pixels using a Map child's red and green channels for X and Y offset.
- * Requires a `<Map>` child providing the displacement source.
+ * Displaces pixels using the `map` prop's red and green channels for X and Y offset.
+ * Supply a `map` prop providing the displacement source.
  *
  * - `scaleX` — Maximum horizontal displacement in pixels. Default 20.
  * - `scaleY` — Maximum vertical displacement in pixels. Default 20.
@@ -62,22 +62,23 @@ interface DisplacementMapProps {
 export function DisplacementMap({
 	scaleX = 20,
 	scaleY = 20,
-	backdrop,
+	map,
 	children,
 }: DisplacementMapProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => pixels,
-		[],
-	)
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels !== undefined) {
+				return applyDisplacement(target, mapPixels, scaleX, scaleY)
+			}
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) => applyDisplacement(pixels, map, scaleX, scaleY),
+			return target
+		},
 		[scaleX, scaleY],
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

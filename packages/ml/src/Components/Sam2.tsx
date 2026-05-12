@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type ReactNode } from "react"
-import { RasterEffect } from "pictel"
+import { Pipeline, type PipelineCallback } from "pictel"
 import { Sam2Model, AutoProcessor, Tensor, RawImage } from "@huggingface/transformers"
 import type { Processor } from "@huggingface/transformers"
 import { requireWebGPU } from "../webgpu"
@@ -134,7 +134,6 @@ interface Sam2Props {
 	points?: Array<Point>
 	/** Negative point prompts indicating regions to exclude. */
 	negativePoints?: Array<Point>
-	backdrop?: boolean
 	children: ReactNode
 }
 
@@ -154,7 +153,6 @@ export function Sam2({
 	revision = DEFAULT_REVISION,
 	points = [],
 	negativePoints = [],
-	backdrop,
 	children,
 }: Sam2Props) {
 	const resourcesRef = useRef<Promise<Sam2Resources>>(undefined)
@@ -163,19 +161,20 @@ export function Sam2({
 		resourcesRef.current = requireWebGPU().then(() => getOrLoadSam2(model, revision))
 	}, [model, revision])
 
-	const effect = useCallback(
-		async (pixels: ImageData) => {
+	const effect = useCallback<PipelineCallback>(
+		async (target) => {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const { model: sam2Model, processor } = await resourcesRef.current!
+			const pixels = await sam2Segment(target, sam2Model, processor, points, negativePoints)
 
-			return sam2Segment(pixels, sam2Model, processor, points, negativePoints)
+			return { pixels }
 		},
 		[model, revision, points, negativePoints],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<Pipeline effect={effect}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

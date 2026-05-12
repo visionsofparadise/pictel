@@ -1,7 +1,8 @@
 import type { ReactNode } from "react"
 import { useCallback, useEffect, useState } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { lerp } from "./utils/lerp"
+import { mixBlend } from "./utils/mix-blend"
 
 export function parseCubeFile(content: string): { lut: Float32Array; size: number } {
 	const lines = content.split("\n")
@@ -103,7 +104,7 @@ export function applyLut(pixels: ImageData, lut: Float32Array, size: number): Im
 interface CubeLUTProps {
 	/** URL to a .cube LUT file. */
 	src: string
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -116,7 +117,7 @@ interface CubeLUTProps {
  * @param props
  * @category Effects
  */
-export function CubeLUT({ src, backdrop, children }: CubeLUTProps) {
+export function CubeLUT({ src, map, children }: CubeLUTProps) {
 	const [lutData, setLutData] = useState<{ lut: Float32Array; size: number } | null>(null)
 
 	useEffect(() => {
@@ -136,14 +137,22 @@ export function CubeLUT({ src, backdrop, children }: CubeLUTProps) {
 		}
 	}, [src])
 
-	const effect = useCallback(
-		(pixels: ImageData) => (lutData ? applyLut(pixels, lutData.lut, lutData.size) : pixels),
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			const result = lutData ? applyLut(target, lutData.lut, lutData.size) : target
+
+			if (mapPixels !== undefined) {
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return result
+		},
 		[lutData],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

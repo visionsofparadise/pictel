@@ -1,8 +1,10 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
 import type { EffectResult } from "../utils/raster"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { applyUniformBlur } from "./Blur"
+import { mixBlend } from "./utils/mix-blend"
+import { padImageData } from "./utils/pad-image-data"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -189,7 +191,7 @@ interface DropShadowProps {
 	blurRadius: number
 	/** Shadow color as hex (`#rgb`, `#rrggbb`, `#rrggbbaa`) or `rgb()`/`rgba()`. */
 	color: string
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -204,15 +206,29 @@ interface DropShadowProps {
  * @param props
  * @category Effects
  */
-export function DropShadow({ offsetX, offsetY, blurRadius, color, backdrop, children }: DropShadowProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyDropShadow(pixels, offsetX, offsetY, blurRadius, color),
+export function DropShadow({ offsetX, offsetY, blurRadius, color, map, children }: DropShadowProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			const result = applyDropShadow(target, offsetX, offsetY, blurRadius, color)
+
+			if (mapPixels !== undefined) {
+				// Mix mode: drop shadow at full intensity, then blend with original per map.
+				// The shadow result has overflow, so pad original and map to match.
+				const overflow = result.overflow ?? { top: 0, right: 0, bottom: 0, left: 0 }
+				const paddedTarget = padImageData(target, overflow.top, overflow.right, overflow.bottom, overflow.left)
+				const paddedMap = padImageData(mapPixels, overflow.top, overflow.right, overflow.bottom, overflow.left)
+
+				return { pixels: mixBlend(paddedTarget, result.pixels, paddedMap), overflow }
+			}
+
+			return result
+		},
 		[offsetX, offsetY, blurRadius, color],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

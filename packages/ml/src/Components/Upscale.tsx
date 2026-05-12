@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type ReactNode } from "react"
-import { RasterEffect } from "pictel"
+import { Pipeline as PictelPipeline, type PipelineCallback } from "pictel"
 import type { Pipeline } from "@huggingface/transformers"
 import type { RawImage } from "@huggingface/transformers"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
@@ -21,7 +21,6 @@ interface UpscaleProps {
 	model?: string
 	/** Model revision hash. Overridable alongside `model`. */
 	revision?: string
-	backdrop?: boolean
 	children: ReactNode
 }
 
@@ -37,7 +36,6 @@ interface UpscaleProps {
 export function Upscale({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
-	backdrop,
 	children,
 }: UpscaleProps) {
 	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
@@ -48,19 +46,20 @@ export function Upscale({
 		)
 	}, [model, revision])
 
-	const effect = useCallback(
-		async (pixels: ImageData) => {
+	const effect = useCallback<PipelineCallback>(
+		async (target) => {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const pipe = await pipelineRef.current!
+			const pixels = await upscale(target, pipe)
 
-			return upscale(pixels, pipe)
+			return { pixels }
 		},
 		[model, revision],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<PictelPipeline effect={effect}>
 			{children}
-		</RasterEffect>
+		</PictelPipeline>
 	)
 }

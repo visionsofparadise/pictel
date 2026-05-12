@@ -1,7 +1,8 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { luminance } from "./utils/luminance"
+import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -99,7 +100,7 @@ interface LuminanceBandsProps {
 	/** Optional explicit tier boundaries (length = bands - 1, ascending values in 0..255). */
 	thresholds?: Array<number>
 	mode?: "parameter" | "mix"
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -115,20 +116,29 @@ interface LuminanceBandsProps {
  * @param props
  * @category Effects
  */
-export function LuminanceBands({ bands, thresholds, mode, backdrop, children }: LuminanceBandsProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyLuminanceBands(pixels, bands, thresholds),
-		[bands, thresholds],
-	)
+export function LuminanceBands({ bands, thresholds, mode, map, children }: LuminanceBandsProps) {
+	const resolvedMode = mode ?? "parameter"
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) => applyMappedLuminanceBands(pixels, map, bands, thresholds),
-		[bands, thresholds],
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels !== undefined) {
+				if (resolvedMode === "parameter") {
+					return applyMappedLuminanceBands(target, mapPixels, bands, thresholds)
+				}
+
+				const result = applyLuminanceBands(target, bands, thresholds)
+
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return applyLuminanceBands(target, bands, thresholds)
+		},
+		[bands, thresholds, resolvedMode],
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode ?? "parameter"} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

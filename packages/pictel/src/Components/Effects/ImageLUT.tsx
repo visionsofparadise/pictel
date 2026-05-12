@@ -1,7 +1,8 @@
 import type { ReactNode } from "react"
 import { useCallback, useEffect, useState } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { lerp } from "./utils/lerp"
+import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 function sampleLut(lutData: Uint8ClampedArray, lutWidth: number, x: number, y: number): [number, number, number] {
@@ -73,7 +74,7 @@ interface ImageLUTProps {
 	src: string
 	/** Grid dimension of the LUT (e.g., 16 for a 16x16x16 LUT). */
 	size: number
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -86,7 +87,7 @@ interface ImageLUTProps {
  * @param props
  * @category Effects
  */
-export function ImageLUT({ src, size, backdrop, children }: ImageLUTProps) {
+export function ImageLUT({ src, size, map, children }: ImageLUTProps) {
 	const [lutImage, setLutImage] = useState<ImageData | null>(null)
 
 	useEffect(() => {
@@ -117,14 +118,22 @@ export function ImageLUT({ src, size, backdrop, children }: ImageLUTProps) {
 		}
 	}, [src])
 
-	const effect = useCallback(
-		(pixels: ImageData) => (lutImage ? applyImageLut(pixels, lutImage, size) : pixels),
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			const result = lutImage ? applyImageLut(target, lutImage, size) : target
+
+			if (mapPixels !== undefined) {
+				return mixBlend(target, result, mapPixels)
+			}
+
+			return result
+		},
 		[lutImage, size],
 	)
 
 	return (
-		<RasterEffect effect={effect} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

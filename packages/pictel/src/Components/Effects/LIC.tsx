@@ -1,5 +1,5 @@
 import { useCallback, type ReactNode } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -145,19 +145,19 @@ interface LICProps {
 	length?: number
 	/** Base step size in pixels per integration step. Default 1.0. */
 	stepSize?: number
-	mode?: "parameter" | "mix"
-	backdrop?: boolean
+	/** Required: vector field map providing the LIC direction field. */
+	map: ReactNode
 	children: ReactNode
 }
 
 /**
  * Line Integral Convolution. Smears the seed children along a vector field
- * supplied by a `<Map>` child, producing streamline-aligned output. The map
+ * supplied by the `map` prop, producing streamline-aligned output. The map
  * is expected to be a Direction-style three-channel encoding: red = cos(θ)
  * packed into [0,255], green = sin(θ) packed into [0,255], blue = magnitude
  * in [0,255].
  *
- * Requires a `<Map>` child providing the vector field. Without a map the
+ * Requires a `map` prop providing the vector field. Without a map the
  * effect throws — LIC has no meaning without a field.
  *
  * Reference: Cabral & Leedom 1993, "Imaging Vector Fields Using Line Integral
@@ -172,25 +172,23 @@ interface LICProps {
 export function LIC({
 	length = 20,
 	stepSize = 1.0,
-	mode,
-	backdrop,
+	map,
 	children,
 }: LICProps) {
-	const effect = useCallback(
-		(_pixels: ImageData): ImageData => {
-			throw new Error("LIC requires a <Map> child providing the vector field")
-		},
-		[],
-	)
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels === undefined) {
+				throw new Error("LIC requires a map prop providing the vector field")
+			}
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) => applyLIC(pixels, map, length, stepSize),
+			return applyLIC(target, mapPixels, length, stepSize)
+		},
 		[length, stepSize],
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode={mode ?? "parameter"} backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

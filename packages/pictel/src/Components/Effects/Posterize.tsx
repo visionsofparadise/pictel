@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
-import { RasterEffect } from "../Pipeline/RasterEffect"
+import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { luminance } from "./utils/luminance"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -44,7 +44,7 @@ export function applyMappedPosterize(pixels: ImageData, map: ImageData, levels: 
 interface PosterizeProps {
 	/** Number of discrete color levels per channel. Minimum 2. */
 	levels: number
-	backdrop?: boolean
+	map?: ReactNode
 	children: ReactNode
 }
 
@@ -56,20 +56,21 @@ interface PosterizeProps {
  * @param props
  * @category Effects
  */
-export function Posterize({ levels, backdrop, children }: PosterizeProps) {
-	const effect = useCallback(
-		(pixels: ImageData) => applyPosterize(pixels, levels),
-		[levels],
-	)
+export function Posterize({ levels, map, children }: PosterizeProps) {
+	const effect = useCallback<PipelineCallback>(
+		(target, _apply, mapPixels) => {
+			if (mapPixels !== undefined) {
+				return applyMappedPosterize(target, mapPixels, levels)
+			}
 
-	const mappedEffect = useCallback(
-		(pixels: ImageData, map: ImageData) => applyMappedPosterize(pixels, map, levels),
+			return applyPosterize(target, levels)
+		},
 		[levels],
 	)
 
 	return (
-		<RasterEffect effect={effect} mappedEffect={mappedEffect} mode="parameter" backdrop={backdrop}>
+		<Pipeline effect={effect} map={map}>
 			{children}
-		</RasterEffect>
+		</Pipeline>
 	)
 }

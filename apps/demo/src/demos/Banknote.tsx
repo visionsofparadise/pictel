@@ -1,26 +1,27 @@
-import { Canvas, Direction, Duotone, Hatch, Image, Multiply } from "pictel";
-import { RemoveBackground } from "@pictel/ml";
+import { Bilateral, Brightness, Canvas, DisplacementMap, Duotone, Engrave, Image } from "pictel";
+import { DepthMap, RemoveBackground } from "@pictel/ml";
 import headshot from "../../assets/headshot.jpg";
 
-const INK: [number, number, number] = [26, 61, 39];
-const CREAM: [number, number, number] = [232, 228, 208];
+const INK: [number, number, number] = [24, 56, 38];
+const CREAM: [number, number, number] = [234, 230, 213];
 const canvasW = 512;
 const canvasH = 512;
 
 /**
- * Classic line-engraving / banknote-print technique:
- *   1. Behind: Duotone(RemoveBackground(photo)) — subject in ink-on-paper
- *      colors, background masked out.
- *   2. Overlay (Multiply'd): Hatch(field-aligned) — bands the photo into
- *      tonal tiers (Grayscale → Posterize), then for each tier draws a
- *      vertical-stripe pattern that LIC has bent along the photo's
- *      Direction field. Stripe spacing tightens with darker tiers, so
- *      shadows accumulate denser engraving lines and highlights stay
- *      blank — the same "cross-hatch density follows form" trick used on
- *      US currency portraits and similar engraved prints.
+ * Banknote line engraving, composed entirely from provided effects.
  *
- * Both branches share the same RemoveBackground'd photo so the engraving
- * lines and the duotone fall on the same silhouette.
+ *   RemoveBackground — isolate the subject.
+ *   Bilateral        — smooth into clean tonal regions.
+ *   Brightness       — lift the tone so the brightest region clips to white.
+ *   Engrave          — convert tone into thickness-modulated engraving lines
+ *                      with cross-hatched shadows (grayscale ink-on-white).
+ *                      Lines are straight here (relief 0).
+ *   DisplacementMap  — warp the finished engraving by the subject's DepthMap.
+ *                      Depth displaces the line pattern, so the straight lines
+ *                      bow and curve around the form instead of running as a
+ *                      flat horizontal/vertical grid. This is the form-follow
+ *                      step, done purely by composing existing effects.
+ *   Duotone          — recolor to green ink on cream.
  */
 export default function Banknote() {
 	const subject = (
@@ -30,24 +31,22 @@ export default function Banknote() {
 	);
 
 	return (
-		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>
-			<Multiply
-				apply={
-					<Hatch
-						bands={4}
-						spacing={[3, 5, 8, 14]}
-						length={22}
-						stepSize={1.4}
-						map={<Direction>{subject}</Direction>}
-					>
-						{subject}
-					</Hatch>
-				}
-			>
-				<Duotone dark={INK} light={CREAM}>
-					{subject}
-				</Duotone>
-			</Multiply>
+		<Canvas
+			mode="display"
+			dimensions={{ width: canvasW, height: canvasH }}
+			style={{ backgroundColor: `rgb(${String(CREAM[0])}, ${String(CREAM[1])}, ${String(CREAM[2])})` }}
+		>
+			<Duotone dark={INK} light={CREAM}>
+				<DisplacementMap scaleX={10} scaleY={14} map={<DepthMap>{subject}</DepthMap>}>
+					<Engrave spacing={5} relief={0}>
+						<Brightness amount={1.35}>
+							<Bilateral spatialSigma={4} colorSigma={60}>
+								{subject}
+							</Bilateral>
+						</Brightness>
+					</Engrave>
+				</DisplacementMap>
+			</Duotone>
 		</Canvas>
 	);
 }

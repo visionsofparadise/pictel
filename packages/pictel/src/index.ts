@@ -109,6 +109,7 @@ export { applySepia } from "./Components/Effects/Sepia";
 
 // Pixel effects
 export { Bilateral } from "./Components/Effects/Bilateral";
+export { Bloom } from "./Components/Effects/Bloom";
 export { ChannelMixer } from "./Components/Effects/ChannelMixer";
 export { ColorGrade } from "./Components/Effects/ColorGrade";
 export { CubeLUT } from "./Components/Effects/CubeLUT";
@@ -116,36 +117,43 @@ export { Direction } from "./Components/Effects/Sobel/Direction";
 export { DisplacementMap } from "./Components/Effects/DisplacementMap";
 export { Duotone } from "./Components/Effects/Duotone";
 export { EdgeDetect } from "./Components/Effects/Sobel/EdgeDetect";
+export { Engrave } from "./Components/Effects/Engrave";
 export { Grain } from "./Components/Effects/Grain";
 export { Halftone } from "./Components/Effects/Halftone";
 export { Hatch } from "./Components/Effects/Hatch";
 export { ImageLUT } from "./Components/Effects/ImageLUT";
 export { LIC } from "./Components/Effects/LIC";
 export { LuminanceBands } from "./Components/Effects/LuminanceBands";
+export { Mask } from "./Components/Effects/Mask";
 export { Outline } from "./Components/Effects/Outline";
 export { Posterize } from "./Components/Effects/Posterize";
 export { Quantize } from "./Components/Effects/Quantize";
 export { Sharpen } from "./Components/Effects/Sharpen";
+export { ShockFilter } from "./Components/Effects/ShockFilter";
 export { Threshold } from "./Components/Effects/Threshold";
 
 export { applyBilateral, applyMappedBilateral } from "./Components/Effects/Bilateral";
+export { applyBloom, applyMappedBloom } from "./Components/Effects/Bloom";
 export { applyChannelMix } from "./Components/Effects/ChannelMixer";
 export { applyColorGrade, type ColorGradeAdjustments } from "./Components/Effects/ColorGrade";
 export { applyLut, parseCubeFile } from "./Components/Effects/CubeLUT";
-export { applyDirection } from "./Components/Effects/Sobel/Direction";
+export { applyDirection, applyStructureField } from "./Components/Effects/Sobel/Direction";
 export { applyDisplacement } from "./Components/Effects/DisplacementMap";
 export { applyDuotone } from "./Components/Effects/Duotone";
 export { applyEdgeDetect } from "./Components/Effects/Sobel/EdgeDetect";
+export { applyEngrave } from "./Components/Effects/Engrave";
 export { applyGrain } from "./Components/Effects/Grain";
-export { applyHalftone } from "./Components/Effects/Halftone";
+export { applyHalftone, type HalftoneColorMode } from "./Components/Effects/Halftone";
 export { applyHatch, applyHatchFieldAligned } from "./Components/Effects/Hatch";
 export { applyImageLut } from "./Components/Effects/ImageLUT";
 export { applyLIC } from "./Components/Effects/LIC";
 export { applyLuminanceBands, applyMappedLuminanceBands } from "./Components/Effects/LuminanceBands";
+export { applyMask, type MaskSource } from "./Components/Effects/Mask";
 export { applyOutline, applyMappedOutline } from "./Components/Effects/Outline";
 export { applyPosterize, applyMappedPosterize } from "./Components/Effects/Posterize";
 export { applyQuantize, applyMappedQuantize, derivePalette, type DitherMode, type QuantizeProps } from "./Components/Effects/Quantize";
 export { applySharpen, applyMappedSharpen } from "./Components/Effects/Sharpen";
+export { applyShockFilter, applyMappedShockFilter } from "./Components/Effects/ShockFilter";
 export { applyThreshold, applyMappedThreshold } from "./Components/Effects/Threshold";
 
 // Pixel effect utilities

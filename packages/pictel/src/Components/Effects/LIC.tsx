@@ -48,17 +48,29 @@ function sampleBilinear(image: ImageData, x: number, y: number): [number, number
  *
  * For each output pixel, a forward and a backward Euler integration of
  * `length` steps is performed, sampling the seed bilinearly at each step and
- * accumulating with hat-function weighting `w = 1 - i / length`. Per-pixel
- * step length scales with magnitude as `stepSize * (0.25 + 0.75 * magnitude)`
- * — the floor at 25% prevents stagnation in zero-magnitude regions while
- * full-magnitude regions step the full distance.
+ * accumulating with hat-function weighting `w = 1 - i / length`.
+ *
+ * Per-pixel step length scales with the field's magnitude channel as
+ * `stepSize * (0.25 + 0.75 * magnitude)` — the floor at 25% prevents
+ * stagnation in zero-magnitude regions while full-magnitude regions step the
+ * full distance. This magnitude gating suits *field visualization* (streamline
+ * length reflects field strength) but stalls on a smooth field whose magnitude
+ * is low everywhere — e.g. a depth gradient. Set `uniformStep` to true to step
+ * the full `stepSize` regardless of magnitude, so a smooth direction field is
+ * followed at full integration distance.
  *
  * Out-of-bounds samples are clamped to the edge pixel (extension by clamping).
  *
  * Reference: Cabral & Leedom 1993, "Imaging Vector Fields Using Line Integral
  * Convolution".
  */
-export function applyLIC(seed: ImageData, field: ImageData, length: number, stepSize: number): ImageData {
+export function applyLIC(
+	seed: ImageData,
+	field: ImageData,
+	length: number,
+	stepSize: number,
+	uniformStep = false,
+): ImageData {
 	if (seed.width !== field.width || seed.height !== field.height) {
 		throw new Error(
 			`applyLIC: seed and field dimensions must match (seed=${String(seed.width)}x${String(seed.height)}, field=${String(field.width)}x${String(field.height)})`,
@@ -84,7 +96,7 @@ export function applyLIC(seed: ImageData, field: ImageData, length: number, step
 				const cos = fieldSample[0] / 127.5 - 1
 				const sin = fieldSample[1] / 127.5 - 1
 				const magnitude = fieldSample[2] / 255
-				const stepLength = stepSize * (0.25 + 0.75 * magnitude)
+				const stepLength = uniformStep ? stepSize : stepSize * (0.25 + 0.75 * magnitude)
 
 				fx += cos * stepLength
 				fy += sin * stepLength
@@ -106,7 +118,7 @@ export function applyLIC(seed: ImageData, field: ImageData, length: number, step
 				const cos = fieldSample[0] / 127.5 - 1
 				const sin = fieldSample[1] / 127.5 - 1
 				const magnitude = fieldSample[2] / 255
-				const stepLength = stepSize * (0.25 + 0.75 * magnitude)
+				const stepLength = uniformStep ? stepSize : stepSize * (0.25 + 0.75 * magnitude)
 
 				bx -= cos * stepLength
 				by -= sin * stepLength
@@ -145,6 +157,8 @@ interface LICProps {
 	length?: number
 	/** Base step size in pixels per integration step. Default 1.0. */
 	stepSize?: number
+	/** When true, integrate at a constant step length, ignoring the field's magnitude channel. Default false — step length scales with magnitude (0.25–1.0×), which suits field visualization but stalls on a smooth field. Set true to follow a smooth field such as a depth gradient. */
+	uniformStep?: boolean
 	/** Required: vector field map providing the LIC direction field. */
 	map: ReactNode
 	children: ReactNode
@@ -165,6 +179,7 @@ interface LICProps {
  *
  * - `length` — Number of integration steps in each direction (forward and backward). Default 20.
  * - `stepSize` — Base step size in pixels per integration step. Default 1.0.
+ * - `uniformStep` — Integrate at a constant step length, ignoring the field's magnitude channel. Default false. Set true to follow a smooth field (e.g. a depth gradient) at full integration distance.
  *
  * @param props
  * @category Effects
@@ -172,6 +187,7 @@ interface LICProps {
 export function LIC({
 	length = 20,
 	stepSize = 1.0,
+	uniformStep = false,
 	map,
 	children,
 }: LICProps) {
@@ -181,9 +197,9 @@ export function LIC({
 				throw new Error("LIC requires a map prop providing the vector field")
 			}
 
-			return applyLIC(target, mapPixels, length, stepSize)
+			return applyLIC(target, mapPixels, length, stepSize, uniformStep)
 		},
-		[length, stepSize],
+		[length, stepSize, uniformStep],
 	)
 
 	return (

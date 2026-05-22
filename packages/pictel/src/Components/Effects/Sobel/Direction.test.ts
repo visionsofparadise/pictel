@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest"
-import { applyDirection } from "./Direction"
+import { applyDirection, applyStructureField } from "./Direction"
 
 beforeAll(() => {
 	globalThis.ImageData = class ImageData {
@@ -133,5 +133,69 @@ describe("applyDirection", () => {
 		for (let i = 3; i < result.data.length; i += 4) {
 			expect(result.data[i]).toBe(128)
 		}
+	})
+})
+
+describe("applyStructureField", () => {
+	it("uniform image emits the degenerate encoding at interior pixels", () => {
+		const size = 16
+		const input = uniform(size, size, 120)
+		const result = applyStructureField(input, "sobel")
+
+		// Interior pixels (away from the 1px gradient border) have no structure.
+		for (let y = 2; y < size - 2; y++) {
+			for (let x = 2; x < size - 2; x++) {
+				const px = (y * size + x) * 4
+				expect(result.data[px]).toBe(128) // R = neutral cos
+				expect(result.data[px + 1]).toBe(128) // G = neutral sin
+				expect(result.data[px + 2]).toBe(0) // B = zero coherence
+			}
+		}
+	})
+
+	it("vertical edge -> flow direction runs along the edge (vertical)", () => {
+		const size = 24
+		const input = verticalEdge(size)
+		const result = applyStructureField(input, "sobel")
+
+		// Sample a pixel right on the edge column at an interior row.
+		const px = (12 * size + 12) * 4
+		const r = result.data[px]!
+		const g = result.data[px + 1]!
+
+		// The gradient is horizontal, so the contour-flow direction is vertical:
+		// cos ~ 0 (R ~ 128), sin ~ +/-1 (G near 0 or 255).
+		expect(r).toBeGreaterThanOrEqual(123)
+		expect(r).toBeLessThanOrEqual(133)
+		expect(g < 8 || g > 247).toBe(true)
+	})
+
+	it("coherence is high near the edge and low in flat regions", () => {
+		const size = 24
+		const input = verticalEdge(size)
+		const result = applyStructureField(input, "sobel")
+
+		// On the edge column: strongly anisotropic -> high coherence.
+		const edgePx = (12 * size + 12) * 4
+		expect(result.data[edgePx + 2]).toBeGreaterThan(180)
+
+		// Deep in a flat region: isotropic / no structure -> low coherence.
+		const flatPx = (12 * size + 3) * 4
+		expect(result.data[flatPx + 2]).toBeLessThan(40)
+	})
+
+	it("preserves alpha", () => {
+		const input = uniform(8, 8, 100, 128)
+		const result = applyStructureField(input, "sobel")
+		for (let i = 3; i < result.data.length; i += 4) {
+			expect(result.data[i]).toBe(128)
+		}
+	})
+
+	it("does not mutate input", () => {
+		const input = verticalEdge(16)
+		const original = new Uint8ClampedArray(input.data)
+		applyStructureField(input, "sobel")
+		expect(input.data).toEqual(original)
 	})
 })

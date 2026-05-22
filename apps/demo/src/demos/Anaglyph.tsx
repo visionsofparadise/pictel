@@ -1,57 +1,68 @@
 import { DepthMap } from "@pictel/ml";
-import { Canvas, Image, Pipeline, type PipelineCallback } from "pictel";
-import { useCallback } from "react";
+import { Canvas, ChannelMixer, DisplacementMap, Image, LinearDodge } from "pictel";
 import cityPhoto from "../../assets/city overview.jpg";
 
-const MAX_PARALLAX = 18;
 const canvasW = 1024;
 const canvasH = 683;
 
+// Max horizontal eye separation in px. DisplacementMap centres displacement on
+// mid-depth (gray = no shift), so mid-depth is the zero-disparity screen plane;
+// nearer pops out, farther sinks in.
+const PARALLAX = 12;
+
+// ChannelMixer matrices — matrix[outChannel][inChannel].
+// KEEP_RED passes the red channel and zeroes green/blue; KEEP_CYAN does the
+// inverse. Adding the two isolated layers reassembles a full RGB image.
+const KEEP_RED: Array<Array<number>> = [
+	[1, 0, 0],
+	[0, 0, 0],
+	[0, 0, 0],
+];
+const KEEP_CYAN: Array<Array<number>> = [
+	[0, 0, 0],
+	[0, 1, 0],
+	[0, 0, 1],
+];
+
 /**
- * Red/cyan anaglyph 3D. Per-pixel parallax = depth × MAX_PARALLAX, with the
- * red channel sampled to the left and green/blue to the right. Single
- * Pipeline; depth map passed via the map prop.
+ * Red/cyan anaglyph 3D, composed entirely from provided effects — no custom
+ * pixel callback. The anaglyph is just depth-driven displacement plus channel
+ * manipulation:
+ *
+ *   DepthMap        — estimate per-pixel depth (the displacement field).
+ *   DisplacementMap — shift the photo horizontally by depth, once per eye with
+ *                     opposite `scaleX` signs → a left-eye and a right-eye view.
+ *   ChannelMixer    — isolate the red channel of one view and the cyan
+ *                     (green+blue) channels of the other.
+ *   LinearDodge     — add the two isolated layers: (R,0,0) + (0,G,B) = (R,G,B).
+ *
+ * View through red-cyan glasses for real parallax depth.
  */
 export default function Anaglyph() {
-	const effect = useCallback<PipelineCallback>((pixels, _apply, map) => {
-		if (!map) throw new Error("Anaglyph requires a depth map");
-
-		const { width, height } = pixels;
-		const out = new ImageData(width, height);
-		function sample(buf: ImageData, x: number, y: number, channel: 0 | 1 | 2 | 3): number {
-			const ix = Math.max(0, Math.min(width - 1, Math.floor(x)));
-			const iy = Math.max(0, Math.min(height - 1, Math.floor(y)));
-
-			return buf.data[(iy * width + ix) * 4 + channel] ?? 0;
-		}
-
-		for (let y = 0; y < height; y++) {
-			for (let x = 0; x < width; x++) {
-				const offset = (y * width + x) * 4;
-				const depth = (map.data[offset] ?? 0) / 255;
-				const px = depth * MAX_PARALLAX;
-				out.data[offset + 0] = sample(pixels, x - px, y, 0);
-				out.data[offset + 1] = sample(pixels, x + px, y, 1);
-				out.data[offset + 2] = sample(pixels, x + px, y, 2);
-				out.data[offset + 3] = 255;
-			}
-		}
-
-		return { pixels: out };
-	}, []);
+	const depth = (
+		<DepthMap>
+			<Image src={cityPhoto} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+		</DepthMap>
+	);
+	const photo = <Image src={cityPhoto} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />;
 
 	return (
 		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>
-			<Pipeline
-				effect={effect}
-				map={
-					<DepthMap>
-						<Image src={cityPhoto} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
-					</DepthMap>
+			<LinearDodge
+				apply={
+					<ChannelMixer matrix={KEEP_CYAN}>
+						<DisplacementMap map={depth} scaleX={PARALLAX} scaleY={0}>
+							{photo}
+						</DisplacementMap>
+					</ChannelMixer>
 				}
 			>
-				<Image src={cityPhoto} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
-			</Pipeline>
+				<ChannelMixer matrix={KEEP_RED}>
+					<DisplacementMap map={depth} scaleX={-PARALLAX} scaleY={0}>
+						{photo}
+					</DisplacementMap>
+				</ChannelMixer>
+			</LinearDodge>
 		</Canvas>
 	);
 }

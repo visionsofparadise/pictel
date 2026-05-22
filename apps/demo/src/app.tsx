@@ -22,10 +22,21 @@ import CelShade from "./demos/CelShade";
 import celShadeSource from "./demos/CelShade.tsx?raw";
 import Dithering from "./demos/Dithering";
 import ditheringSource from "./demos/Dithering.tsx?raw";
+import OilPainting from "./demos/OilPainting";
+import oilPaintingSource from "./demos/OilPainting.tsx?raw";
+import PopArt from "./demos/PopArt";
+import popArtSource from "./demos/PopArt.tsx?raw";
+import LineDrawing from "./demos/LineDrawing";
+import lineDrawingSource from "./demos/LineDrawing.tsx?raw";
+import Glow from "./demos/Glow";
+import glowSource from "./demos/Glow.tsx?raw";
+import GenerativePoster from "./demos/GenerativePoster";
+import generativePosterSource from "./demos/GenerativePoster.tsx?raw";
 import cityPhoto from "../assets/city overview.jpg";
 import headshot from "../assets/headshot.jpg";
 import goldenHour from "../assets/Golden Hour Portrait.jpg";
 import portraitBg from "../assets/Portrait with Background 2.jpg";
+import portraitBg1 from "../assets/Portrait with Background 1.jpg";
 import landscape from "../assets/Evening Landscape.jpg";
 import wall from "../assets/Wall.jpg";
 
@@ -72,7 +83,7 @@ interface Demo {
 	slug: string;
 	name: string;
 	description: string;
-	original: string;
+	original?: string;
 	component: () => React.ReactNode;
 	source: string;
 }
@@ -91,7 +102,7 @@ const demos: Array<Demo> = [
 		slug: "banknote",
 		name: "Banknote print",
 		description:
-			"Behind: photo Duotoned to deep green ink on cream paper. Overlay: a horizontal LinePattern smeared along the photo's Direction field via LIC, then Multiply'd onto the duotone. Result: engraving lines that curve around the contours.",
+			"RemoveBackground isolates the subject. Bilateral smooths it into clean tonal regions and Brightness lifts the white point. Engrave converts tone into thickness-modulated engraving lines, then DisplacementMap — driven by the subject's DepthMap — warps the straight lines so they bow around the form. Duotone recolors to green ink on cream.",
 		original: headshot,
 		component: Banknote,
 		source: banknoteSource,
@@ -177,6 +188,50 @@ const demos: Array<Demo> = [
 		component: Dithering,
 		source: ditheringSource,
 	},
+	{
+		slug: "oil-painting",
+		name: "Oil Painting",
+		description:
+			"Direction in structure-tensor mode computes a smooth, contour-following orientation field from the headshot. Hatch then bands the portrait into tonal tiers and integrates a noise seed along that field per band — image-guided LIC — so the brushwork flows around the facial form, producing painterly, hand-painted strokes. Duotone warms the grayscale brushwork into a pigment-on-canvas palette.",
+		original: headshot,
+		component: OilPainting,
+		source: oilPaintingSource,
+	},
+	{
+		slug: "pop-art",
+		name: "Pop art",
+		description:
+			"The Lichtenstein recipe in two multiplied branches. The color branch — Saturate, then Posterize to flat screen-printed steps, then Halftone to break every region into luminance-tracking dots. The ink-line branch — Outline (XDoG) traces the contours and Threshold hardens them to solid black. Multiply lays the black lines over the dotted color base.",
+		original: goldenHour,
+		component: PopArt,
+		source: popArtSource,
+	},
+	{
+		slug: "line-drawing",
+		name: "Line drawing",
+		description:
+			"ShockFilter — the regularized iterative shock filter — presmooths the portrait and takes ten Osher–Rudin shock steps, steepening every edge into a true discontinuity and converging to piecewise-flat regions separated by crisp boundaries. Saturate restores color punch lost as the regions flatten and Contrast deepens the flattened tones so the edges read clearly.",
+		original: portraitBg1,
+		component: LineDrawing,
+		source: lineDrawingSource,
+	},
+	{
+		slug: "glow",
+		name: "Glow",
+		description:
+			"Bloom extracts the bright regions of an evening landscape via a quadratic soft-knee threshold on luminance, blurs them to spread the light outward, and screen-blends the blurred highlights back over the original. The sky and sun bloom into a soft halo while the shadows stay intact.",
+		original: landscape,
+		component: Glow,
+		source: glowSource,
+	},
+	{
+		slug: "generative-poster",
+		name: "Generative poster",
+		description:
+			"A fully generative abstract poster — no source image. A RadialGradient glowing from an off-center hot point forms the light source; a LinePattern of fine diagonal rays is Screen'd over it so the lines read as luminous beams; a ProceduralNoise grain layer is Overlay'd on top to add tactile print texture that rides the existing contrast.",
+		component: GenerativePoster,
+		source: generativePosterSource,
+	},
 ];
 
 function readSlug(): string {
@@ -212,18 +267,22 @@ function DemoView({ demo }: { demo: Demo }) {
 			<div
 				style={{
 					display: "grid",
-					gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+					gridTemplateColumns: demo.original
+						? "minmax(0, 1fr) minmax(0, 1fr)"
+						: "minmax(0, 1fr)",
 					gap: 20,
 					marginBottom: 20,
 					alignItems: "start",
 				}}
 			>
-				<div style={{ minWidth: 0 }}>
-					<p style={{ fontSize: 12, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-						Original
-					</p>
-					<img src={demo.original} style={{ width: "100%", height: "auto", borderRadius: 4, display: "block" }} />
-				</div>
+				{demo.original ? (
+					<div style={{ minWidth: 0 }}>
+						<p style={{ fontSize: 12, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
+							Original
+						</p>
+						<img src={demo.original} style={{ width: "100%", height: "auto", borderRadius: 4, display: "block" }} />
+					</div>
+				) : null}
 
 				<div style={{ minWidth: 0 }}>
 					<p style={{ fontSize: 12, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>

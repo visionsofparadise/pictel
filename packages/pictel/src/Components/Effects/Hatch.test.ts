@@ -152,24 +152,25 @@ describe("applyHatchFieldAligned", () => {
 		// Horizontal field: cos=1, sin=0, magnitude=1 → R=255, G=128, B=255.
 		// Stepped input: left half deepest tier (Y=0), right half lightest tier
 		// (Y=255). Lightest tier draws no lines (pure white preserved); deepest
-		// tier multiplies by the LIC line layer, dropping mean luminance.
-		const input = makeImage(32, 16, (x) => {
-			const value = x < 16 ? 0 : 255
+		// tier multiplies by the (LIC-of-noise) ink line layer, dropping mean
+		// luminance.
+		const input = makeImage(48, 24, (x) => {
+			const value = x < 24 ? 0 : 255
 			return [value, value, value, 255]
 		})
-		const field = uniformField(32, 16, 255, 128, 255)
-		const result = applyHatchFieldAligned(input, field, 4, [4, 4, 4, 4], 5, 1.0)
+		const field = uniformField(48, 24, 255, 128, 255)
+		const result = applyHatchFieldAligned(input, field, 4, [4, 4, 4, 4], 8, 1.0)
 
 		// Mean luminance of left (dark-tier) half should be < right (light) half.
 		let leftSum = 0
 		let rightSum = 0
 		let leftCount = 0
 		let rightCount = 0
-		for (let y = 0; y < 16; y++) {
-			for (let x = 0; x < 32; x++) {
-				const idx = (y * 32 + x) * 4
+		for (let y = 0; y < 24; y++) {
+			for (let x = 0; x < 48; x++) {
+				const idx = (y * 48 + x) * 4
 				const value = result.data[idx] ?? 0
-				if (x < 16) {
+				if (x < 24) {
 					leftSum += value
 					leftCount++
 				} else {
@@ -183,6 +184,89 @@ describe("applyHatchFieldAligned", () => {
 
 		expect(rightMean).toBe(255)
 		expect(leftMean).toBeLessThan(rightMean - 20)
+	})
+
+	it("bands by tier: tighter-spacing tiers are darker than looser-spacing tiers", () => {
+		// Four equal vertical bands, one per tier (deepest at left). Spacing
+		// array decreases with darkness, so the noise-seed density (1/spacing)
+		// increases for darker tiers → progressively darker hatching. The
+		// lightest tier (rightmost quarter) draws no lines and stays white.
+		const width = 64
+		const height = 24
+		const input = makeImage(width, height, (x) => {
+			const quarter = Math.min(3, Math.floor((x / width) * 4))
+			const value = Math.round((255 * quarter) / 3)
+			return [value, value, value, 255]
+		})
+		const field = uniformField(width, height, 255, 128, 255)
+		const result = applyHatchFieldAligned(input, field, 4, [4, 6, 10, 14], 10, 1.0)
+
+		const quarterMean = (q: number): number => {
+			let sum = 0
+			let count = 0
+			for (let y = 0; y < height; y++) {
+				for (let x = q * 16; x < (q + 1) * 16; x++) {
+					sum += result.data[(y * width + x) * 4] ?? 0
+					count++
+				}
+			}
+			return sum / count
+		}
+
+		const deepest = quarterMean(0)
+		const mid = quarterMean(1)
+		const lighter = quarterMean(2)
+		const lightest = quarterMean(3)
+
+		// Darker tiers (denser noise) read darker than lighter tiers.
+		expect(deepest).toBeLessThan(mid)
+		expect(mid).toBeLessThan(lighter)
+		// Lightest tier draws no lines — pure white.
+		expect(lightest).toBe(255)
+	})
+
+	it("is deterministic given the same inputs", () => {
+		// The noise seed uses a fixed-seed PRNG, so repeated calls produce
+		// byte-identical output (no Math.random()).
+		const input = makeImage(40, 20, (x) => {
+			const value = x < 20 ? 0 : 128
+			return [value, value, value, 255]
+		})
+		const field = uniformField(40, 20, 255, 128, 255)
+		const a = applyHatchFieldAligned(input, field, 4, [4, 6, 8, 10], 8, 1.0)
+		const b = applyHatchFieldAligned(input, field, 4, [4, 6, 8, 10], 8, 1.0)
+
+		expect(Array.from(a.data)).toEqual(Array.from(b.data))
+	})
+
+	it("produces line texture in every orientation under a vertical field", () => {
+		// A vertical structure field (sin=1) would wash a vertical-stripe seed
+		// to flat gray. An isotropic noise seed instead yields streamline
+		// texture even here — the dark-tier region must carry spatial variation,
+		// not collapse to a single uniform value.
+		const input = makeImage(32, 32, () => [0, 0, 0, 255])
+		// Vertical field: cos=0, sin=1, magnitude=1 → R=128, G=255, B=255.
+		const field = uniformField(32, 32, 128, 255, 255)
+		const result = applyHatchFieldAligned(input, field, 4, [5, 5, 5, 5], 10, 1.0)
+
+		const values = new Set<number>()
+		for (let i = 0; i < result.data.length; i += 4) {
+			values.add(result.data[i] ?? 0)
+		}
+		// More than one distinct luminance → real hatch texture, not flat gray.
+		expect(values.size).toBeGreaterThan(1)
+	})
+
+	it("does not mutate its input", () => {
+		const input = makeImage(24, 24, (x) => {
+			const value = x < 12 ? 20 : 200
+			return [value, value, value, 255]
+		})
+		const snapshot = Array.from(input.data)
+		const field = uniformField(24, 24, 255, 128, 255)
+		applyHatchFieldAligned(input, field, 4, [4, 6, 8, 10], 6, 1.0)
+
+		expect(Array.from(input.data)).toEqual(snapshot)
 	})
 
 	it("throws when field dimensions do not match pixels", () => {

@@ -122,6 +122,23 @@ describe("applyLIC", () => {
 		expect(avgRow).toBeGreaterThan(20)
 	})
 
+	it("integrates at full step on a zero-magnitude field when uniformStep is set", () => {
+		// Same zero-magnitude horizontal field as the test above, but uniformStep
+		// ignores the magnitude channel — integration walks the full distance and
+		// smears the stripes as if the field were full-magnitude.
+		const seed = verticalStripes(32, 16)
+		const field = uniformField(32, 16, 255, 128, 0)
+		const result = applyLIC(seed, field, 20, 1.0, true)
+
+		const channel = readChannel(result, 0)
+		const rowStddevs: number[] = channel.map((row) => stddev(row))
+		const avgRow = rowStddevs.reduce((s, v) => s + v, 0) / rowStddevs.length
+
+		// Full integration converges near the global mean — far more smearing
+		// than the magnitude-gated default, which left residual stripe structure.
+		expect(avgRow).toBeLessThan(50)
+	})
+
 	it("throws when seed and field dimensions do not match", () => {
 		const seed = verticalStripes(32, 32)
 		const field = uniformField(16, 16, 255, 128, 255)

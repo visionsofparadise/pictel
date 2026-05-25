@@ -383,9 +383,9 @@ describe.sequential("Pipeline integration", () => {
 		// error to the Canvas's reportError handler. The raster canvas must NOT
 		// be revealed (no output drawn on error).
 		//
-		// Bug this catches: if the finally block in execute() doesn't call
-		// releasePending on error paths, the pipeline stalls with pending forever
-		// and the Canvas loading overlay never clears.
+		// Bug this catches: if the error path in execute() doesn't clear the
+		// registry pending flag and notify, the pipeline stalls with pending
+		// forever and the Canvas loading overlay never clears.
 		const reportedErrors: Array<{ message: string }> = [];
 
 		function ThrowingPipeline({ children }: { children: React.ReactNode }) {

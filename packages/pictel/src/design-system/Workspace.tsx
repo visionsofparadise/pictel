@@ -10,10 +10,6 @@ const workspaceStyle: CSSProperties = {
 	width: "100%",
 	height: "100%",
 	backgroundColor: tokens.color.workspace,
-	// Minimum gutter must clear the floating chrome (error chip top-left,
-	// render strip top-right, loading spinner bottom-right) so the canvas
-	// frame is never covered. Chrome offset is space[4]=16px from the canvas
-	// root edge, max chrome height ~40px (render strip) + small gap → 64px.
 	padding: tokens.space[16],
 	display: "flex",
 	alignItems: "center",

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ReactNode } from "react"
+import { useCallback, useMemo, type ReactNode } from "react"
 import { Pipeline as PictelPipeline, type PipelineCallback } from "pictel"
 import type { Pipeline } from "@huggingface/transformers"
 import type { RawImage } from "@huggingface/transformers"
@@ -38,23 +38,19 @@ export function Upscale({
 	revision = DEFAULT_REVISION,
 	children,
 }: UpscaleProps) {
-	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
-
-	useEffect(() => {
-		pipelineRef.current = requireWebGPU().then(() =>
-			getOrLoadPipeline("image-to-image", model, revision),
-		)
-	}, [model, revision])
+	const pipelinePromise = useMemo(
+		() => requireWebGPU().then(() => getOrLoadPipeline("image-to-image", model, revision)),
+		[model, revision],
+	)
 
 	const effect = useCallback<PipelineCallback>(
 		async (target) => {
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			const pipe = await pipelineRef.current!
+			const pipe = await pipelinePromise
 			const pixels = await upscale(target, pipe)
 
 			return { pixels }
 		},
-		[model, revision],
+		[pipelinePromise],
 	)
 
 	return (

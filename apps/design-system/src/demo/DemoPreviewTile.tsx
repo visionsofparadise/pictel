@@ -31,8 +31,6 @@ const workspaceStyle: CSSProperties = {
 	width: "100%",
 	height: "100%",
 	backgroundColor: tokens.color.workspace,
-	// Minimum gutter — see Workspace.tsx for derivation. Must clear chrome
-	// at chrome_offset (16) + chrome_height (~40) + gap = 64.
 	padding: tokens.space[16],
 	display: "flex",
 	alignItems: "center",

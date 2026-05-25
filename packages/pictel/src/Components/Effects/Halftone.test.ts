@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, vi } from "vitest"
-import { applyHalftone, sampleWindow } from "./Halftone"
+import { applyHalftone } from "./Halftone"
+import { sampleWindow } from "./utils/sample-window"
 
 // Mock canvas context for jsdom (no real Canvas2D).
 //

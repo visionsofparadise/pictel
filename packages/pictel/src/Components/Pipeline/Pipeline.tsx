@@ -74,11 +74,6 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 	const rasterRef = useRef<HTMLDivElement>(null);
 	const canvasElRef = useRef<HTMLCanvasElement>(null);
 
-	// Read canvas reference dimensions at render time for pre-sizing offscreen
-	// wrappers. This prevents generative components (ConicGradient, DotPattern,
-	// etc.) that use useContainerSize from rendering at 0×0 on first mount.
-	// useContext rather than useCanvasContext so Pipeline can be used outside a
-	// Canvas (where the context is null).
 	const canvasContextValue = useContext(CanvasContext);
 	const preW = canvasContextValue?.dimensions.width ?? FALLBACK_SIZE;
 	const preH = canvasContextValue?.dimensions.height ?? FALLBACK_SIZE;
@@ -96,23 +91,17 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 
 		if (!pipelineEl || !childrenEl || !rasterEl || !canvasEl) return;
 
-		// Apply/map refs are only present when the prop is set.
 		const applyEl = hasApply ? applyRef.current : null;
 		const mapEl = hasMap ? mapRef.current : null;
 
-		// Initial: canvas hidden until first resolve.
 		rasterEl.style.display = "none";
 
 		const controller = new AbortController();
 		const { signal } = controller;
 
-		// Concurrency guard: inFlight is true between gate.proceed and execute's
-		// finally. gate() during this window only sets rerunQueued and returns.
-		// After execute completes, if rerunQueued is set, gate runs once more.
 		let inFlight = false;
 		let rerunQueued = false;
 
-		/** Validate-only gate. No DOM writes except installing image listeners when waiting. */
 		function gate() {
 			if (signal.aborted || !pipelineEl || !childrenEl || !rasterEl || !canvasEl) return;
 
@@ -122,14 +111,12 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 				return;
 			}
 
-			// Check for pending nested effects in all three wrappers.
 			if (childrenEl.querySelector("[data-pictel-pending]") !== null) return;
 
 			if (applyEl !== null && applyEl.querySelector("[data-pictel-pending]") !== null) return;
 
 			if (mapEl !== null && mapEl.querySelector("[data-pictel-pending]") !== null) return;
 
-			// Check for unloaded images (scoped to our subtree).
 			const unloaded = [
 				...getOwnUnloadedImages(childrenEl),
 				...(applyEl !== null ? getOwnUnloadedImages(applyEl) : []),
@@ -145,15 +132,6 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 				return;
 			}
 
-			// Bail when the children wrapper has zero size — the canvas cannot
-			// capture a zero-area region. A ResizeObserver installed below
-			// re-triggers gate() as soon as the wrapper gains a non-zero size.
-			//
-			// Use offsetWidth/Height (layout box, transform-independent) rather than
-			// getBoundingClientRect (post-transform). Display mode wraps Frame in a
-			// CSS transform:scale to fit the host container while keeping the DOM
-			// at literal buffer dims; getBoundingClientRect would return the
-			// post-transform visible size, which is smaller than the buffer.
 			const childrenW = childrenEl.offsetWidth;
 			const childrenH = childrenEl.offsetHeight;
 
@@ -161,11 +139,6 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 
 			inFlight = true;
 
-			// Disconnect observers BEFORE any mutation. acquirePending and
-			// releasePending write data-pictel-pending on pipelineEl; drawToCanvas
-			// and post-success writes touch canvas/dataset/style. Cover the entire
-			// acquire → execute body → release window with one disconnect/reconnect
-			// pair.
 			contentObserver.disconnect();
 
 			if (applyObserver !== null) applyObserver.disconnect();
@@ -181,14 +154,6 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 			try {
 				if (signal.aborted || !pipelineEl || !childrenEl || !rasterEl || !canvasEl) return;
 
-				// Size apply and map offscreen wrappers to match children so nested
-				// effects inside them render at the correct dimensions, and their
-				// snapdom captures rasterize a non-zero region. Gate has already
-				// waited for images to decode.
-				//
-				// offsetWidth/Height returns the layout box (transform-independent).
-				// Display mode applies CSS transform:scale on Frame for visual
-				// fit-to-container; the underlying DOM stays at literal buffer dims.
 				const contentW = childrenEl.offsetWidth;
 				const contentH = childrenEl.offsetHeight;
 
@@ -202,17 +167,8 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 					mapEl.style.height = `${String(contentH)}px`;
 				}
 
-				// On rerun, the previous execute set childrenEl visibility:hidden to
-				// keep children in layout without painting. snapdom's foreignObject SVG
-				// render of a visibility:hidden subtree produces transparent pixels, so
-				// reset before capture and restore after the canvas is drawn.
-				// Use "visible" (not "") to override any inherited visibility:hidden from
-				// an ancestor pipeline that has already hidden its own childrenEl — CSS
-				// inheritance would otherwise propagate the hidden state into this
-				// pipeline's content on re-runs.
 				childrenEl.style.visibility = "visible";
 
-				// Capture all three present wrappers in parallel.
 				const [targetPixels, applyPixels, mapPixels] = await Promise.all([
 					captureWrapper(childrenEl, captureDimensions),
 					applyEl !== null ? captureWrapper(applyEl, captureDimensions) : Promise.resolve(undefined),
@@ -236,9 +192,6 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 				pipelineEl.dataset.pictelOverflowBottom = String(overflow.bottom);
 				pipelineEl.dataset.pictelOverflowLeft = String(overflow.left);
 
-				// Reveal canvas; hide children with visibility:hidden (not
-				// display:none) so children stay in flow and drive the pipeline's
-				// layout size.
 				rasterEl.style.display = "";
 				childrenEl.style.visibility = "hidden";
 			} catch (error: unknown) {
@@ -248,20 +201,14 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 					reportError(createPipelineError(id, error));
 				}
 			} finally {
-				// Release before reconnecting — releasePending writes
-				// data-pictel-pending=removed on pipelineEl. Doing it while
-				// observers are still off keeps the off-window symmetric with acquire.
 				if (pipelineEl) releasePending(pipelineEl);
 
 				inFlight = false;
 
 				if (rerunQueued && !signal.aborted) {
-					// Drain without reconnecting: gate() will disconnect again on proceed.
 					rerunQueued = false;
 					gate();
 				} else if (!signal.aborted && childrenEl) {
-					// No rerun queued — reconnect observers so future external
-					// mutations can trigger gate.
 					observeSubtree(contentObserver, childrenEl);
 
 					if (applyObserver !== null && applyEl !== null) observeSubtree(applyObserver, applyEl);
@@ -271,9 +218,6 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 			}
 		}
 
-		// Observers are bare gate() callbacks. The invariant: observers are LIVE
-		// only between executes. During execute, all observers are disconnected so
-		// our own DOM writes don't loop.
 		const contentObserver = new MutationObserver(() => gate());
 
 		observeSubtree(contentObserver, childrenEl);
@@ -290,10 +234,6 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 
 		if (mapObserver !== null && mapEl !== null) observeSubtree(mapObserver, mapEl);
 
-		// Re-trigger gate when the children wrapper gains a non-zero size.
-		// This covers the case where gate() returned early due to the zero-size
-		// check above — a MutationObserver alone won't fire on a resize that
-		// happens through CSS/layout without a DOM mutation.
 		const sizeObserver = new ResizeObserver(() => {
 			if (signal.aborted) return;
 
@@ -315,8 +255,6 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 
 			sizeObserver.disconnect();
 
-			// Reset visibility/display so the next mount starts from a clean
-			// "children visible, raster hidden" state.
 			childrenEl.style.visibility = "";
 			rasterEl.style.display = "none";
 
@@ -324,10 +262,6 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 			delete pipelineEl.dataset.pictelOverflowRight;
 			delete pipelineEl.dataset.pictelOverflowBottom;
 			delete pipelineEl.dataset.pictelOverflowLeft;
-
-			// The in-flight execute (if any) will run its finally and release the
-			// pending count. The next mount's gate.proceed will acquire fresh.
-			// Refcount semantics in pending.ts handle StrictMode safely.
 		};
 	 
 	}, [id, effect, hasApply, hasMap, captureDimensions, reportError]);

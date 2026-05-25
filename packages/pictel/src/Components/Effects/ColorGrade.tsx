@@ -28,27 +28,22 @@ export function applyColorGrade(pixels: ImageData, adjustments: ColorGradeAdjust
 		let green = src[px + 1]!
 		let blue = src[px + 2]!
 
-		// Brightness
 		red *= brightness
 		green *= brightness
 		blue *= brightness
 
-		// Contrast
 		red = ((red / 255 - 0.5) * contrast + 0.5) * 255
 		green = ((green / 255 - 0.5) * contrast + 0.5) * 255
 		blue = ((blue / 255 - 0.5) * contrast + 0.5) * 255
 
-		// Saturation
 		const lum = luminance(red, green, blue)
 		red = lum + (red - lum) * saturation
 		green = lum + (green - lum) * saturation
 		blue = lum + (blue - lum) * saturation
 
-		// Temperature
 		red += temperature * 30
 		blue -= temperature * 30
 
-		// Tint
 		red += tint * 15
 		green -= tint * 30
 

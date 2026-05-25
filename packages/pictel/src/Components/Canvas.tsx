@@ -7,6 +7,7 @@ import { tokens } from "../design-system/tokens";
 import { Workspace } from "../design-system/Workspace";
 import { useContainerSize } from "../hooks/useContainerSize";
 import { useMode } from "../hooks/useMode";
+import { useSearchParam } from "../hooks/useSearchParam";
 import type { Mode } from "../modes";
 import type { PipelineError } from "../utils/errors";
 import { Frame } from "./Frame";
@@ -29,11 +30,6 @@ const previewOuterStyle: CSSProperties = {
 	boxSizing: "border-box",
 };
 
-// Display mode: the host page controls the size via CSS on the parent
-// container or by relying on the canvas's natural pixel size. The wrapper
-// box mirrors how an <img> would lay out — natural width with max-width:100%
-// and aspect-ratio computed from `dimensions` so height follows. Buffer dims
-// stay fixed (capture is decoupled from container size).
 const displayOuterStyle = (width: number, height: number): CSSProperties => ({
 	position: "relative",
 	width,
@@ -45,14 +41,14 @@ const displayOuterStyle = (width: number, height: number): CSSProperties => ({
 	boxSizing: "border-box",
 });
 
-const renderOuterStyle: CSSProperties = {
+const renderOuterStyle = (width: number, height: number): CSSProperties => ({
 	position: "relative",
-	width: "100%",
-	height: "100%",
+	width,
+	height,
 	backgroundColor: "transparent",
 	overflow: "hidden",
 	boxSizing: "border-box",
-};
+});
 
 /**
  * Root compositing surface. Contains layers, effects, and blend modes as children.
@@ -75,13 +71,28 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 		setErrors((prev) => [...prev, error]);
 	}, []);
 
-	// captureDimensions must be referentially stable across Canvas re-renders.
-	// Pipeline's useLayoutEffect lists captureDimensions in deps; without
-	// memoization, a fresh object every render would force every descendant
-	// pipeline to remount on each Canvas re-render (e.g. when pending state toggles).
+	const widthParam = useSearchParam("width", "");
+	const heightParam = useSearchParam("height", "");
+	const overrideWidth = Number(widthParam);
+	const overrideHeight = Number(heightParam);
+	const hasDimensionOverride =
+		mode === "render" &&
+		widthParam !== "" &&
+		heightParam !== "" &&
+		Number.isFinite(overrideWidth) &&
+		Number.isFinite(overrideHeight) &&
+		overrideWidth > 0 &&
+		overrideHeight > 0;
+	const effectiveWidth = hasDimensionOverride ? overrideWidth : dimensions.width;
+	const effectiveHeight = hasDimensionOverride ? overrideHeight : dimensions.height;
+
 	const captureDimensions = useMemo(
-		() => ({ width: dimensions.width, height: dimensions.height }),
-		[dimensions.width, dimensions.height],
+		() => ({ width: effectiveWidth, height: effectiveHeight }),
+		[effectiveWidth, effectiveHeight],
+	);
+	const effectiveDimensions = useMemo<CanvasDimensions>(
+		() => ({ width: effectiveWidth, height: effectiveHeight }),
+		[effectiveWidth, effectiveHeight],
 	);
 	const [pending, setPending] = useState(true);
 
@@ -104,20 +115,26 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 
 	const contextValue: CanvasContextValue = {
 		mode,
-		dimensions,
+		dimensions: effectiveDimensions,
 		viewport: { width, height },
 		captureDimensions,
 		reportError,
 	};
 
 	if (mode === "render") {
+		const errorAttribute =
+			errors.length > 0
+				? JSON.stringify(errors.map((entry) => ({ id: entry.id, message: entry.error.message })))
+				: undefined;
+
 		return (
 			<CanvasContext.Provider value={contextValue}>
 				<div
 					ref={ref}
 					aria-label={name}
 					data-pictel-canvas=""
-					style={{ ...renderOuterStyle, ...style }}
+					data-pictel-error={errorAttribute}
+					style={{ ...renderOuterStyle(effectiveWidth, effectiveHeight), ...style }}
 					{...rest}
 				>
 					<Frame>{children}</Frame>

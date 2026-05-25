@@ -37,9 +37,6 @@ export function applyBloom(
 	const height = pixels.height
 	const src = pixels.data
 
-	// Build the highlight buffer: source colour scaled by a quadratic soft knee
-	// on luminance. Below `threshold` the weight is 0; it ramps to 1 at full
-	// luminance. Denominator guards against threshold === 1.
 	const range = 1 - threshold
 	const highlightData = new Uint8ClampedArray(src.length)
 
@@ -60,15 +57,12 @@ export function applyBloom(
 
 	const highlights = new ImageData(highlightData, width, height)
 
-	// Blur the highlight buffer — produces a padded EffectResult.
 	const blurred = normalizeResult(applyUniformBlur(highlights, radius))
 	const blurData = blurred.pixels.data
 	const blurW = blurred.pixels.width
 	const ox = blurred.overflow.left
 	const oy = blurred.overflow.top
 
-	// Screen-blend the blurred highlights (scaled by intensity) over the
-	// original. The blur overflow is consumed here — output matches input size.
 	const output = new Uint8ClampedArray(src.length)
 
 	for (let y = 0; y < height; y++) {

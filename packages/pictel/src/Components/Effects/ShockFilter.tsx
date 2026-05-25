@@ -7,8 +7,6 @@ import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-// Presmoothing radius for the regularized Laplacian-sign estimate. A small box
-// blur is enough to suppress noise-driven sign flips without rounding edges.
 const SMOOTH_RADIUS = 1
 
 /**
@@ -61,13 +59,10 @@ export function applyShockFilter(
 	const output = new Uint8ClampedArray(src.length)
 	const count = width * height
 
-	// Copy alpha straight through; it is never shocked.
 	for (let pixelIdx = 0; pixelIdx < count; pixelIdx++) {
 		output[pixelIdx * 4 + 3] = src[pixelIdx * 4 + 3]!
 	}
 
-	// Per-channel float buffers. Even for iterations <= 0 we still copy the RGB
-	// channels through so the result is an independent, unchanged copy.
 	const channels: Array<Float32Array> = []
 
 	for (let channel = 0; channel < 3; channel++) {
@@ -84,14 +79,10 @@ export function applyShockFilter(
 	const dt = Math.min(1, strength)
 
 	for (let pass = 0; pass < passes; pass++) {
-		// Step 1: presmooth every channel for a noise-robust Laplacian sign.
 		const smoothed = channels.map((channel) =>
 			boxBlurChannel(channel, width, height, SMOOTH_RADIUS),
 		)
 
-		// Step 2: collapse the smoothed channels into one luminance buffer. The
-		// shock direction is decided from this shared buffer so all three colour
-		// channels agree on which side of every edge to pull from.
 		const lum = new Float32Array(count)
 
 		for (let pixelIdx = 0; pixelIdx < count; pixelIdx++) {
@@ -118,8 +109,6 @@ export function applyShockFilter(
 
 				const centerIdx = y * width + x
 
-				// Step 3: 5-point Laplacian of the shared luminance buffer →
-				// one shock direction for the whole pixel.
 				const laplacian =
 					lum[y * width + xRight]! +
 					lum[y * width + xLeft]! +
@@ -127,27 +116,20 @@ export function applyShockFilter(
 					lum[yUp * width + x]! -
 					4 * lum[centerIdx]!
 
-				// sign(L) > 0 (concave-up, dark side) erodes;
-				// sign(L) < 0 (concave-down, bright side) dilates.
 				const sign = laplacian > 0 ? 1 : laplacian < 0 ? -1 : 0
 
 				for (let channel = 0; channel < 3; channel++) {
 					const current = channels[channel]!
 					const center = current[centerIdx]!
 
-					// Step 4: per-channel central-difference gradient magnitude of
-					// this channel's current (un-presmoothed) buffer — each channel
-					// keeps its own contrast.
 					const gradX =
 						(current[y * width + xRight]! - current[y * width + xLeft]!) / 2
 					const gradY =
 						(current[yDown * width + x]! - current[yUp * width + x]!) / 2
 					const gradMag = Math.sqrt(gradX * gradX + gradY * gradY)
 
-					// Step 5: shock step with the shared luminance sign.
 					const shocked = center - sign * gradMag * dt
 
-					// Step 6: clamp to the channel range.
 					nextChannels[channel]![centerIdx] =
 						shocked < 0 ? 0 : shocked > 255 ? 255 : shocked
 				}

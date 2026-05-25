@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { tokens } from "pictel";
+import { Tab } from "./Tab";
 import { ShowcasePage } from "./pages/ShowcasePage";
 import { PreviewPage } from "./pages/PreviewPage";
 import { DisplayPage } from "./pages/DisplayPage";
@@ -56,55 +57,12 @@ const fontSwitcherStyle: CSSProperties = {
 	boxSizing: "border-box",
 };
 
-const buttonResetStyle: CSSProperties = {
-	appearance: "none",
-	background: "none",
-	border: "none",
-	margin: 0,
-	font: "inherit",
-	color: "inherit",
-	cursor: "pointer",
-};
-
-const tabBaseStyle: CSSProperties = {
-	...buttonResetStyle,
-	padding: `${String(tokens.space[3])}px ${String(tokens.space[4])}px`,
-	fontFamily: tokens.font.ui,
-	fontSize: tokens.text.sm,
-	color: tokens.color.text,
-};
-
 const mainStyle: CSSProperties = {
 	flex: 1,
 	minHeight: 0,
 	position: "relative",
 	overflow: "auto",
 };
-
-interface TabProps {
-	label: Page;
-	active: boolean;
-	onSelect: (page: Page) => void;
-}
-
-function Tab({ label, active, onSelect }: TabProps) {
-	const [hovered, setHovered] = useState(false);
-	const background = active || hovered ? tokens.color.panelRaised : "transparent";
-	const fontWeight = active ? 500 : 400;
-	const style: CSSProperties = { ...tabBaseStyle, backgroundColor: background, fontWeight };
-
-	return (
-		<button
-			type="button"
-			style={style}
-			onClick={() => onSelect(label)}
-			onMouseEnter={() => setHovered(true)}
-			onMouseLeave={() => setHovered(false)}
-		>
-			{label}
-		</button>
-	);
-}
 
 export function App() {
 	const [activePage, setActivePage] = useState<Page>("Showcase");
@@ -123,7 +81,7 @@ export function App() {
 						key={page}
 						label={page}
 						active={page === activePage}
-						onSelect={setActivePage}
+						onSelect={() => setActivePage(page)}
 					/>
 				))}
 				<select

@@ -5,67 +5,9 @@ import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { applyUniformBlur } from "./Blur"
 import { mixBlend } from "./utils/mix-blend"
 import { padImageData } from "./utils/pad-image-data"
+import { parseColor } from "./utils/parse-color"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-
-interface ParsedColor {
-	r: number
-	g: number
-	b: number
-	a: number
-}
-
-function parseHex(hex: string): ParsedColor {
-	const digits = hex.startsWith("#") ? hex.slice(1) : hex
-
-	if (digits.length === 3) {
-		return {
-			r: parseInt(digits[0]! + digits[0]!, 16),
-			g: parseInt(digits[1]! + digits[1]!, 16),
-			b: parseInt(digits[2]! + digits[2]!, 16),
-			a: 255,
-		}
-	}
-
-	if (digits.length === 6) {
-		return {
-			r: parseInt(digits.slice(0, 2), 16),
-			g: parseInt(digits.slice(2, 4), 16),
-			b: parseInt(digits.slice(4, 6), 16),
-			a: 255,
-		}
-	}
-
-	if (digits.length === 8) {
-		return {
-			r: parseInt(digits.slice(0, 2), 16),
-			g: parseInt(digits.slice(2, 4), 16),
-			b: parseInt(digits.slice(4, 6), 16),
-			a: parseInt(digits.slice(6, 8), 16),
-		}
-	}
-
-	return { r: 0, g: 0, b: 0, a: 255 }
-}
-
-function parseColor(color: string): ParsedColor {
-	const trimmed = color.trim()
-
-	if (trimmed.startsWith("#")) return parseHex(trimmed)
-
-	const rgbaMatch = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)$/.exec(trimmed)
-
-	if (rgbaMatch) {
-		return {
-			r: parseInt(rgbaMatch[1]!, 10),
-			g: parseInt(rgbaMatch[2]!, 10),
-			b: parseInt(rgbaMatch[3]!, 10),
-			a: rgbaMatch[4] !== undefined ? Math.round(parseFloat(rgbaMatch[4]) * 255) : 255,
-		}
-	}
-
-	return { r: 0, g: 0, b: 0, a: 255 }
-}
 
 export function applyDropShadow(
 	pixels: ImageData,
@@ -85,7 +27,6 @@ export function applyDropShadow(
 	const outW = srcW + 2 * blur + absOx
 	const outH = srcH + 2 * blur + absOy
 
-	// Step 1: Create alpha mask at the shadow offset position within the expanded canvas
 	const shadowOriginX = blur + Math.max(0, offsetX)
 	const shadowOriginY = blur + Math.max(0, offsetY)
 
@@ -98,7 +39,6 @@ export function applyDropShadow(
 			const dstY = shadowOriginY + sy
 			const dstIdx = (dstY * outW + dstX) * 4
 
-			// Store alpha as grayscale for blur, then colorize after
 			const alpha = src[srcIdx + 3]!
 			maskData[dstIdx] = alpha
 			maskData[dstIdx + 1] = alpha
@@ -107,7 +47,6 @@ export function applyDropShadow(
 		}
 	}
 
-	// Step 2: Blur the shadow mask
 	const maskImage = new ImageData(maskData, outW, outH)
 	let blurredMask: ImageData
 
@@ -118,13 +57,11 @@ export function applyDropShadow(
 		blurredMask = maskImage
 	}
 
-	// Step 3: Colorize the blurred shadow and composite source over it
 	const bW = blurredMask.width
 	const bH = blurredMask.height
 	const blurredData = blurredMask.data
 	const outputData = new Uint8ClampedArray(bW * bH * 4)
 
-	// Colorize: set RGB to parsed color, alpha to shadow alpha * color alpha
 	const colorAlpha = parsed.a / 255
 
 	for (let px = 0; px < blurredData.length; px += 4) {
@@ -135,11 +72,6 @@ export function applyDropShadow(
 		outputData[px + 3] = Math.round(shadowAlpha * 255)
 	}
 
-	// Step 4: Composite source over shadow
-	// The source position in the blurred output:
-	// If blur was applied, the blurred output is (outW + 2*blur) x (outH + 2*blur) due to applyUniformBlur expanding
-	// The source's position within the original expanded canvas was at (blur + max(0,-offsetX), blur + max(0,-offsetY))
-	// After blur expansion, add another blur offset
 	const srcInExpandedX = blur + Math.max(0, -offsetX)
 	const srcInExpandedY = blur + Math.max(0, -offsetY)
 	const srcInBlurredX = blur > 0 ? srcInExpandedX + blur : srcInExpandedX
@@ -152,7 +84,6 @@ export function applyDropShadow(
 			const dstY = srcInBlurredY + sy
 			const dstIdx = (dstY * bW + dstX) * 4
 
-			// Source-over compositing
 			const srcA = src[srcIdx + 3]! / 255
 			const dstA = outputData[dstIdx + 3]! / 255
 			const outA = srcA + dstA * (1 - srcA)
@@ -166,7 +97,6 @@ export function applyDropShadow(
 		}
 	}
 
-	// Step 5: Compute overflow relative to source position
 	const overflow = {
 		top: blur > 0 ? srcInBlurredY : Math.max(0, blur - offsetY),
 		right: blur > 0 ? bW - srcInBlurredX - srcW : Math.max(0, blur + offsetX),
@@ -212,8 +142,6 @@ export function DropShadow({ offsetX, offsetY, blurRadius, color, map, children 
 			const result = applyDropShadow(target, offsetX, offsetY, blurRadius, color)
 
 			if (mapPixels !== undefined) {
-				// Mix mode: drop shadow at full intensity, then blend with original per map.
-				// The shadow result has overflow, so pad original and map to match.
 				const overflow = result.overflow ?? { top: 0, right: 0, bottom: 0, left: 0 }
 				const paddedTarget = padImageData(target, overflow.top, overflow.right, overflow.bottom, overflow.left)
 				const paddedMap = padImageData(mapPixels, overflow.top, overflow.right, overflow.bottom, overflow.left)

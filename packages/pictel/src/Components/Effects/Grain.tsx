@@ -2,18 +2,7 @@ import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
 import { mixBlend } from "./utils/mix-blend"
-
-function mulberry32(seed: number): () => number {
-	let state = seed | 0
-
-	return () => {
-		state = (state + 0x6d2b79f5) | 0
-		let hash = Math.imul(state ^ (state >>> 15), 1 | state)
-		hash = (hash + Math.imul(hash ^ (hash >>> 7), 61 | hash)) ^ hash
-
-		return ((hash ^ (hash >>> 14)) >>> 0) / 0xffffffff
-	}
-}
+import { mulberry32 } from "./utils/mulberry32"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function applyGrain(pixels: ImageData, intensity: number, seed: number): ImageData {

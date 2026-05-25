@@ -1,9 +1,9 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline"
-import { applyGrayscale } from "./Grayscale"
 import { applyLIC } from "./LIC"
-import { applyPosterize } from "./Posterize"
+import { computeTierBuffer } from "./utils/compute-tier-buffer"
+import { mulberry32 } from "./utils/mulberry32"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
@@ -12,42 +12,8 @@ const DEFAULT_ANGLES = [0, Math.PI / 4, Math.PI / 2, (3 * Math.PI) / 4]
 const DEFAULT_LENGTH = 20
 const DEFAULT_STEP_SIZE = 1.0
 
-/**
- * Contrast pass applied to the field-aligned LIC line layer. LIC of the
- * binary-noise seed produces a gray streak field; with the denser seed
- * (`buildNoiseSeed` black density ~0.17–0.4) the streak body's mean luminance
- * lands around 150–210. `LINE_CONTRAST_MIDPOINT = 200` sits at or just above
- * that mean, so the smoothstep pushes most of the streak body below its center
- * → dark, dense ink, while the brightest paper-white gaps (near 255) ride above
- * the upper edge and stay white. `LINE_CONTRAST_GAIN = 3.4` keeps a crisp ramp
- * between ink and paper.
- *
- * These values are deliberately *not* the most aggressive option: pushing the
- * midpoint to ~210 with a `3 / spacing` seed crushes the darkest band to a flat
- * black blob with no visible line texture. The values here keep the darkest
- * band dark and dense (~80% ink) while still resolving individual streaks.
- */
 const LINE_CONTRAST_MIDPOINT = 200
 const LINE_CONTRAST_GAIN = 3.4
-
-/**
- * Build the per-pixel tier index buffer (0..bands-1) by applying Grayscale
- * then Posterize and reading back the quantized R channel. Each pixel's tier
- * value is `Math.round(255 * b / (bands - 1))` for tier index b — matches the
- * Posterize quantization formula exactly.
- */
-function computeTierBuffer(pixels: ImageData, bands: number): { tierBuffer: ImageData; tierValues: Array<number> } {
-	const grayBuffer = applyGrayscale(pixels, 1)
-	const tierBuffer = applyPosterize(grayBuffer, bands)
-	const tierValues: Array<number> = []
-	const denom = Math.max(1, bands - 1)
-
-	for (let bandIdx = 0; bandIdx < bands; bandIdx++) {
-		tierValues.push(Math.round((255 * bandIdx) / denom))
-	}
-
-	return { tierBuffer, tierValues }
-}
 
 /**
  * Constant-angle hatching. Bands the source image into `bands` tonal tiers
@@ -106,14 +72,10 @@ export function applyHatch(
 
 				if (tierData[pixelIdx]! !== tierValue) continue
 
-				// Standard graphics convention: angle=0 → horizontal lines, angle=π/2 → vertical.
-				// `position` measures perpendicular distance to a line through the origin at `angle`.
 				const position = y * cosA - x * sinA
-				// Use a positive-modulo so negative positions still map onto the stripe.
 				const mod = ((position % bandSpacing) + bandSpacing) % bandSpacing
 
 				if (mod < lineWidth) {
-					// Multiply by black = 0
 					output[pixelIdx] = 0
 					output[pixelIdx + 1] = 0
 					output[pixelIdx + 2] = 0
@@ -125,42 +87,8 @@ export function applyHatch(
 	return new ImageData(output, width, height)
 }
 
-/**
- * Deterministic mulberry32 PRNG. A fixed integer seed yields a fixed stream
- * of floats in [0, 1) — used so field-aligned hatch noise is stable across
- * renders (no `Math.random()`).
- */
-function mulberry32(seed: number): () => number {
-	let state = seed | 0
-
-	return () => {
-		state = (state + 0x6d2b79f5) | 0
-		let hash = Math.imul(state ^ (state >>> 15), 1 | state)
-		hash = (hash + Math.imul(hash ^ (hash >>> 7), 61 | hash)) ^ hash
-
-		return ((hash ^ (hash >>> 14)) >>> 0) / 0xffffffff
-	}
-}
-
-/** Fixed base seed for field-aligned hatch noise — keeps demo output stable. */
 const NOISE_SEED_BASE = 0x9e3779b9
 
-/**
- * Build an isotropic binary-noise seed image for image-guided LIC. Each pixel
- * is independently black (0) with probability `blackProbability`, white (255)
- * otherwise. Unlike a directional stripe seed, white noise has high-frequency
- * content in *every* orientation, so LIC of this seed along a vector field
- * produces streamline texture that follows the field in all directions — the
- * classic, correct LIC seeding choice (Cabral & Leedom 1993).
- *
- * Black-pixel density is tied to the band's spacing by the caller: tighter
- * spacing → higher `blackProbability` → denser, darker streamline hatching
- * after LIC; looser spacing → sparser, fainter hatching.
- *
- * `bandIdx` derives a distinct PRNG stream per band so bands do not share
- * identical noise. Alpha is 255 throughout — alpha is reapplied from source
- * on the final composite.
- */
 function buildNoiseSeed(
 	width: number,
 	height: number,
@@ -182,13 +110,6 @@ function buildNoiseSeed(
 	return new ImageData(data, width, height)
 }
 
-/**
- * Contrast/threshold pass that turns the soft gray streaks produced by LIC of
- * a noise seed into crisp ink lines. Applies a smoothstep around `midpoint`
- * with steepness `gain`: values below the lower edge collapse to black, above
- * the upper edge to white, with a short smooth ramp between. R=G=B are treated
- * as a single luminance value (the LIC seed is grayscale); alpha is preserved.
- */
 function sharpenLineLayer(layer: ImageData, midpoint: number, gain: number): ImageData {
 	const src = layer.data
 	const output = new Uint8ClampedArray(src.length)
@@ -201,7 +122,6 @@ function sharpenLineLayer(layer: ImageData, midpoint: number, gain: number): Ima
 		const value = src[pixelIdx]!
 		let ramp = (value - lowEdge) / span
 		ramp = ramp < 0 ? 0 : ramp > 1 ? 1 : ramp
-		// smoothstep
 		const eased = ramp * ramp * (3 - 2 * ramp)
 		const result = Math.round(eased * 255)
 		output[pixelIdx] = result
@@ -278,18 +198,9 @@ export function applyHatchFieldAligned(
 		const tierValue = tierValues[bandIdx]!
 		const bandSpacing = Math.max(1, spacing[bandIdx]!)
 
-		// Black-pixel density tied to spacing: tighter spacing → denser noise →
-		// darker hatching after LIC. `2 / bandSpacing` yields ~0.4/0.25/0.167
-		// black density for the demo's [5,8,12] spacings, so LIC averages a
-		// genuinely dark streak field (mean ~150–210) rather than the near-white
-		// one the old `1 / bandSpacing` formula produced. The 0.5 cap keeps
-		// ample white noise for LIC to resolve clean streamlines; pushing the
-		// density higher (e.g. `3 / spacing`) crushes the tightest band to a
-		// flat black blob with no visible line texture once it is sharpened.
 		const blackProbability = Math.min(0.5, 2 / bandSpacing)
 		const seed = buildNoiseSeed(width, height, blackProbability, bandIdx)
 		const streamlines = applyLIC(seed, field, length, stepSize, uniformStep)
-		// LIC of noise is a soft gray streak field — push it to crisp ink lines.
 		const lineLayer = sharpenLineLayer(streamlines, LINE_CONTRAST_MIDPOINT, LINE_CONTRAST_GAIN)
 		const lineData = lineLayer.data
 
@@ -299,7 +210,6 @@ export function applyHatchFieldAligned(
 
 				if (tierData[pixelIdx]! !== tierValue) continue
 
-				// Multiply: out = out * line / 255 per channel
 				output[pixelIdx] = Math.round((output[pixelIdx]! * lineData[pixelIdx]!) / 255)
 				output[pixelIdx + 1] = Math.round((output[pixelIdx + 1]! * lineData[pixelIdx + 1]!) / 255)
 				output[pixelIdx + 2] = Math.round((output[pixelIdx + 2]! * lineData[pixelIdx + 2]!) / 255)
@@ -383,11 +293,9 @@ export function Hatch({
 	const effect = useCallback<PipelineCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
-				// Field-aligned mode: map prop present, use vector field via LIC
 				return applyHatchFieldAligned(target, mapPixels, bands, spacing, length, stepSize, uniformStep)
 			}
 
-			// Constant-angle mode: no map prop
 			if (!resolvedAngles) {
 				throw new Error(
 					`Hatch: angles is required in constant-angle mode when bands !== ${String(DEFAULT_BANDS)} (no map prop supplied)`,

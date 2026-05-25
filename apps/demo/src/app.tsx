@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { codeToHtml } from "shiki";
+import { type Demo, DemoView } from "./DemoView";
 import TiltShift from "./demos/TiltShift";
 import tiltShiftSource from "./demos/TiltShift.tsx?raw";
 import Banknote from "./demos/Banknote";
@@ -39,54 +39,6 @@ import portraitBg from "../assets/Portrait with Background 2.jpg";
 import portraitBg1 from "../assets/Portrait with Background 1.jpg";
 import landscape from "../assets/Evening Landscape.jpg";
 import wall from "../assets/Wall.jpg";
-
-function CodeBlock({ source }: { source: string }) {
-	const [html, setHtml] = useState("");
-
-	useEffect(() => {
-		void codeToHtml(source, {
-			lang: "tsx",
-			theme: "github-dark",
-		}).then(setHtml);
-	}, [source]);
-
-	return (
-		<div
-			style={{
-				borderRadius: 4,
-				overflow: "auto",
-				maxHeight: 400,
-				fontSize: 13,
-				lineHeight: 1.5,
-				tabSize: 2,
-			}}
-			dangerouslySetInnerHTML={html ? { __html: html } : undefined}
-		>
-			{html ? undefined : (
-				<pre
-					style={{
-						backgroundColor: "#1a1a1a",
-						padding: 16,
-						margin: 0,
-						color: "#ccc",
-						fontFamily: "monospace",
-					}}
-				>
-					{source}
-				</pre>
-			)}
-		</div>
-	);
-}
-
-interface Demo {
-	slug: string;
-	name: string;
-	description: string;
-	original?: string;
-	component: () => React.ReactNode;
-	source: string;
-}
 
 const demos: Array<Demo> = [
 	{
@@ -254,54 +206,6 @@ function useHashSlug(): string {
 	}, []);
 
 	return slug;
-}
-
-function DemoView({ demo }: { demo: Demo }) {
-	return (
-		<div>
-			<h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 6 }}>{demo.name}</h2>
-			<p style={{ fontSize: 14, color: "#888", marginBottom: 20, maxWidth: 700 }}>
-				{demo.description}
-			</p>
-
-			<div
-				style={{
-					display: "grid",
-					gridTemplateColumns: demo.original
-						? "minmax(0, 1fr) minmax(0, 1fr)"
-						: "minmax(0, 1fr)",
-					gap: 20,
-					marginBottom: 20,
-					alignItems: "start",
-				}}
-			>
-				{demo.original ? (
-					<div style={{ minWidth: 0 }}>
-						<p style={{ fontSize: 12, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-							Original
-						</p>
-						<img src={demo.original} style={{ width: "100%", height: "auto", borderRadius: 4, display: "block" }} />
-					</div>
-				) : null}
-
-				<div style={{ minWidth: 0 }}>
-					<p style={{ fontSize: 12, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-						After
-					</p>
-					<div style={{ borderRadius: 4, overflow: "hidden" }}>
-						<demo.component />
-					</div>
-				</div>
-			</div>
-
-			<div>
-				<p style={{ fontSize: 12, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-					Code
-				</p>
-				<CodeBlock source={demo.source} />
-			</div>
-		</div>
-	);
 }
 
 export function App() {

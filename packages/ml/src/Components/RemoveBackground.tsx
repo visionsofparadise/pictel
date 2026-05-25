@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ReactNode } from "react"
+import { useCallback, useMemo, type ReactNode } from "react"
 import { Pipeline as PictelPipeline, type PipelineCallback } from "pictel"
 import type { Pipeline } from "@huggingface/transformers"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
@@ -40,23 +40,19 @@ export function RemoveBackground({
 	revision = DEFAULT_REVISION,
 	children,
 }: RemoveBackgroundProps) {
-	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
-
-	useEffect(() => {
-		pipelineRef.current = requireWebGPU().then(() =>
-			getOrLoadPipeline("background-removal", model, revision),
-		)
-	}, [model, revision])
+	const pipelinePromise = useMemo(
+		() => requireWebGPU().then(() => getOrLoadPipeline("background-removal", model, revision)),
+		[model, revision],
+	)
 
 	const effect = useCallback<PipelineCallback>(
 		async (target) => {
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			const pipe = await pipelineRef.current!
+			const pipe = await pipelinePromise
 			const pixels = await removeBackground(target, pipe)
 
 			return { pixels }
 		},
-		[model, revision],
+		[pipelinePromise],
 	)
 
 	return (

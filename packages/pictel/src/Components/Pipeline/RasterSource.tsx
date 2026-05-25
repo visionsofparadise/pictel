@@ -55,10 +55,6 @@ export function RasterSource({ width, height, draw }: RasterSourceProps) {
 
 		if (!pipelineEl || !canvasEl) return;
 
-		// Acquire FIRST — before any other work — so that by the time a parent
-		// Pipeline's useLayoutEffect runs (parents run after children per React
-		// semantics) and calls its first gate, this leaf already carries
-		// data-pictel-pending. Otherwise the parent could capture before we draw.
 		acquirePending(pipelineEl);
 
 		const controller = new AbortController();
@@ -67,10 +63,6 @@ export function RasterSource({ width, height, draw }: RasterSourceProps) {
 		canvasEl.width = width;
 		canvasEl.height = height;
 
-		// Uniformly handle sync and async draw return values via Promise.resolve.
-		// The .then / .catch must check signal.aborted first; cleanup is the one
-		// that releases when aborted, so the in-flight chain must NOT release in
-		// that case (refcount would underflow / clamp at 0 but order is unclear).
 		Promise.resolve(draw(canvasEl, signal)).then(
 			() => {
 				if (signal.aborted) return;
@@ -86,11 +78,6 @@ export function RasterSource({ width, height, draw }: RasterSourceProps) {
 
 		return () => {
 			controller.abort();
-			// Release here. If the in-flight chain has not yet resolved, its
-			// .then/.catch sees signal.aborted=true and bails without releasing,
-			// so this single release matches the earlier acquire. If the chain
-			// already resolved (and released), this second releasePending is a
-			// no-op because the refcount clamps at 0 (see pending.ts).
 			releasePending(pipelineEl);
 		};
 	}, [width, height, draw]);

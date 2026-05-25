@@ -1,4 +1,3 @@
-// Components
 export { Canvas } from "./Components/Canvas";
 export { Clip } from "./Components/Pipeline/Clip";
 export { Pipeline, type PipelineCallback } from "./Components/Pipeline/Pipeline";
@@ -6,15 +5,13 @@ export { RasterSource, type RasterSourceProps } from "./Components/Pipeline/Rast
 export { Overflow } from "./Components/Pipeline/Overflow";
 export { Viewer } from "./Components/Viewer";
 
-// Design system
 export { tokens, type Tokens } from "./design-system/tokens";
 export { MODES, DEFAULT_MODE, type Mode } from "./modes";
 export { ErrorChip } from "./design-system/ErrorChip";
 export { LoadingOverlay } from "./design-system/LoadingOverlay";
 export { RenderStrip } from "./design-system/RenderStrip";
-export { SidebarRow, type SidebarItem } from "./design-system/Sidebar";
+export { SidebarRow, type SidebarItem } from "./design-system/SidebarRow";
 
-// Blend modes
 export { Color } from "./Components/BlendModes/Color";
 export { ColorBurn } from "./Components/BlendModes/ColorBurn";
 export { ColorDodge } from "./Components/BlendModes/ColorDodge";
@@ -31,7 +28,6 @@ export { Saturation } from "./Components/BlendModes/Saturation";
 export { Screen } from "./Components/BlendModes/Screen";
 export { SoftLight } from "./Components/BlendModes/SoftLight";
 
-// Photoshop blend modes
 export { DarkerColor } from "./Components/BlendModes/DarkerColor";
 export { Divide } from "./Components/BlendModes/Divide";
 export { HardMix } from "./Components/BlendModes/HardMix";
@@ -43,7 +39,6 @@ export { PinLight } from "./Components/BlendModes/PinLight";
 export { Subtract } from "./Components/BlendModes/Subtract";
 export { VividLight } from "./Components/BlendModes/VividLight";
 
-// Blend utilities
 export { darken } from "./Components/BlendModes/Darken";
 export { difference } from "./Components/BlendModes/Difference";
 export { exclusion } from "./Components/BlendModes/Exclusion";
@@ -71,7 +66,6 @@ export { subtract } from "./Components/BlendModes/Subtract";
 export { blendPixels, type BlendFormula } from "./Components/BlendModes/utils/blend-pixels";
 export { vividLight } from "./Components/BlendModes/VividLight";
 
-// Generative
 export { ConicGradient } from "./Components/Generative/ConicGradient";
 export { DotPattern } from "./Components/Generative/DotPattern";
 export { GridPattern } from "./Components/Generative/GridPattern";
@@ -80,10 +74,8 @@ export { LinePattern } from "./Components/Generative/LinePattern";
 export { ProceduralNoise } from "./Components/Generative/ProceduralNoise";
 export { RadialGradient } from "./Components/Generative/RadialGradient";
 
-// Raster sources
 export { Image } from "./Components/Image/Image";
 
-// Effects
 export { Blur } from "./Components/Effects/Blur";
 export { applyUniformBlur } from "./Components/Effects/Blur";
 export { applyVariableBlur } from "./Components/Effects/Blur";
@@ -107,7 +99,6 @@ export { applyOpacity, applyMappedOpacity } from "./Components/Effects/Opacity";
 export { applySaturate, applyMappedSaturate } from "./Components/Effects/Saturate";
 export { applySepia } from "./Components/Effects/Sepia";
 
-// Pixel effects
 export { Bilateral } from "./Components/Effects/Bilateral";
 export { Bloom } from "./Components/Effects/Bloom";
 export { ChannelMixer } from "./Components/Effects/ChannelMixer";
@@ -156,19 +147,18 @@ export { applySharpen, applyMappedSharpen } from "./Components/Effects/Sharpen";
 export { applyShockFilter, applyMappedShockFilter } from "./Components/Effects/ShockFilter";
 export { applyThreshold, applyMappedThreshold } from "./Components/Effects/Threshold";
 
-// Pixel effect utilities
 export { mixBlend } from "./Components/Effects/utils/mix-blend";
 export { padImageData } from "./Components/Effects/utils/pad-image-data";
 
-// Hooks
 export { CanvasContext, useCanvasContext } from "./context/canvas";
 export { useContainerSize } from "./hooks/useContainerSize";
 export { useMode } from "./hooks/useMode";
+export { useProps } from "./hooks/useProps";
 export { useSearchParam } from "./hooks/useSearchParam";
 
-// Pipeline types
+export { staticFile } from "./utils/staticFile";
+
 export { type EffectResult } from "./Components/utils/raster";
 export { type PipelineError } from "./utils/errors";
 
-// Types
 export { type CanvasContextValue, type CanvasDimensions, type Viewport } from "./context/canvas";

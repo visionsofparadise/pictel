@@ -33,7 +33,6 @@ export function applyOutline(
 	const height = pixels.height
 	const src = pixels.data
 
-	// Build a single-channel grayscale ImageData (R=G=B=luminance, A=255).
 	const lumData = new Uint8ClampedArray(width * height * 4)
 
 	for (let px = 0; px < src.length; px += 4) {
@@ -47,7 +46,6 @@ export function applyOutline(
 
 	const lumImage = new ImageData(lumData, width, height)
 
-	// Two Gaussian blurs at σ and k·σ.
 	const blur1 = normalizeResult(applyUniformBlur(lumImage, sigma))
 	const blur2 = normalizeResult(applyUniformBlur(lumImage, sigma * kappa))
 
@@ -61,9 +59,6 @@ export function applyOutline(
 	const ox2 = blur2.overflow.left
 	const oy2 = blur2.overflow.top
 
-	// XDoG soft-threshold per pixel, written back into a same-size output that
-	// preserves the source alpha channel. The blur overflow is consumed here —
-	// XDoG output is the same dimensions as the input.
 	const output = new Uint8ClampedArray(src.length)
 
 	for (let y = 0; y < height; y++) {
@@ -75,9 +70,6 @@ export function applyOutline(
 			const g1 = buf1[idx1]!
 			const g2 = buf2[idx2]!
 
-			// Canonical XDoG operator (stylized formulation): S = (1+τ)·G_σ − τ·G_kσ.
-			// Uniform regions reproduce input luminance; edges deviate via the
-			// amplified G_σ − G_kσ term. Normalize to [0, 1] for the sigmoid.
 			const xdog = ((1 + TAU) * g1 - TAU * g2) / 255
 
 			let value: number

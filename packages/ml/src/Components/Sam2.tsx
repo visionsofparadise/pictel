@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ReactNode } from "react"
+import { useCallback, useMemo, type ReactNode } from "react"
 import { Pipeline, type PipelineCallback } from "pictel"
 import { Sam2Model, AutoProcessor, Tensor, RawImage } from "@huggingface/transformers"
 import type { Processor } from "@huggingface/transformers"
@@ -155,21 +155,19 @@ export function Sam2({
 	negativePoints = [],
 	children,
 }: Sam2Props) {
-	const resourcesRef = useRef<Promise<Sam2Resources>>(undefined)
-
-	useEffect(() => {
-		resourcesRef.current = requireWebGPU().then(() => getOrLoadSam2(model, revision))
-	}, [model, revision])
+	const resourcesPromise = useMemo(
+		() => requireWebGPU().then(() => getOrLoadSam2(model, revision)),
+		[model, revision],
+	)
 
 	const effect = useCallback<PipelineCallback>(
 		async (target) => {
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			const { model: sam2Model, processor } = await resourcesRef.current!
+			const { model: sam2Model, processor } = await resourcesPromise
 			const pixels = await sam2Segment(target, sam2Model, processor, points, negativePoints)
 
 			return { pixels }
 		},
-		[model, revision, points, negativePoints],
+		[resourcesPromise, points, negativePoints],
 	)
 
 	return (

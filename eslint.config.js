@@ -246,7 +246,19 @@ export default tseslint.config(
   {
     files: ["**/*.js", "**/*.mjs", "**/*.cjs"],
     ...tseslint.configs.disableTypeChecked,
+    languageOptions: {
+      ...tseslint.configs.disableTypeChecked.languageOptions,
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+        ...globals.es2022,
+      },
+    },
     rules: {
+      // Keep `disableTypeChecked`'s `off` settings — a bare `rules` key here
+      // would otherwise overwrite the spread above and re-enable type-aware
+      // rules on JS files that have no tsconfig program (they then crash).
+      ...tseslint.configs.disableTypeChecked.rules,
       "prefer-arrow-callback": "error",
       "prefer-const": "error",
       "no-var": "error",

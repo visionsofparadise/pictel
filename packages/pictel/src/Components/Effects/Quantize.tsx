@@ -7,10 +7,6 @@ import { mixBlend } from "./utils/mix-blend"
 
 type Rgb = readonly [number, number, number]
 
-/**
- * Returns the index of the palette entry minimizing squared Euclidean RGB distance.
- * Linear scan; palettes are small (typically ≤ 64) so no acceleration structure is needed.
- */
 function nearestColor(red: number, green: number, blue: number, palette: ReadonlyArray<Rgb>): number {
 	let bestIndex = 0
 	let bestDistance = Infinity
@@ -77,7 +73,6 @@ export function derivePalette(pixels: ImageData, count: number): Array<[number, 
 	const buckets: Array<MedianCutBucket> = [{ samples }]
 
 	while (buckets.length < count) {
-		// Find bucket with longest dimension across R/G/B.
 		let targetIndex = -1
 		let targetChannel: 0 | 1 | 2 = 0
 		let targetRange = -1
@@ -118,9 +113,6 @@ export function derivePalette(pixels: ImageData, count: number): Array<[number, 
 		}
 
 		if (targetIndex === -1 || targetRange <= 0) {
-			// All remaining buckets are degenerate (single sample or zero range).
-			// We've already verified uniqueKeys.size >= count, so this shouldn't
-			// happen; bail to avoid infinite loop.
 			break
 		}
 
@@ -153,7 +145,6 @@ export function derivePalette(pixels: ImageData, count: number): Array<[number, 
 	})
 }
 
-// Bayer 4×4 matrix (canonical), divided by 16, shifted to [-0.5, 0.5).
 const BAYER_4: ReadonlyArray<number> = [
 	0, 8, 2, 10,
 	12, 4, 14, 6,
@@ -161,7 +152,6 @@ const BAYER_4: ReadonlyArray<number> = [
 	15, 7, 13, 5,
 ].map((value) => value / 16 - 0.5)
 
-// Bayer 8×8 matrix (canonical), divided by 64, shifted to [-0.5, 0.5).
 const BAYER_8: ReadonlyArray<number> = [
 	0, 32, 8, 40, 2, 34, 10, 42,
 	48, 16, 56, 24, 50, 18, 58, 26,
@@ -238,7 +228,6 @@ export function applyQuantize(
 		return new ImageData(output, width, height)
 	}
 
-	// Error-diffusion (Floyd–Steinberg or Atkinson).
 	const buffer = new Float32Array(width * height * 3)
 
 	for (let srcIndex = 0, bufIndex = 0; srcIndex < src.length; srcIndex += 4, bufIndex += 3) {
@@ -250,14 +239,12 @@ export function applyQuantize(
 	const distribute =
 		dither === "floyd-steinberg"
 			? (xx: number, yy: number, errR: number, errG: number, errB: number) => {
-				// Floyd–Steinberg: 7/16 E, 3/16 SW, 5/16 S, 1/16 SE
 				diffuse(buffer, width, height, xx + 1, yy, errR, errG, errB, 7 / 16)
 				diffuse(buffer, width, height, xx - 1, yy + 1, errR, errG, errB, 3 / 16)
 				diffuse(buffer, width, height, xx, yy + 1, errR, errG, errB, 5 / 16)
 				diffuse(buffer, width, height, xx + 1, yy + 1, errR, errG, errB, 1 / 16)
 			}
 			: (xx: number, yy: number, errR: number, errG: number, errB: number) => {
-				// Atkinson: 1/8 each to E, EE, SW, S, SE, SS — only 6/8 propagated
 				const weight = 1 / 8
 				diffuse(buffer, width, height, xx + 1, yy, errR, errG, errB, weight)
 				diffuse(buffer, width, height, xx + 2, yy, errR, errG, errB, weight)

@@ -23,7 +23,6 @@ function boxBlurPass(
 
 	const kernelSize = 2 * radius + 1;
 
-	// Horizontal pass: input → output
 	for (let oy = 0; oy < height; oy++) {
 		for (let channel = 0; channel < 4; channel++) {
 			let acc = 0;
@@ -44,7 +43,6 @@ function boxBlurPass(
 		}
 	}
 
-	// Vertical pass: output → vBuffer, then copy back to output
 	const vBuffer = new Float64Array(output.length);
 
 	for (let ox = 0; ox < width; ox++) {
@@ -101,7 +99,6 @@ export function applyUniformBlur(pixels: ImageData, radius: number): EffectResul
 	const outH = srcH + 2 * blurRadius;
 	const src = pixels.data;
 
-	// Embed source into edge-clamped padded buffer
 	const bufferA = new Float64Array(outW * outH * 4);
 
 	for (let oy = 0; oy < outH; oy++) {
@@ -121,12 +118,10 @@ export function applyUniformBlur(pixels: ImageData, radius: number): EffectResul
 	const bufferB = new Float64Array(outW * outH * 4);
 	const radii = boxRadiiForGaussian(blurRadius);
 
-	// 3-pass box blur alternating between buffers
 	boxBlurPass(bufferA, bufferB, outW, outH, radii[0]);
 	boxBlurPass(bufferB, bufferA, outW, outH, radii[1]);
 	boxBlurPass(bufferA, bufferB, outW, outH, radii[2]);
 
-	// Clamp to Uint8ClampedArray output
 	const outData = new Uint8ClampedArray(outW * outH * 4);
 
 	for (let offset = 0; offset < outData.length; offset++) {
@@ -166,7 +161,6 @@ export function applyVariableBlur(pixels: ImageData, map: ImageData, radius: num
 		return { pixels, overflow: { top: 0, right: 0, bottom: 0, left: 0 } };
 	}
 
-	// Build mip levels from radius 1 to maxRadius (~8 levels)
 	const mipCount = Math.min(8, maxRadius);
 	const mipLevels: Array<{ radius: number; data: Float64Array; overflow: number }> = [];
 
@@ -220,7 +214,6 @@ export function applyVariableBlur(pixels: ImageData, map: ImageData, radius: num
 				continue;
 			}
 
-			// Find bracketing mip levels
 			let lowerMip = mipLevels[0]!;
 			let upperMip = mipLevels[0]!;
 
@@ -307,8 +300,6 @@ export function Blur({ radius, mode = "parameter", map, children }: BlurProps) {
 					return applyVariableBlur(target, mapPixels, radius)
 				}
 
-				// Mix mode: blur at full intensity, then blend with original per map.
-				// The blur result has overflow (padding), so pad original and map to match.
 				const result = normalizeResult(applyUniformBlur(target, radius))
 				const { overflow } = result
 				const paddedTarget = padImageData(target, overflow.top, overflow.right, overflow.bottom, overflow.left)

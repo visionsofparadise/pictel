@@ -1,6 +1,7 @@
 import { type CSSProperties, type ComponentProps, Children, isValidElement } from "react";
 import type { CanvasDimensions } from "../context/canvas";
-import { Sidebar, type SidebarItem } from "../design-system/Sidebar";
+import { Sidebar } from "../design-system/Sidebar";
+import type { SidebarItem } from "../design-system/SidebarRow";
 import { tokens } from "../design-system/tokens";
 import { useMode } from "../hooks/useMode";
 import { useSearchParam } from "../hooks/useSearchParam";

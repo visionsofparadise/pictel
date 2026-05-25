@@ -1,12 +1,14 @@
 import { describe, expect, test } from "vitest";
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 import {
 	Brightness,
 	Canvas,
 	Grayscale,
 	Invert,
 	Multiply,
+	useCanvasContext,
 } from "../index";
+import { createPipelineError } from "../utils/errors";
 import { renderCanvas } from "./utils/render-canvas";
 import { readPipelineOutput, readPixel } from "./utils/read-pipeline-output";
 import { gradientImage, solidImage } from "./utils/test-images";
@@ -411,6 +413,138 @@ describe.sequential("resize behavior", () => {
 			expect(pipeline.hasAttribute("data-pictel-pending")).toBe(false);
 			expect(canvas.width).toBe(initialW);
 			expect(canvas.height).toBe(initialH);
+		} finally {
+			handle.cleanup();
+		}
+	});
+});
+
+// Poll for an element matching a selector to appear inside a container.
+function waitForElement(
+	container: HTMLElement,
+	selector: string,
+	options: { timeout?: number } = {},
+): Promise<HTMLElement> {
+	const timeout = options.timeout ?? 5000;
+
+	return new Promise((resolve, reject) => {
+		const start = performance.now();
+		function check(): void {
+			const element = container.querySelector<HTMLElement>(selector);
+			if (element) {
+				resolve(element);
+
+				return;
+			}
+			if (performance.now() - start > timeout) {
+				reject(new Error(`waitForElement timed out waiting for ${selector}`));
+
+				return;
+			}
+			requestAnimationFrame(check);
+		}
+		requestAnimationFrame(check);
+	});
+}
+
+// Poll for an attribute to appear on an element, using requestAnimationFrame.
+// reportError fires from a mount effect, so the attribute lands a frame after
+// the initial commit.
+function waitForAttribute(
+	element: HTMLElement,
+	name: string,
+	options: { timeout?: number } = {},
+): Promise<void> {
+	const timeout = options.timeout ?? 5000;
+
+	return new Promise((resolve, reject) => {
+		const start = performance.now();
+		function check(): void {
+			if (element.hasAttribute(name)) {
+				resolve();
+
+				return;
+			}
+			if (performance.now() - start > timeout) {
+				reject(new Error(`waitForAttribute timed out waiting for ${name}`));
+
+				return;
+			}
+			requestAnimationFrame(check);
+		}
+		requestAnimationFrame(check);
+	});
+}
+
+// A test-only child that reports a pipeline error into CanvasContext on mount.
+// Used to exercise the render-mode `data-pictel-error` surface.
+function ErrorReporter() {
+	const { reportError } = useCanvasContext();
+	useEffect(() => {
+		reportError(createPipelineError("test", new Error("boom")));
+	}, [reportError]);
+
+	return null;
+}
+
+describe.sequential("render-mode query contract", () => {
+	test("?width=/?height= override the dimensions prop in render mode", async () => {
+		window.history.replaceState(null, "", "/?width=96&height=48");
+		const handle = renderCanvas(
+			<Canvas mode="render" dimensions={{ width: 64, height: 64 }}>
+				<Grayscale>
+					<img src={solidImage("#ff0000", 64, 64)} />
+				</Grayscale>
+			</Canvas>,
+		);
+		try {
+			await waitForPipeline(handle.container);
+			const pipeline = getPipeline(handle.container);
+			const canvas = pipeline.querySelector<HTMLCanvasElement>(
+				":scope > [data-pictel-raster] > canvas",
+			);
+			if (!canvas) throw new Error("no output canvas found");
+			// captureDimensions reflects the query values, not the prop.
+			expect(canvas.width).toBe(96);
+			expect(canvas.height).toBe(48);
+		} finally {
+			handle.cleanup();
+			window.history.replaceState(null, "", "/");
+		}
+	});
+
+	test("data-pictel-error is present in render mode when an error is reported", async () => {
+		const handle = renderCanvas(
+			<Canvas mode="render" dimensions={{ width: 64, height: 64 }}>
+				<ErrorReporter />
+			</Canvas>,
+		);
+		try {
+			const root = await waitForElement(handle.container, "[data-pictel-canvas]");
+			await waitForAttribute(root, "data-pictel-error");
+			const parsed = JSON.parse(root.getAttribute("data-pictel-error") ?? "[]") as Array<{
+				id: string;
+				message: string;
+			}>;
+			expect(parsed).toEqual([{ id: "test", message: "boom" }]);
+		} finally {
+			handle.cleanup();
+		}
+	});
+
+	test("data-pictel-error is absent in render mode when no error is reported", async () => {
+		const handle = renderCanvas(
+			<Canvas mode="render" dimensions={{ width: 64, height: 64 }}>
+				<Grayscale>
+					<img src={solidImage("#ff0000", 64, 64)} />
+				</Grayscale>
+			</Canvas>,
+		);
+		try {
+			await waitForPipeline(handle.container);
+			const root = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
+			if (!root) throw new Error("no [data-pictel-canvas] root found");
+			expect(root.hasAttribute("data-pictel-error")).toBe(false);
 		} finally {
 			handle.cleanup();
 		}

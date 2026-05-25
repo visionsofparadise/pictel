@@ -5,21 +5,14 @@ import { luminance } from "./utils/luminance"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-const AA = 0.07 // anti-alias softness, in normalized line units
-const HATCH_LO = 0.55 // darkness at which cross-hatching begins
-const HATCH_HI = 0.95 // darkness at which cross-hatching is fully dense
+const AA = 0.07
+const HATCH_LO = 0.55
+const HATCH_HI = 0.95
 
 function clamp01(value: number): number {
 	return value < 0 ? 0 : value > 1 ? 1 : value
 }
 
-/**
- * Coverage of an inked stripe of half-width `radius` at distance `dist` from a
- * line centre, both in normalized [0, 1] line units. A one-sided ramp, not a
- * centred threshold: it is exactly 0 for every `dist` once `radius` reaches 0,
- * so a white tone leaves genuinely blank paper. A symmetric threshold would
- * straddle the line centre and hold it at 50% ink even at zero radius.
- */
 function stripeCoverage(radius: number, dist: number): number {
 	return clamp01((radius - dist) / AA)
 }
@@ -58,13 +51,11 @@ export function applyEngrave(
 			const darkness = 1 - lum
 			const warp = relief * (lum - 0.5)
 
-			// Primary lines along `angle`, phase-warped by tone.
 			const posH = y * cosA - x * sinA + warp
 			const fracH = posH / period - Math.floor(posH / period)
-			const distH = Math.min(fracH, 1 - fracH) * 2 // 0 at line centre, 1 between lines
+			const distH = Math.min(fracH, 1 - fracH) * 2
 			const coverH = stripeCoverage(darkness, distH)
 
-			// Cross-hatch: perpendicular lines that fade in across the darkest tones.
 			let coverV = 0
 
 			if (crossHatch) {

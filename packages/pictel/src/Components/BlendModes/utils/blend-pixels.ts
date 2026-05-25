@@ -24,14 +24,11 @@ export function blendPixels(
     const dstB = dd[offset + 2]!, dstA255 = dd[offset + 3]!
     /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-    // Normalize to 0-1
     const sr = srcR / 255, sg = srcG / 255, sb = srcB / 255, sa = srcA255 / 255
     const dr = dstR / 255, dg = dstG / 255, db = dstB / 255, da = dstA255 / 255
 
-    // Apply blend formula to RGB (alpha handled separately)
     const [br, bg, bb] = formula(sr, sg, sb, dr, dg, db)
 
-    // Porter-Duff "over" compositing (straight alpha)
     const outA = sa + da * (1 - sa)
 
     if (outA === 0) {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ReactNode } from "react"
+import { useCallback, useMemo, type ReactNode } from "react"
 import type { Pipeline } from "@huggingface/transformers"
 import { Pipeline as PictelPipeline, type PipelineCallback } from "pictel"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
@@ -39,23 +39,19 @@ export function DepthMap({
 	revision = DEFAULT_REVISION,
 	children,
 }: DepthMapProps) {
-	const pipelineRef = useRef<Promise<Pipeline>>(undefined)
-
-	useEffect(() => {
-		pipelineRef.current = requireWebGPU().then(() =>
-			getOrLoadPipeline("depth-estimation", model, revision),
-		)
-	}, [model, revision])
+	const pipelinePromise = useMemo(
+		() => requireWebGPU().then(() => getOrLoadPipeline("depth-estimation", model, revision)),
+		[model, revision],
+	)
 
 	const effect = useCallback<PipelineCallback>(
 		async (target) => {
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			const pipe = await pipelineRef.current!
+			const pipe = await pipelinePromise
 			const pixels = await estimateDepth(target, pipe)
 
 			return { pixels }
 		},
-		[model, revision],
+		[pipelinePromise],
 	)
 
 	return (

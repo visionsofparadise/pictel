@@ -51,8 +51,6 @@ export function Overflow({ children }: OverflowProps) {
 		function apply(): void {
 			if (!pipelineEl || !rasterEl) return;
 
-			// During pending (or initial mount before first resolve) do nothing —
-			// the pipeline renders plain. Overflow attrs may be stale or absent.
 			if (pipelineEl.getAttribute("data-pictel-pending") === "true") {
 				clearStyles();
 

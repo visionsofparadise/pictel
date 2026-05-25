@@ -12,21 +12,27 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": ["dist", "shell"],
   "scripts": {
-    "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
+    "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\" \"tsc -p shell/tsconfig.json --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
     "unit": "vitest run",
     "build": "tsup"
   },
   "dependencies": {
     "pictel": "*",
     "puppeteer": "latest",
-    "sharp": "latest"
+    "sharp": "latest",
+    "vite": "latest",
+    "@vitejs/plugin-react": "latest",
+    "jiti": "latest",
+    "commander": "latest"
   },
   "devDependencies": {
     "tsup": "latest",
     "vitest": "latest",
     "concurrently": "latest",
-    "@types/node": "latest"
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
   }
 }

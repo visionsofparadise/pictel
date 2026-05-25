@@ -5,11 +5,6 @@ import { boxBlurChannel } from "../utils/box-blur-channel"
 import { mixBlend } from "../utils/mix-blend"
 import { applyKernels, SCHARR_X, SCHARR_Y, SOBEL_X, SOBEL_Y } from "./kernel"
 
-/**
- * Integration scale (box-blur radius) at which the structure tensor is smoothed
- * in `applyStructureField`. Larger values yield a smoother, more coherent
- * orientation field at the cost of fine detail.
- */
 const INTEGRATION_RADIUS = 4
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -104,7 +99,6 @@ export function applyStructureField(
 	const { gx, gy } = applyKernels(pixels, kernelX, kernelY)
 
 	const count = width * height
-	// Structure-tensor components: tensorE = gx*gx, tensorF = gx*gy, tensorG = gy*gy.
 	const tensorE = new Float32Array(count)
 	const tensorF = new Float32Array(count)
 	const tensorG = new Float32Array(count)
@@ -117,8 +111,6 @@ export function applyStructureField(
 		tensorG[pixelIdx] = dy * dy
 	}
 
-	// Smoothing the tensor (not the gradient) is the key step: it averages
-	// orientations without the opposite-vector cancellation of raw gradients.
 	const eSmooth = boxBlurChannel(tensorE, width, height, INTEGRATION_RADIUS)
 	const fSmooth = boxBlurChannel(tensorF, width, height, INTEGRATION_RADIUS)
 	const gSmooth = boxBlurChannel(tensorG, width, height, INTEGRATION_RADIUS)
@@ -144,8 +136,6 @@ export function applyStructureField(
 			const lambda1 = trace / 2 + discriminant
 			const lambda2 = trace / 2 - discriminant
 
-			// Dominant-gradient orientation; the contour-flow direction is
-			// perpendicular to it.
 			const phi = 0.5 * Math.atan2(2 * fv, ev - gv)
 			const flow = phi + Math.PI / 2
 			const cos = Math.cos(flow)

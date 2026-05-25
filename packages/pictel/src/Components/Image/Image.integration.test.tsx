@@ -51,6 +51,30 @@ function waitForLeaf(container: HTMLElement, timeoutMs = 1000): Promise<HTMLElem
 }
 
 /**
+ * Wait until the Canvas root has `data-pictel-pending` set. Polls a few
+ * frames to give React's `useSyncExternalStore` re-render time to flush after
+ * a descendant Pipeline / RasterSource registers and notifies pending.
+ */
+function waitForCanvasPending(container: HTMLElement, timeoutMs = 1000): Promise<HTMLElement> {
+	return new Promise((resolve, reject) => {
+		const start = performance.now();
+		const check = () => {
+			const canvasRoot = container.querySelector<HTMLElement>("[data-pictel-canvas]");
+			if (canvasRoot && canvasRoot.hasAttribute("data-pictel-pending")) {
+				resolve(canvasRoot);
+				return;
+			}
+			if (performance.now() - start > timeoutMs) {
+				reject(new Error(`waitForCanvasPending: data-pictel-pending not set on [data-pictel-canvas] within ${String(timeoutMs)}ms`));
+				return;
+			}
+			requestAnimationFrame(check);
+		};
+		setTimeout(check, 0);
+	});
+}
+
+/**
  * Mock `HTMLImageElement.prototype.decode` so tests have deterministic control
  * over decode resolution and the resulting `naturalWidth`/`naturalHeight`.
  *
@@ -153,7 +177,7 @@ describe.sequential("Image integration", () => {
 		}
 	});
 
-	test("pending during decode: leaf carries data-pictel-pending until decode resolves", async () => {
+	test("pending during decode: Canvas carries data-pictel-pending until decode resolves", async () => {
 		const src = solidImage("blue", 50, 50);
 		const d = deferred<void>();
 		mockImageDecodeDeferred(d, 50, 50);
@@ -165,15 +189,14 @@ describe.sequential("Image integration", () => {
 		);
 
 		try {
-			const leaf = await waitForLeaf(handle.container);
-
-			expect(leaf.hasAttribute("data-pictel-pending")).toBe(true);
+			const canvasRoot = await waitForCanvasPending(handle.container);
+			expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(true);
 
 			d.resolve();
 
 			await waitForPipeline(handle.container);
 
-			expect(leaf.hasAttribute("data-pictel-pending")).toBe(false);
+			expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(false);
 		} finally {
 			handle.cleanup();
 		}
@@ -277,8 +300,8 @@ describe.sequential("Image integration", () => {
 			</Canvas>,
 		);
 
-		const leafBefore = await waitForLeaf(handle.container);
-		expect(leafBefore.hasAttribute("data-pictel-pending")).toBe(true);
+		const canvasRoot = await waitForCanvasPending(handle.container);
+		expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(true);
 
 		handle.cleanup();
 

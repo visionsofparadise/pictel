@@ -1,10 +1,10 @@
-import { useContext, useId, useLayoutEffect, useRef, type ReactNode } from "react";
+import { useContext, useId, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { CanvasContext } from "../../context/canvas";
+import { NULL_REGISTRY, PipelineContext, createRegistry } from "../../context/pipeline";
 import { createPipelineError } from "../../utils/errors";
 import { observeSubtree } from "../../utils/observe";
 import { drawToCanvas, normalizeResult, type EffectResult } from "../utils/raster";
 import { captureWrapper } from "./utils/capture";
-import { acquirePending, releasePending } from "./utils/pending";
 import { getOwnUnloadedImages } from "./utils/scope";
 
 /**
@@ -80,6 +80,11 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 	const captureDimensions = canvasContextValue?.captureDimensions ?? { width: preW, height: preH };
 	const reportError = canvasContextValue?.reportError;
 
+	const parentContext = useContext(PipelineContext);
+	const parent = parentContext ?? NULL_REGISTRY;
+	const selfRegistry = useMemo(() => createRegistry(), []);
+	const pendingRef = useRef(true);
+
 	const hasApply = apply !== undefined;
 	const hasMap = map !== undefined;
 
@@ -102,6 +107,13 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 		let inFlight = false;
 		let rerunQueued = false;
 
+		const unregister = parent.register(id, () => pendingRef.current);
+		const unsubscribe = selfRegistry.subscribe(() => {
+			if (signal.aborted) return;
+
+			gate();
+		});
+
 		function gate() {
 			if (signal.aborted || !pipelineEl || !childrenEl || !rasterEl || !canvasEl) return;
 
@@ -111,11 +123,7 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 				return;
 			}
 
-			if (childrenEl.querySelector("[data-pictel-pending]") !== null) return;
-
-			if (applyEl !== null && applyEl.querySelector("[data-pictel-pending]") !== null) return;
-
-			if (mapEl !== null && mapEl.querySelector("[data-pictel-pending]") !== null) return;
+			if (selfRegistry.anyPending()) return;
 
 			const unloaded = [
 				...getOwnUnloadedImages(childrenEl),
@@ -145,7 +153,8 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 
 			if (mapObserver !== null) mapObserver.disconnect();
 
-			acquirePending(pipelineEl);
+			pendingRef.current = true;
+			parent.notify(id);
 
 			void Promise.resolve().then(() => execute());
 		}
@@ -201,7 +210,8 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 					reportError(createPipelineError(id, error));
 				}
 			} finally {
-				if (pipelineEl) releasePending(pipelineEl);
+				pendingRef.current = false;
+				parent.notify(id);
 
 				inFlight = false;
 
@@ -247,6 +257,12 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 		return () => {
 			controller.abort();
 
+			unsubscribe();
+			unregister();
+
+			pendingRef.current = false;
+			parent.notify(id);
+
 			contentObserver.disconnect();
 
 			if (applyObserver !== null) applyObserver.disconnect();
@@ -263,17 +279,17 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 			delete pipelineEl.dataset.pictelOverflowBottom;
 			delete pipelineEl.dataset.pictelOverflowLeft;
 		};
-	 
-	}, [id, effect, hasApply, hasMap, captureDimensions, reportError]);
+
+	}, [id, effect, hasApply, hasMap, captureDimensions, reportError, parent, selfRegistry]);
 
 	return (
-		<div
-			ref={pipelineRef}
-			data-pictel-pipeline
-			data-pictel-pending
-			style={{ position: "relative", isolation: "isolate" }}
-		>
-			<div ref={childrenRef}>{children}</div>
+		<PipelineContext.Provider value={selfRegistry}>
+			<div
+				ref={pipelineRef}
+				data-pictel-pipeline
+				style={{ position: "relative", isolation: "isolate" }}
+			>
+				<div ref={childrenRef}>{children}</div>
 			{hasApply && (
 				<div
 					style={{
@@ -322,7 +338,8 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 					style={{ display: "block", width: "100%", height: "100%" }}
 				/>
 			</div>
-		</div>
+			</div>
+		</PipelineContext.Provider>
 	);
 }
 

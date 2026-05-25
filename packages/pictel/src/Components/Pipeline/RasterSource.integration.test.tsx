@@ -53,6 +53,30 @@ function waitForLeaf(container: HTMLElement, timeoutMs = 1000): Promise<HTMLElem
 	});
 }
 
+/**
+ * Wait until the Canvas root has `data-pictel-pending` set. Polls a few
+ * frames to give React's `useSyncExternalStore` re-render time to flush after
+ * a descendant Pipeline / RasterSource registers and notifies pending.
+ */
+function waitForCanvasPending(container: HTMLElement, timeoutMs = 1000): Promise<HTMLElement> {
+	return new Promise((resolve, reject) => {
+		const start = performance.now();
+		const check = () => {
+			const canvasRoot = container.querySelector<HTMLElement>("[data-pictel-canvas]");
+			if (canvasRoot && canvasRoot.hasAttribute("data-pictel-pending")) {
+				resolve(canvasRoot);
+				return;
+			}
+			if (performance.now() - start > timeoutMs) {
+				reject(new Error(`waitForCanvasPending: data-pictel-pending not set on [data-pictel-canvas] within ${String(timeoutMs)}ms`));
+				return;
+			}
+			requestAnimationFrame(check);
+		};
+		setTimeout(check, 0);
+	});
+}
+
 // --- Integration tests ---
 
 describe.sequential("RasterSource integration", () => {
@@ -120,19 +144,19 @@ describe.sequential("RasterSource integration", () => {
 		);
 
 		try {
-			// Poll briefly for React's commit + useLayoutEffect to flush. The leaf
-			// pipeline div appears once React commits and useLayoutEffect runs
-			// acquirePending — both happen synchronously inside React but the
-			// createRoot render call returns before the commit lands.
-			const leaf = await waitForLeaf(handle.container);
+			// Poll for the Canvas-root pending mirror — the leaf registers with
+			// the parent registry in its layout effect; Canvas re-renders via
+			// `useSyncExternalStore` on the resulting notify, flipping the
+			// attribute. The createRoot.render call returns before any of this.
+			const canvasRoot = await waitForCanvasPending(handle.container);
 
-			expect(leaf.hasAttribute("data-pictel-pending")).toBe(true);
+			expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(true);
 
 			d.resolve();
 
 			await waitForPipeline(handle.container);
 
-			expect(leaf.hasAttribute("data-pictel-pending")).toBe(false);
+			expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(false);
 		} finally {
 			handle.cleanup();
 		}
@@ -215,9 +239,10 @@ describe.sequential("RasterSource integration", () => {
 			</Canvas>,
 		);
 
-		// Let React commit so the leaf mounts and acquires pending.
-		const leafBefore = await waitForLeaf(handle.container);
-		expect(leafBefore.hasAttribute("data-pictel-pending")).toBe(true);
+		// Let React commit so the leaf mounts, registers, and the Canvas
+		// re-renders with the pending mirror.
+		const canvasRoot = await waitForCanvasPending(handle.container);
+		expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(true);
 
 		handle.cleanup();
 

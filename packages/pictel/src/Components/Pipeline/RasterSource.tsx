@@ -1,5 +1,5 @@
-import { useLayoutEffect, useRef } from "react";
-import { acquirePending, releasePending } from "./utils/pending";
+import { useContext, useId, useLayoutEffect, useRef } from "react";
+import { NULL_REGISTRY, PipelineContext } from "../../context/pipeline";
 
 /**
  * Props for the {@link RasterSource} primitive.
@@ -16,8 +16,9 @@ export interface RasterSourceProps {
 	 * callback runs.
 	 *
 	 * Stability matters: the layout effect re-runs whenever `draw`'s identity
-	 * changes, which re-acquires pending and triggers a full re-capture in any
-	 * wrapping Pipeline. Consumers should wrap `draw` in `useCallback` and use
+	 * changes, which re-flips this leaf to pending and triggers a full
+	 * re-capture in any wrapping Pipeline. Consumers should wrap `draw` in
+	 * `useCallback` and use
 	 * content-based keys (e.g. a serialized stops array) in the deps for inputs
 	 * that may be inline-literal arrays or objects.
 	 */
@@ -31,12 +32,13 @@ export interface RasterSourceProps {
  * it via {@link tryFastPath} and reads the canvas ImageData directly when
  * intrinsic dims match the requested capture dims.
  *
- * The `data-pictel-pending` attribute is managed entirely through
- * `acquirePending` / `releasePending` (refcounted, StrictMode-safe). The JSX
- * does NOT set the attribute — instead `useLayoutEffect` acquires pending
- * synchronously before any parent pipeline's layout effect runs (child layout
- * effects run before parents per React semantics), so the parent's first
- * gate observes the leaf as pending.
+ * Pending state is reported via `PipelineContext`: `useLayoutEffect` registers
+ * with the parent registry and flips a JS pendingRef synchronously before any
+ * wrapping Pipeline's layout effect runs (child layout effects run before
+ * parents per React semantics), so the parent's first gate observes this leaf
+ * as pending via `registry.anyPending()`. The single Canvas-root
+ * `data-pictel-pending` attribute is derived from the registry — no
+ * per-element pending attribute exists.
  *
  * Closed API: no `className`, `style`, `id`, `data-*`, `aria-*`, event
  * handlers, or ref forwarding. Wrap in a styled `<div>` if positioning is
@@ -46,8 +48,13 @@ export interface RasterSourceProps {
  * @category Pipeline
  */
 export function RasterSource({ width, height, draw }: RasterSourceProps) {
+	const id = useId();
 	const pipelineRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+
+	const parentContext = useContext(PipelineContext);
+	const parent = parentContext ?? NULL_REGISTRY;
+	const pendingRef = useRef(true);
 
 	useLayoutEffect(() => {
 		const pipelineEl = pipelineRef.current;
@@ -55,7 +62,10 @@ export function RasterSource({ width, height, draw }: RasterSourceProps) {
 
 		if (!pipelineEl || !canvasEl) return;
 
-		acquirePending(pipelineEl);
+		const unregister = parent.register(id, () => pendingRef.current);
+
+		pendingRef.current = true;
+		parent.notify(id);
 
 		const controller = new AbortController();
 		const { signal } = controller;
@@ -67,20 +77,24 @@ export function RasterSource({ width, height, draw }: RasterSourceProps) {
 			() => {
 				if (signal.aborted) return;
 
-				releasePending(pipelineEl);
+				pendingRef.current = false;
+				parent.notify(id);
 			},
 			() => {
 				if (signal.aborted) return;
 
-				releasePending(pipelineEl);
+				pendingRef.current = false;
+				parent.notify(id);
 			},
 		);
 
 		return () => {
 			controller.abort();
-			releasePending(pipelineEl);
+			pendingRef.current = false;
+			parent.notify(id);
+			unregister();
 		};
-	}, [width, height, draw]);
+	}, [width, height, draw, id, parent]);
 
 	return (
 		<div

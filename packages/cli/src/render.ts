@@ -2,9 +2,10 @@ import puppeteer, { type Browser } from "puppeteer";
 
 /**
  * Timeout (ms) for the render-mode ready signal — the disappearance of
- * `[data-pictel-pending]`. Mirrors `PENDING_TIMEOUT_MS` in pictel's in-browser
- * export utility (`packages/pictel/src/design-system/export.ts`) so the CLI and
- * the iframe export path wait for the same duration.
+ * `[data-pictel-canvas][data-pictel-pending]`. Mirrors `PENDING_TIMEOUT_MS`
+ * in pictel's in-browser export utility
+ * (`packages/pictel/src/design-system/export.ts`) so the CLI and the iframe
+ * export path wait for the same duration.
  */
 const PENDING_TIMEOUT_MS = 30_000;
 
@@ -45,10 +46,11 @@ interface RenderEntryOptions {
  * Renders a single composition entry to a raw PNG screenshot buffer. Opens a
  * fresh page (clean module and ML state per entry), navigates the served shell
  * in render mode through the URL query-param contract, waits for the
- * `[data-pictel-pending]` ready signal to clear, checks the `data-pictel-error`
- * render-mode error signal, and element-screenshots the `[data-pictel-canvas]`
- * root. The screenshot is the bare composition at its rendered size — encoding
- * is the caller's responsibility (see `encode.ts`).
+ * `[data-pictel-canvas][data-pictel-pending]` ready signal to clear, checks
+ * the `data-pictel-error` render-mode error signal, and element-screenshots
+ * the `[data-pictel-canvas]` root. The screenshot is the bare composition at
+ * its rendered size — encoding is the caller's responsibility (see
+ * `encode.ts`).
  *
  * @param options - The browser, served URL, and the entry's render parameters.
  * @throws If the pipeline does not settle within {@link PENDING_TIMEOUT_MS}, if
@@ -107,7 +109,7 @@ export async function renderEntry({
       });
     } catch {
       throw new Error(
-        `Render timed out after ${PENDING_TIMEOUT_MS}ms waiting for [data-pictel-pending] to clear` +
+        `Render timed out after ${PENDING_TIMEOUT_MS}ms waiting for [data-pictel-canvas][data-pictel-pending] to clear` +
           formatDiagnostics(pageErrors, consoleMessages),
       );
     }
@@ -156,11 +158,13 @@ declare const document: {
 };
 
 /**
- * Browser-context predicate: true once no `[data-pictel-pending]` element
- * remains — the render-mode ready signal. Passed to `page.waitForFunction`.
+ * Browser-context predicate: true once the single Canvas-root
+ * `[data-pictel-canvas][data-pictel-pending]` element is no longer present —
+ * the render-mode ready signal derived from the per-Canvas pending registry.
+ * Passed to `page.waitForFunction`.
  */
 function isPipelineSettled(): boolean {
-  return document.querySelector("[data-pictel-pending]") === null;
+  return document.querySelector("[data-pictel-canvas][data-pictel-pending]") === null;
 }
 
 /**

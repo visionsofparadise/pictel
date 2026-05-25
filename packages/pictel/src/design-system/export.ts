@@ -129,11 +129,12 @@ function waitForLoad(iframe: HTMLIFrameElement): Promise<void> {
 }
 
 /**
- * Resolves once the iframe document has no descendant with
- * `data-pictel-pending`. Rejects after `PENDING_TIMEOUT_MS`. Must only be
- * called after `waitForLoad(iframe)` has resolved — the contentDocument of a
- * pre-navigation iframe is `about:blank`, where no pending markers ever
- * appear, and `check()` would resolve immediately against an empty document.
+ * Resolves once the iframe document has no
+ * `[data-pictel-canvas][data-pictel-pending]` element. Rejects after
+ * `PENDING_TIMEOUT_MS`. Must only be called after `waitForLoad(iframe)` has
+ * resolved — the contentDocument of a pre-navigation iframe is `about:blank`,
+ * where no pending markers ever appear, and `check()` would resolve
+ * immediately against an empty document.
  */
 function waitForReady(iframe: HTMLIFrameElement): Promise<void> {
 	return new Promise((resolve, reject) => {
@@ -157,7 +158,7 @@ function waitForReady(iframe: HTMLIFrameElement): Promise<void> {
 
 			if (!doc?.documentElement) return false;
 
-			if (doc.querySelector("[data-pictel-pending]") === null) {
+			if (doc.querySelector("[data-pictel-canvas][data-pictel-pending]") === null) {
 				cleanup();
 				resolve();
 
@@ -177,7 +178,7 @@ function waitForReady(iframe: HTMLIFrameElement): Promise<void> {
 
 		timeoutId = setTimeout(() => {
 			cleanup();
-			reject(new Error(`Export timed out after ${PENDING_TIMEOUT_MS}ms waiting for [data-pictel-pending] to clear`));
+			reject(new Error(`Export timed out after ${PENDING_TIMEOUT_MS}ms waiting for [data-pictel-canvas][data-pictel-pending] to clear`));
 		}, PENDING_TIMEOUT_MS);
 
 		if (check()) return;

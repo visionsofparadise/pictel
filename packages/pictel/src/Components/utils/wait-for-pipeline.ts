@@ -1,9 +1,10 @@
 /**
- * Poll until no element with [data-pictel-pending] exists in the container,
- * using requestAnimationFrame between checks. Rejects after timeout with a
- * diagnostic listing which pipelines are still pending. Waits a minimum of
- * four animation frames so React's initial commit and first mutation observer
- * fire both land before the first "no pending" resolution.
+ * Poll until no `[data-pictel-canvas][data-pictel-pending]` element exists in
+ * the container, using requestAnimationFrame between checks. Rejects after
+ * timeout with a diagnostic listing which canvases are still pending. Waits a
+ * minimum of four animation frames so React's initial commit and the first
+ * registry-notify-driven re-render both land before the first "no pending"
+ * resolution.
  */
 export function waitForPipeline(
 	container: HTMLElement,
@@ -17,17 +18,17 @@ export function waitForPipeline(
 		function check(): void {
 			framesWaited += 1;
 
-			if (framesWaited >= 4 && container.querySelector("[data-pictel-pending]") === null) {
+			if (framesWaited >= 4 && container.querySelector("[data-pictel-canvas][data-pictel-pending]") === null) {
 				resolve();
 
 				return;
 			}
 
 			if (performance.now() - start > timeout) {
-				const pending = Array.from(
-					container.querySelectorAll("[data-pictel-pipeline][data-pictel-pending]"),
-				).map((element) => element.tagName.toLowerCase());
-				reject(new Error(`waitForPipeline timed out after ${String(timeout)}ms. Still pending: ${pending.join(", ") || "(descendants)"}.`));
+				const pendingCanvases = Array.from(
+					container.querySelectorAll<HTMLElement>("[data-pictel-canvas][data-pictel-pending]"),
+				).map((element) => element.getAttribute("aria-label") ?? "(unnamed canvas)");
+				reject(new Error(`waitForPipeline timed out after ${String(timeout)}ms. Canvas still pending: ${pendingCanvases.join(", ") || "(none located — selector returned nothing)"}.`));
 
 				return;
 			}

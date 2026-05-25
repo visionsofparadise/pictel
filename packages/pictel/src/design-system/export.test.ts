@@ -28,20 +28,31 @@ function setupCapturedCanvas(toBlobCalls: Array<ToBlobCall>): HTMLCanvasElement 
 	} as unknown as HTMLCanvasElement;
 }
 
+interface PendingHandle {
+	remove(): void;
+}
+
 function installFakeIframe(): {
-	pendingEl: HTMLElement;
+	pendingEl: PendingHandle;
 	canvasEl: HTMLElement;
 	restore: () => void;
 } {
 	const fakeDoc = document.implementation.createHTMLDocument("export-test");
 
-	const pending = fakeDoc.createElement("div");
-	pending.setAttribute("data-pictel-pending", "");
-	fakeDoc.body.appendChild(pending);
-
+	// Post-2026-05-25 rework: `data-pictel-pending` lives only on the Canvas
+	// root. The fixture fabricates a single `[data-pictel-canvas]` div that
+	// begins pending; `pendingEl.remove()` clears the attribute to simulate
+	// the registry's anyPending falling to false.
 	const canvas = fakeDoc.createElement("div");
 	canvas.setAttribute("data-pictel-canvas", "");
+	canvas.setAttribute("data-pictel-pending", "");
 	fakeDoc.body.appendChild(canvas);
+
+	const pending: PendingHandle = {
+		remove: () => {
+			canvas.removeAttribute("data-pictel-pending");
+		},
+	};
 
 	const originalCreateElement = document.createElement.bind(document);
 	const createElementSpy = vi.spyOn(document, "createElement").mockImplementation(((tagName: string, options?: ElementCreationOptions) => {

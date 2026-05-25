@@ -23,6 +23,8 @@ export interface CanvasContextValue {
 	viewport: Viewport;
 	captureDimensions: CanvasDimensions;
 	reportError: (error: PipelineError) => void;
+	/** Canvas-level offscreen host. Pipelines append apply/map slot divs here and createPortal into them. Non-null whenever the CanvasContext.Provider is mounted: Canvas conditionally provides the context only after the host ref is captured. */
+	offscreenHost: HTMLDivElement;
 }
 
 export const CanvasContext = createContext<CanvasContextValue | null>(null);

@@ -58,32 +58,6 @@ export function createRegistry(): Registry {
 
 export const PipelineContext = createContext<Registry | null>(null);
 
-/**
- * A registry shape that accepts registrations but never reports pending and
- * never fans out notifications. Used as a fallback by consumers (Pipeline,
- * RasterSource) when no `PipelineContext` provider is found — preserves
- * standalone-render behaviour for tests and design-system showcases without
- * tightening the contract before Phase 2 of the pipeline-flatten plan.
- */
-function noopUnregister(): void {
-	return;
-}
-
-function noop(): void {
-	return;
-}
-
-function alwaysFalse(): boolean {
-	return false;
-}
-
-export const NULL_REGISTRY: Registry = {
-	register: () => noopUnregister,
-	notify: noop,
-	anyPending: alwaysFalse,
-	subscribe: () => noopUnregister,
-};
-
 export function usePipelineContext(): Registry {
 	const value = useContext(PipelineContext);
 

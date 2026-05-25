@@ -1,5 +1,5 @@
-import { useContext, useId, useLayoutEffect, useRef } from "react";
-import { NULL_REGISTRY, PipelineContext } from "../../context/pipeline";
+import { useId, useLayoutEffect, useRef } from "react";
+import { usePipelineContext } from "../../context/pipeline";
 
 /**
  * Props for the {@link RasterSource} primitive.
@@ -52,8 +52,7 @@ export function RasterSource({ width, height, draw }: RasterSourceProps) {
 	const pipelineRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
-	const parentContext = useContext(PipelineContext);
-	const parent = parentContext ?? NULL_REGISTRY;
+	const parent = usePipelineContext();
 	const pendingRef = useRef(true);
 
 	useLayoutEffect(() => {

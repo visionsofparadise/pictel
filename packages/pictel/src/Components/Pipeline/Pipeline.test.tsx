@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { Canvas } from "../Canvas";
 import { Pipeline, type PipelineCallback } from "./Pipeline";
 
 // Minimal mock for snapdom so captureWrapper works in jsdom.
@@ -133,9 +134,11 @@ describe("Pipeline — callback invocation", () => {
 		});
 
 		const handle = mount(
-			<Pipeline effect={effect}>
-				<div style={{ width: 64, height: 64, background: "red" }} />
-			</Pipeline>,
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<Pipeline effect={effect}>
+					<div style={{ width: 64, height: 64, background: "red" }} />
+				</Pipeline>
+			</Canvas>,
 		);
 		handles.push(handle);
 
@@ -154,12 +157,14 @@ describe("Pipeline — callback invocation", () => {
 		});
 
 		const handle = mount(
-			<Pipeline
-				effect={effect}
-				map={<div style={{ width: 64, height: 64, background: "white" }} />}
-			>
-				<div style={{ width: 64, height: 64, background: "red" }} />
-			</Pipeline>,
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<Pipeline
+					effect={effect}
+					map={<div style={{ width: 64, height: 64, background: "white" }} />}
+				>
+					<div style={{ width: 64, height: 64, background: "red" }} />
+				</Pipeline>
+			</Canvas>,
 		);
 		handles.push(handle);
 
@@ -178,12 +183,14 @@ describe("Pipeline — callback invocation", () => {
 		});
 
 		const handle = mount(
-			<Pipeline
-				effect={effect}
-				apply={<div style={{ width: 64, height: 64, background: "blue" }} />}
-			>
-				<div style={{ width: 64, height: 64, background: "red" }} />
-			</Pipeline>,
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<Pipeline
+					effect={effect}
+					apply={<div style={{ width: 64, height: 64, background: "blue" }} />}
+				>
+					<div style={{ width: 64, height: 64, background: "red" }} />
+				</Pipeline>
+			</Canvas>,
 		);
 		handles.push(handle);
 
@@ -202,13 +209,15 @@ describe("Pipeline — callback invocation", () => {
 		});
 
 		const handle = mount(
-			<Pipeline
-				effect={effect}
-				apply={<div style={{ width: 64, height: 64, background: "blue" }} />}
-				map={<div style={{ width: 64, height: 64, background: "white" }} />}
-			>
-				<div style={{ width: 64, height: 64, background: "red" }} />
-			</Pipeline>,
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<Pipeline
+					effect={effect}
+					apply={<div style={{ width: 64, height: 64, background: "blue" }} />}
+					map={<div style={{ width: 64, height: 64, background: "white" }} />}
+				>
+					<div style={{ width: 64, height: 64, background: "red" }} />
+				</Pipeline>
+			</Canvas>,
 		);
 		handles.push(handle);
 
@@ -229,9 +238,11 @@ describe("Pipeline — pending flag lifecycle", () => {
 		});
 
 		const handle = mount(
-			<Pipeline effect={effect}>
-				<div style={{ width: 64, height: 64 }} />
-			</Pipeline>,
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<Pipeline effect={effect}>
+					<div style={{ width: 64, height: 64 }} />
+				</Pipeline>
+			</Canvas>,
 		);
 		handles.push(handle);
 
@@ -251,9 +262,11 @@ describe("Pipeline — pending flag lifecycle", () => {
 		});
 
 		const handle = mount(
-			<Pipeline effect={effect}>
-				<div style={{ width: 64, height: 64 }} />
-			</Pipeline>,
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<Pipeline effect={effect}>
+					<div style={{ width: 64, height: 64 }} />
+				</Pipeline>
+			</Canvas>,
 		);
 		// Don't push to handles — we'll clean up manually.
 
@@ -276,9 +289,11 @@ describe("Pipeline — overflow attrs", () => {
 		});
 
 		const handle = mount(
-			<Pipeline effect={effect}>
-				<div style={{ width: 64, height: 64 }} />
-			</Pipeline>,
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<Pipeline effect={effect}>
+					<div style={{ width: 64, height: 64 }} />
+				</Pipeline>
+			</Canvas>,
 		);
 		handles.push(handle);
 
@@ -298,9 +313,11 @@ describe("Pipeline — overflow attrs", () => {
 		});
 
 		const handle = mount(
-			<Pipeline effect={effect}>
-				<div style={{ width: 64, height: 64 }} />
-			</Pipeline>,
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<Pipeline effect={effect}>
+					<div style={{ width: 64, height: 64 }} />
+				</Pipeline>
+			</Canvas>,
 		);
 
 		await waitForResolved(handle.container);
@@ -323,35 +340,45 @@ describe("Pipeline — map renders offscreen", () => {
 		});
 
 		const handle = mount(
-			<Pipeline
-				effect={effect}
-				map={<div data-testid="map-content" style={{ width: 64, height: 64 }} />}
-			>
-				<div style={{ width: 64, height: 64 }} />
-			</Pipeline>,
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<Pipeline
+					effect={effect}
+					map={<div data-testid="map-content" style={{ width: 64, height: 64 }} />}
+				>
+					<div style={{ width: 64, height: 64 }} />
+				</Pipeline>
+			</Canvas>,
 		);
 		handles.push(handle);
 
 		await waitForResolved(handle.container);
 
-		// The map content is inside the pipeline div (not document.body directly).
-		const mapContent = handle.container.querySelector("[data-testid='map-content']");
+		// The map content is portaled into the Canvas's offscreen host, which is a
+		// sibling of the pipeline div under the Canvas root. Verify the portaled
+		// node is in the document and that its ancestor chain reaches the Canvas
+		// root via the offscreen host — not via the pipeline div.
+		const mapContent = document.querySelector("[data-testid='map-content']");
 		expect(mapContent).not.toBeNull();
 
-		// Its parent chain is inside the pipeline, not floating at body level.
 		let current: Element | null = mapContent;
+		let foundCanvas = false;
 		let foundPipeline = false;
 
-		while (current && current !== document.body) {
+		while (current) {
+			if (current.hasAttribute("data-pictel-canvas")) {
+				foundCanvas = true;
+				break;
+			}
+
 			if (current.hasAttribute("data-pictel-pipeline")) {
 				foundPipeline = true;
-				break;
 			}
 
 			current = current.parentElement;
 		}
 
-		expect(foundPipeline).toBe(true);
+		expect(foundCanvas).toBe(true);
+		expect(foundPipeline).toBe(false);
 	});
 });
 
@@ -363,9 +390,11 @@ describe("Pipeline — StrictMode safety", () => {
 
 		const handle = mount(
 			<StrictMode>
-				<Pipeline effect={effect}>
-					<div style={{ width: 64, height: 64, background: "#808080" }} />
-				</Pipeline>
+				<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+					<Pipeline effect={effect}>
+						<div style={{ width: 64, height: 64, background: "#808080" }} />
+					</Pipeline>
+				</Canvas>
 			</StrictMode>,
 		);
 		handles.push(handle);

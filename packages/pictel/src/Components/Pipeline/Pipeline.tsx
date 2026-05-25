@@ -1,6 +1,7 @@
-import { useContext, useId, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
-import { CanvasContext } from "../../context/canvas";
-import { NULL_REGISTRY, PipelineContext, createRegistry } from "../../context/pipeline";
+import { useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { useCanvasContext } from "../../context/canvas";
+import { PipelineContext, createRegistry, usePipelineContext } from "../../context/pipeline";
 import { createPipelineError } from "../../utils/errors";
 import { observeSubtree } from "../../utils/observe";
 import { drawToCanvas, normalizeResult, type EffectResult } from "../utils/raster";
@@ -47,20 +48,20 @@ interface PipelineProps {
 	map?: ReactNode;
 }
 
-const FALLBACK_SIZE = 0;
-
 /**
  * Unified pipeline primitive. Handles all effect and blend cases through
  * prop-carried secondary inputs.
  *
  * DOM structure:
  * 1. `<div ref={childrenRef}>{children}</div>` — in flow, drives layout
- * 2. Offscreen apply container (only when `apply` prop is set)
- * 3. Offscreen map container (only when `map` prop is set)
- * 4. `<div ref={rasterRef} data-pictel-raster>` — absolute canvas overlay
+ * 2. `<div ref={rasterRef} data-pictel-raster>` — absolute canvas overlay
  *
- * All three wrappers (children, apply, map) are observed for changes and
- * captured in parallel via snapdom (or fast path when eligible).
+ * Apply/map subtrees render into Canvas-level offscreen-host slots via React
+ * portals (not into the pipeline div), so they inherit CSS from the host
+ * rather than the composition position.
+ *
+ * All three input wrappers (children, apply slot, map slot) are observed for
+ * changes and captured in parallel via snapdom (or fast path when eligible).
  *
  * @param props
  * @category Pipeline
@@ -69,24 +70,62 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 	const id = useId();
 	const pipelineRef = useRef<HTMLDivElement>(null);
 	const childrenRef = useRef<HTMLDivElement>(null);
-	const applyRef = useRef<HTMLDivElement>(null);
-	const mapRef = useRef<HTMLDivElement>(null);
 	const rasterRef = useRef<HTMLDivElement>(null);
 	const canvasElRef = useRef<HTMLCanvasElement>(null);
 
-	const canvasContextValue = useContext(CanvasContext);
-	const preW = canvasContextValue?.dimensions.width ?? FALLBACK_SIZE;
-	const preH = canvasContextValue?.dimensions.height ?? FALLBACK_SIZE;
-	const captureDimensions = canvasContextValue?.captureDimensions ?? { width: preW, height: preH };
-	const reportError = canvasContextValue?.reportError;
+	const canvasContext = useCanvasContext();
+	const preW = canvasContext.dimensions.width;
+	const preH = canvasContext.dimensions.height;
+	const captureDimensions = canvasContext.captureDimensions;
+	const reportError = canvasContext.reportError;
+	const offscreenHost = canvasContext.offscreenHost;
 
-	const parentContext = useContext(PipelineContext);
-	const parent = parentContext ?? NULL_REGISTRY;
+	const parent = usePipelineContext();
 	const selfRegistry = useMemo(() => createRegistry(), []);
 	const pendingRef = useRef(true);
 
+	const [applySlot, setApplySlot] = useState<HTMLDivElement | null>(null);
+	const [mapSlot, setMapSlot] = useState<HTMLDivElement | null>(null);
+
 	const hasApply = apply !== undefined;
 	const hasMap = map !== undefined;
+
+	useLayoutEffect(() => {
+		if (!hasApply && !hasMap) return;
+
+		let applyEl: HTMLDivElement | null = null;
+		let mapEl: HTMLDivElement | null = null;
+
+		if (hasApply) {
+			applyEl = document.createElement("div");
+			applyEl.style.width = `${String(preW)}px`;
+			applyEl.style.height = `${String(preH)}px`;
+			applyEl.style.pointerEvents = "none";
+			offscreenHost.appendChild(applyEl);
+			setApplySlot(applyEl);
+		}
+
+		if (hasMap) {
+			mapEl = document.createElement("div");
+			mapEl.style.width = `${String(preW)}px`;
+			mapEl.style.height = `${String(preH)}px`;
+			mapEl.style.pointerEvents = "none";
+			offscreenHost.appendChild(mapEl);
+			setMapSlot(mapEl);
+		}
+
+		return () => {
+			if (applyEl !== null) {
+				applyEl.remove();
+				setApplySlot(null);
+			}
+
+			if (mapEl !== null) {
+				mapEl.remove();
+				setMapSlot(null);
+			}
+		};
+	}, [hasApply, hasMap, offscreenHost, preW, preH]);
 
 	useLayoutEffect(() => {
 		const pipelineEl = pipelineRef.current;
@@ -96,8 +135,12 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 
 		if (!pipelineEl || !childrenEl || !rasterEl || !canvasEl) return;
 
-		const applyEl = hasApply ? applyRef.current : null;
-		const mapEl = hasMap ? mapRef.current : null;
+		if (hasApply && applySlot === null) return;
+
+		if (hasMap && mapSlot === null) return;
+
+		const applyEl = applySlot;
+		const mapEl = mapSlot;
 
 		rasterEl.style.display = "none";
 
@@ -206,9 +249,7 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 			} catch (error: unknown) {
 				if (signal.aborted) return;
 
-				if (reportError) {
-					reportError(createPipelineError(id, error));
-				}
+				reportError(createPipelineError(id, error));
 			} finally {
 				pendingRef.current = false;
 				parent.notify(id);
@@ -280,7 +321,7 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 			delete pipelineEl.dataset.pictelOverflowLeft;
 		};
 
-	}, [id, effect, hasApply, hasMap, captureDimensions, reportError, parent, selfRegistry]);
+	}, [id, effect, hasApply, hasMap, applySlot, mapSlot, captureDimensions, reportError, parent, selfRegistry]);
 
 	return (
 		<PipelineContext.Provider value={selfRegistry}>
@@ -290,55 +331,19 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 				style={{ position: "relative", isolation: "isolate" }}
 			>
 				<div ref={childrenRef}>{children}</div>
-			{hasApply && (
 				<div
-					style={{
-						position: "absolute",
-						left: "-10000px",
-						top: 0,
-						width: preW > 0 ? preW : undefined,
-						height: preH > 0 ? preH : undefined,
-						pointerEvents: "none",
-					}}
+					ref={rasterRef}
+					data-pictel-raster
+					style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
 				>
-					<div
-						ref={applyRef}
-						style={{ width: "100%", height: "100%" }}
-					>
-						{apply}
-					</div>
+					<canvas
+						ref={canvasElRef}
+						style={{ display: "block", width: "100%", height: "100%" }}
+					/>
 				</div>
-			)}
-			{hasMap && (
-				<div
-					style={{
-						position: "absolute",
-						left: "-10000px",
-						top: 0,
-						width: preW > 0 ? preW : undefined,
-						height: preH > 0 ? preH : undefined,
-						pointerEvents: "none",
-					}}
-				>
-					<div
-						ref={mapRef}
-						style={{ width: "100%", height: "100%" }}
-					>
-						{map}
-					</div>
-				</div>
-			)}
-			<div
-				ref={rasterRef}
-				data-pictel-raster
-				style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
-			>
-				<canvas
-					ref={canvasElRef}
-					style={{ display: "block", width: "100%", height: "100%" }}
-				/>
 			</div>
-			</div>
+			{hasApply && applySlot !== null && createPortal(apply, applySlot)}
+			{hasMap && mapSlot !== null && createPortal(map, mapSlot)}
 		</PipelineContext.Provider>
 	);
 }

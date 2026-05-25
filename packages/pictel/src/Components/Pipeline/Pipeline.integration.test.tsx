@@ -509,4 +509,75 @@ describe.sequential("Pipeline integration", () => {
 			handle.cleanup();
 		}
 	});
+
+	test("apply/map subtrees do not inherit CSS from JSX-location ancestors", async () => {
+		// After Phase 2, apply/map portal into the Canvas-level offscreen host
+		// instead of rendering inside the pipeline div. A composition that places
+		// a Pipeline inside a `color: red` wrapper must not leak that color into
+		// the apply/map subtree — those subtrees inherit only from the offscreen
+		// host (a sibling of the canvas root under the Canvas component).
+		const observedColors: { apply: string | null; map: string | null } = {
+			apply: null,
+			map: null,
+		};
+
+		function ColorProbe({ kind }: { kind: "apply" | "map" }) {
+			return (
+				<div
+					ref={(node) => {
+						if (node === null) return;
+
+						observedColors[kind] = window.getComputedStyle(node).color;
+					}}
+					style={{ width: 64, height: 64 }}
+				/>
+			);
+		}
+
+		function CapturingPipeline({
+			apply,
+			map,
+			children,
+		}: {
+			apply: React.ReactNode;
+			map: React.ReactNode;
+			children: React.ReactNode;
+		}) {
+			const effect = useCallback<PipelineCallback>((target) => ({ pixels: target }), []);
+
+			return (
+				<Pipeline effect={effect} apply={apply} map={map}>
+					{children}
+				</Pipeline>
+			);
+		}
+
+		const handle = renderCanvas(
+			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
+				<div style={{ color: "rgb(255, 0, 0)" }}>
+					<CapturingPipeline
+						apply={<ColorProbe kind="apply" />}
+						map={<ColorProbe kind="map" />}
+					>
+						<img src={solidImage("#0000ff", 64, 64)} />
+					</CapturingPipeline>
+				</div>
+			</Canvas>,
+		);
+
+		try {
+			await waitForPipeline(handle.container);
+
+			// The wrapping div sets color: red. If apply/map inherited from their
+			// JSX location they'd see "rgb(255, 0, 0)". The offscreen host is a
+			// sibling of the canvas root, outside the colored wrapper, so neither
+			// probe should see red.
+			expect(observedColors.apply).not.toBeNull();
+			expect(observedColors.map).not.toBeNull();
+			expect(observedColors.apply).not.toBe("rgb(255, 0, 0)");
+			expect(observedColors.map).not.toBe("rgb(255, 0, 0)");
+		} finally {
+			handle.cleanup();
+		}
+	});
 });

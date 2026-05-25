@@ -1,5 +1,5 @@
 import { CanvasContext, type CanvasContextValue } from "pictel";
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 
 /**
  * Minimal CanvasContext provider for showcase use. RenderStrip reads
@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
  * other required fields so the chrome can render in isolation.
  */
 export function ShowcaseCanvasContext({ children }: { children: ReactNode }) {
+	const offscreenHost = useMemo(() => document.createElement("div"), []);
 	const value: CanvasContextValue = {
 		mode: "preview",
 		dimensions: { width: 1080, height: 1080 },
@@ -15,6 +16,7 @@ export function ShowcaseCanvasContext({ children }: { children: ReactNode }) {
 		reportError: () => {
 			/* showcase noop */
 		},
+		offscreenHost,
 	};
 
 	return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

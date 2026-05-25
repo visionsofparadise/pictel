@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo, useState, useSyncExternalStore, type CSSProperties, type ComponentProps } from "react";
+import { Fragment, useCallback, useMemo, useState, useSyncExternalStore, type CSSProperties, type ComponentProps, type ReactNode } from "react";
 import { CanvasContext, type CanvasContextValue, type CanvasDimensions } from "../context/canvas";
 import { PipelineContext, createRegistry } from "../context/pipeline";
 import { ErrorChip } from "../design-system/ErrorChip";
@@ -55,6 +55,13 @@ function getPendingServerSnapshot(): boolean {
 	return false;
 }
 
+const offscreenHostStyle: CSSProperties = {
+	position: "fixed",
+	left: -10000,
+	top: 0,
+	pointerEvents: "none",
+};
+
 /**
  * Root compositing surface. Contains layers, effects, and blend modes as children.
  * Each Canvas is an independent composition with its own pixel pipeline.
@@ -102,13 +109,24 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 	const registry = useMemo(() => createRegistry(), []);
 	const pending = useSyncExternalStore(registry.subscribe, registry.anyPending, getPendingServerSnapshot);
 
-	const contextValue: CanvasContextValue = {
-		mode,
-		dimensions: effectiveDimensions,
-		viewport: { width, height },
-		captureDimensions,
-		reportError,
-	};
+	const [offscreenHost, setOffscreenHost] = useState<HTMLDivElement | null>(null);
+
+	const contextValue: CanvasContextValue | null = offscreenHost === null
+		? null
+		: {
+			mode,
+			dimensions: effectiveDimensions,
+			viewport: { width, height },
+			captureDimensions,
+			reportError,
+			offscreenHost,
+		};
+
+	function provideCanvasContext(content: ReactNode): ReactNode {
+		if (contextValue === null) return null;
+
+		return <CanvasContext.Provider value={contextValue}>{content}</CanvasContext.Provider>;
+	}
 
 	if (mode === "render") {
 		const errorAttribute =
@@ -118,19 +136,18 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 
 		return (
 			<PipelineContext.Provider value={registry}>
-				<CanvasContext.Provider value={contextValue}>
-					<div
-						ref={ref}
-						aria-label={name}
-						data-pictel-canvas=""
-						data-pictel-pending={pending ? "" : undefined}
-						data-pictel-error={errorAttribute}
-						style={{ ...renderOuterStyle(effectiveWidth, effectiveHeight), ...style }}
-						{...rest}
-					>
-						<Frame>{children}</Frame>
-					</div>
-				</CanvasContext.Provider>
+				<div
+					ref={ref}
+					aria-label={name}
+					data-pictel-canvas=""
+					data-pictel-pending={pending ? "" : undefined}
+					data-pictel-error={errorAttribute}
+					style={{ ...renderOuterStyle(effectiveWidth, effectiveHeight), ...style }}
+					{...rest}
+				>
+					<div ref={setOffscreenHost} aria-hidden="true" style={offscreenHostStyle} />
+					{provideCanvasContext(<Frame>{children}</Frame>)}
+				</div>
 			</PipelineContext.Provider>
 		);
 	}
@@ -141,30 +158,33 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 
 	return (
 		<PipelineContext.Provider value={registry}>
-			<CanvasContext.Provider value={contextValue}>
-				<div
-					ref={ref}
-					aria-label={name}
-					data-pictel-canvas=""
-					data-pictel-pending={pending ? "" : undefined}
-					style={{ ...baseOuterStyle, ...style }}
-					{...rest}
-				>
-					<Wrapper>
-						<Frame>{children}</Frame>
-					</Wrapper>
-					<ErrorChip errors={errors} />
-					<LoadingOverlay pending={pending} />
-					{renderStripVisible && (
-						<RenderStrip
-							canvasName={name}
-							width={dimensions.width}
-							height={dimensions.height}
-							disabled={pending || errors.length > 0}
-						/>
-					)}
-				</div>
-			</CanvasContext.Provider>
+			<div
+				ref={ref}
+				aria-label={name}
+				data-pictel-canvas=""
+				data-pictel-pending={pending ? "" : undefined}
+				style={{ ...baseOuterStyle, ...style }}
+				{...rest}
+			>
+				<div ref={setOffscreenHost} aria-hidden="true" style={offscreenHostStyle} />
+				{provideCanvasContext(
+					<>
+						<Wrapper>
+							<Frame>{children}</Frame>
+						</Wrapper>
+						<ErrorChip errors={errors} />
+						<LoadingOverlay pending={pending} />
+						{renderStripVisible && (
+							<RenderStrip
+								canvasName={name}
+								width={dimensions.width}
+								height={dimensions.height}
+								disabled={pending || errors.length > 0}
+							/>
+						)}
+					</>,
+				)}
+			</div>
 		</PipelineContext.Provider>
 	);
 }

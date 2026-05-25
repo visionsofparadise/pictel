@@ -1,13 +1,20 @@
 /**
- * Navigate from a pipeline div to its output canvas. The canvas lives inside
- * the raster wrapper (the only canvas direct-descendant of the pipeline div
- * via the [data-pictel-raster] marker). Returns the ImageData read from it.
+ * Reads the output ImageData from a pipeline's resolved canvas.
+ *
+ * Accepts either a `<canvas data-pictel-raster>` element directly, or any
+ * ancestor element containing one (in which case the first matching
+ * descendant canvas is used). The canvas is a sibling of the Pipeline's
+ * children wrapper in the DOM; callers usually pass the canvas directly
+ * via `container.querySelector("canvas[data-pictel-raster]")`.
  */
-export function readPipelineOutput(pipelineDiv: HTMLElement): ImageData {
-	const canvas = pipelineDiv.querySelector<HTMLCanvasElement>(":scope > [data-pictel-raster] > canvas");
+export function readPipelineOutput(root: HTMLElement): ImageData {
+	const canvas =
+		root instanceof HTMLCanvasElement && root.hasAttribute("data-pictel-raster")
+			? root
+			: root.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
 
 	if (!(canvas instanceof HTMLCanvasElement)) {
-		throw new Error("readPipelineOutput: could not find output canvas at expected DOM position");
+		throw new Error("readPipelineOutput: could not find a [data-pictel-raster] canvas");
 	}
 
 	const context = canvas.getContext("2d", { willReadFrequently: true });

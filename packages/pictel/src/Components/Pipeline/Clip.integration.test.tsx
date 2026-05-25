@@ -6,16 +6,18 @@ import { waitForPipeline } from "../utils/wait-for-pipeline";
 
 /**
  * Geometric behavior of the Clip + Overflow design. A Blur radius=10 over
- * 100x100 content paints a 120x120 canvas (10px bleed each side). The
- * pipeline div always stays at content size (100x100) — children-in-flow
- * drive its layout. The raster wrapper sits abs-positioned inside, filling
- * the pipeline at `100%/100%` by default (bleed squished into the content
- * footprint). Clip wraps with `overflow: hidden` + Overflow, which expands
- * the raster to 120x120 at -10,-10 so the image content maps 1:1 onto the
- * 100x100 clipped region and bleed is cropped.
+ * 100x100 content paints a 120x120 backing canvas (10px bleed each side).
+ * The Pipeline renders the canvas inline at the children-measured CSS
+ * dimensions (100x100), so bleed pixels are squished into the content
+ * footprint by default. Overflow finds the `[data-pictel-raster]` canvas,
+ * absolutely positions it, expands it to 120x120, and offsets it by -10
+ * top/left so the canvas renders at its natural 1:1 pixel ratio extending
+ * outside its layout box. Clip wraps Overflow in an `overflow: hidden`
+ * container sized to the content (100x100) so the natural-ratio bleed is
+ * cropped at the content edges.
  */
 describe.sequential("Clip component", () => {
-	test("without Clip, pipeline stays at content size; canvas CSS is squished to fit", async () => {
+	test("without Clip, canvas backs at bleed dims but CSS sizes to content", async () => {
 		const handle = renderCanvas(
 			<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
 				<Blur radius={10}>
@@ -30,23 +32,14 @@ describe.sequential("Clip component", () => {
 		try {
 			await waitForPipeline(handle.container);
 
-			const pipeline = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-			if (!pipeline) throw new Error("no pipeline div found");
-
-			const canvas = pipeline.querySelector<HTMLCanvasElement>(":scope > [data-pictel-raster] > canvas");
+			const canvas = handle.container.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
 			if (!canvas) throw new Error("no output canvas found");
 
-			// Canvas pixel attributes include bleed (content + bleed).
+			// Backing buffer carries bleed.
 			expect(canvas.width).toBe(120);
 			expect(canvas.height).toBe(120);
 
-			// Pipeline div is at content size — children-in-flow drive layout.
-			const pipelineRect = pipeline.getBoundingClientRect();
-			expect(Math.round(pipelineRect.width)).toBe(100);
-			expect(Math.round(pipelineRect.height)).toBe(100);
-
-			// Canvas CSS (display size) fills the pipeline — 120 pixels squished
-			// into 100px of layout.
+			// CSS box stays at content dims — bleed squished into content footprint.
 			const canvasRect = canvas.getBoundingClientRect();
 			expect(Math.round(canvasRect.width)).toBe(100);
 			expect(Math.round(canvasRect.height)).toBe(100);
@@ -55,15 +48,15 @@ describe.sequential("Clip component", () => {
 		}
 	});
 
-	test("with Clip, outer is content-size; raster is expanded with negative offset", async () => {
+	test("with Clip, outer is content-size; canvas is expanded with negative offset", async () => {
 		const handle = renderCanvas(
 			<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
 				<Clip>
 					<Blur radius={10}>
 						<img
-						src={solidImage("#ff0000", 100, 100)}
-						style={{ display: "block" }}
-					/>
+							src={solidImage("#ff0000", 100, 100)}
+							style={{ display: "block" }}
+						/>
 					</Blur>
 				</Clip>
 			</Canvas>,
@@ -72,41 +65,35 @@ describe.sequential("Clip component", () => {
 		try {
 			await waitForPipeline(handle.container);
 
-			const pipeline = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-			if (!pipeline) throw new Error("no pipeline div found");
-
-			const canvas = pipeline.querySelector<HTMLCanvasElement>(":scope > [data-pictel-raster] > canvas");
+			const canvas = handle.container.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
 			if (!canvas) throw new Error("no output canvas found");
 
-			// Canvas pixel attributes unchanged — bleed still painted.
+			// Backing buffer still carries bleed.
 			expect(canvas.width).toBe(120);
 			expect(canvas.height).toBe(120);
 
-			// Clip is: outer[overflow:hidden] > Overflow wrapper > pipeline.
-			// Outer sizes to the pipeline (content size) because the pipeline
-			// is in flow and abs-positioned bleed on the raster doesn't
-			// contribute to layout.
-			const overflowWrapper = pipeline.parentElement;
-			const outer = overflowWrapper?.parentElement;
-			if (!outer) throw new Error("could not find Clip outer element");
+			// Overflow wrapper is canvas's direct parent (Pipeline emits the canvas
+			// as a sibling of its children wrapper; both live inside the Overflow
+			// wrapper div). Clip is the outer `overflow: hidden` div.
+			const overflowWrapper = canvas.parentElement;
+			if (!overflowWrapper) throw new Error("no Overflow wrapper found");
+			const clipOuter = overflowWrapper.parentElement;
+			if (!clipOuter) throw new Error("no Clip outer found");
 
-			const outerRect = outer.getBoundingClientRect();
-			expect(Math.round(outerRect.width)).toBe(100);
-			expect(Math.round(outerRect.height)).toBe(100);
+			// Clip outer sizes to the Pipeline's layout (content size).
+			const clipRect = clipOuter.getBoundingClientRect();
+			expect(Math.round(clipRect.width)).toBe(100);
+			expect(Math.round(clipRect.height)).toBe(100);
 
-			// Raster is abs-positioned inside the pipeline. Overflow expands
-			// it to content + bleed and shifts by -bleed on each side.
-			const raster = pipeline.querySelector<HTMLElement>(":scope > [data-pictel-raster]");
-			if (!raster) throw new Error("no raster element found");
+			// Canvas is absolutely positioned, expanded to content + bleed, shifted.
+			const canvasRect = canvas.getBoundingClientRect();
+			expect(Math.round(canvasRect.width)).toBe(120);
+			expect(Math.round(canvasRect.height)).toBe(120);
 
-			const rasterRect = raster.getBoundingClientRect();
-			expect(Math.round(rasterRect.width)).toBe(120);
-			expect(Math.round(rasterRect.height)).toBe(120);
-
-			// Raster shifted -10 from pipeline on each side.
-			const pipelineRect = pipeline.getBoundingClientRect();
-			expect(Math.round(rasterRect.left - pipelineRect.left)).toBe(-10);
-			expect(Math.round(rasterRect.top - pipelineRect.top)).toBe(-10);
+			// Canvas shifted -10 from the Overflow wrapper on each side.
+			const overflowRect = overflowWrapper.getBoundingClientRect();
+			expect(Math.round(canvasRect.left - overflowRect.left)).toBe(-10);
+			expect(Math.round(canvasRect.top - overflowRect.top)).toBe(-10);
 		} finally {
 			handle.cleanup();
 		}

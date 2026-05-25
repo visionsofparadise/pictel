@@ -3,30 +3,47 @@ import { snapdom } from "@zumer/snapdom";
 const baseOptions = { dpr: 1, fast: true };
 
 /**
- * Direct pipeline child fast path. When `element` (the children wrapper of
- * some pipeline) contains exactly one child and that child is a resolved
- * pictel pipeline whose canvas matches the requested dimensions, read its
- * pixels directly via getImageData instead of going through snapdom.
+ * Direct pictel-child fast path. When `element` (the children wrapper of
+ * some pipeline) contains exactly one paint-emitting element and that
+ * element is a `<canvas data-pictel-raster>` matching the requested
+ * dimensions, read its pixels directly via `getImageData` instead of
+ * going through snapdom.
  *
- * The dim match is unconditional: a transient/stale inner canvas at HTML
- * default 300×150 (e.g., pending was prematurely cleared by a StrictMode
- * race) would propagate wrong dims upward; returning null forces snapdom
- * to run at the requested dims.
+ * With Pipeline collapsed to a `display: block` wrapper + conditional
+ * canvas sibling, a resolved inner Pipeline contributes TWO siblings to
+ * the outer's children wrapper: a `display: none` div (the inner's hidden
+ * children) and the inner's `<canvas data-pictel-raster>`. The walker
+ * therefore skips `display: none` elements and looks for exactly one
+ * raster canvas. A mid-recapture inner Pipeline has its wrapper at
+ * `display: block` with painted children but no sibling canvas — that
+ * shape returns null (slow path), which is correct: snapdom captures the
+ * in-flow children. The outer's registry gate would normally not have
+ * proceeded while the inner is pending; this branch is the defense in
+ * depth.
+ *
+ * The dim match is unconditional: a stale inner canvas at any other dims
+ * would propagate wrong pixels upward.
  */
 function tryFastPath(element: HTMLElement, dimensions: { width: number; height: number }): ImageData | null {
-	if (element.children.length !== 1) return null;
+	let canvas: HTMLCanvasElement | null = null;
 
-	const inner = element.children[0];
+	for (const child of Array.from(element.children)) {
+		if (child instanceof HTMLCanvasElement && child.hasAttribute("data-pictel-raster")) {
+			if (canvas !== null) return null;
 
-	if (!(inner instanceof HTMLElement)) return null;
+			canvas = child;
 
-	if (!inner.hasAttribute("data-pictel-pipeline")) return null;
+			continue;
+		}
 
-	if (inner.hasAttribute("data-pictel-pending")) return null;
+		if (child instanceof HTMLElement && child.style.display === "none") {
+			continue;
+		}
 
-	const canvas = inner.querySelector<HTMLCanvasElement>(":scope > [data-pictel-raster] > canvas");
+		return null;
+	}
 
-	if (!(canvas instanceof HTMLCanvasElement)) return null;
+	if (canvas === null) return null;
 
 	if (canvas.width !== dimensions.width || canvas.height !== dimensions.height) {
 		return null;

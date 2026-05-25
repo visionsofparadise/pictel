@@ -32,10 +32,10 @@ interface ImageProps {
  * once per capture — so parent pipeline captures read pixels from the leaf
  * canvas, never re-decoding the source bytes.
  *
- * Renders through {@link RasterSource}, so the emitted DOM matches the
- * `[data-pictel-pipeline]` + `[data-pictel-raster] > canvas` contract that
- * lets a parent pipeline's capture take the fast path when intrinsic dims
- * match the requested capture dims.
+ * Renders through {@link RasterSource}, so the emitted DOM is a bare
+ * `<canvas data-pictel-raster>` that a parent pipeline's capture can read
+ * directly via the fast path when intrinsic dims match the requested
+ * capture dims.
  *
  * Decode failures (network error, malformed image, abort) clear pending and
  * leave the canvas blank. No error is surfaced to `reportError` — Image is a

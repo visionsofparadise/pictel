@@ -27,18 +27,18 @@ export interface RasterSourceProps {
 
 /**
  * Shared leaf primitive for raster-producing components (Image, generatives).
- * Emits the same `[data-pictel-pipeline]` + `[data-pictel-raster] > canvas`
- * DOM contract as a resolved {@link Pipeline}, so a parent capture recognizes
- * it via {@link tryFastPath} and reads the canvas ImageData directly when
- * intrinsic dims match the requested capture dims.
+ * Emits a bare `<canvas data-pictel-raster>` — the same tag the resolved
+ * {@link Pipeline} emits — so a parent capture recognizes it via
+ * `tryFastPath` and reads the canvas ImageData directly when intrinsic
+ * dims match the requested capture dims.
  *
- * Pending state is reported via `PipelineContext`: `useLayoutEffect` registers
- * with the parent registry and flips a JS pendingRef synchronously before any
- * wrapping Pipeline's layout effect runs (child layout effects run before
- * parents per React semantics), so the parent's first gate observes this leaf
- * as pending via `registry.anyPending()`. The single Canvas-root
- * `data-pictel-pending` attribute is derived from the registry — no
- * per-element pending attribute exists.
+ * Pending state is reported via `PipelineContext`: `useLayoutEffect`
+ * registers with the parent registry and flips a JS pendingRef
+ * synchronously before any wrapping Pipeline's layout effect runs (child
+ * layout effects run before parents per React semantics), so the parent's
+ * first gate observes this leaf as pending via `registry.anyPending()`.
+ * The single Canvas-root `data-pictel-pending` attribute is derived from
+ * the registry — no per-element pending attribute exists.
  *
  * Closed API: no `className`, `style`, `id`, `data-*`, `aria-*`, event
  * handlers, or ref forwarding. Wrap in a styled `<div>` if positioning is
@@ -49,17 +49,15 @@ export interface RasterSourceProps {
  */
 export function RasterSource({ width, height, draw }: RasterSourceProps) {
 	const id = useId();
-	const pipelineRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
 	const parent = usePipelineContext();
 	const pendingRef = useRef(true);
 
 	useLayoutEffect(() => {
-		const pipelineEl = pipelineRef.current;
 		const canvasEl = canvasRef.current;
 
-		if (!pipelineEl || !canvasEl) return;
+		if (!canvasEl) return;
 
 		const unregister = parent.register(id, () => pendingRef.current);
 
@@ -96,21 +94,13 @@ export function RasterSource({ width, height, draw }: RasterSourceProps) {
 	}, [width, height, draw, id, parent]);
 
 	return (
-		<div
-			ref={pipelineRef}
-			data-pictel-pipeline
-			style={{ position: "relative", isolation: "isolate", width, height }}
-		>
-			<div
-				data-pictel-raster
-				style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
-			>
-				<canvas
-					ref={canvasRef}
-					style={{ display: "block", width: "100%", height: "100%" }}
-				/>
-			</div>
-		</div>
+		<canvas
+			ref={canvasRef}
+			data-pictel-raster
+			width={width}
+			height={height}
+			style={{ width, height, display: "block" }}
+		/>
 	);
 }
 

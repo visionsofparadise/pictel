@@ -27,30 +27,6 @@ function deferred<T = void>(): Deferred<T> {
 }
 
 /**
- * Wait for the leaf [data-pictel-pipeline] to appear in the container.
- * createRoot.render returns before React commits + useLayoutEffect runs,
- * so this polls a few frames for the DOM to settle.
- */
-function waitForLeaf(container: HTMLElement, timeoutMs = 1000): Promise<HTMLElement> {
-	return new Promise((resolve, reject) => {
-		const start = performance.now();
-		const check = () => {
-			const leaf = container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-			if (leaf) {
-				resolve(leaf);
-				return;
-			}
-			if (performance.now() - start > timeoutMs) {
-				reject(new Error(`waitForLeaf: no [data-pictel-pipeline] within ${String(timeoutMs)}ms`));
-				return;
-			}
-			requestAnimationFrame(check);
-		};
-		setTimeout(check, 0);
-	});
-}
-
-/**
  * Wait until the Canvas root has `data-pictel-pending` set. Polls a few
  * frames to give React's `useSyncExternalStore` re-render time to flush after
  * a descendant Pipeline / RasterSource registers and notifies pending.
@@ -156,15 +132,14 @@ describe.sequential("Image integration", () => {
 		try {
 			await waitForPipeline(handle.container);
 
-			const leaf = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-			if (!leaf) throw new Error("no leaf pipeline found");
-
-			const canvas = leaf.querySelector<HTMLCanvasElement>(":scope > [data-pictel-raster] > canvas");
+			const canvas = handle.container.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
 			expect(canvas).not.toBeNull();
 			expect(canvas?.width).toBe(100);
 			expect(canvas?.height).toBe(100);
 
-			const pixels = readPipelineOutput(leaf);
+			if (!canvas) throw new Error("no raster canvas found");
+
+			const pixels = readPipelineOutput(canvas);
 			const [r, g, b, a] = readPixel(pixels, 50, 50);
 
 			// "fill" stretches the 50x50 red source over the entire 100x100 canvas.
@@ -223,29 +198,20 @@ describe.sequential("Image integration", () => {
 			await waitForPipeline(handle.container);
 
 			const all = Array.from(
-				handle.container.querySelectorAll<HTMLElement>("[data-pictel-pipeline]"),
+				handle.container.querySelectorAll<HTMLCanvasElement>("canvas[data-pictel-raster]"),
 			);
 			expect(all.length).toBeGreaterThanOrEqual(2);
 
-			// Locate the outer (no [data-pictel-pipeline] ancestor within container).
-			let outer: HTMLElement | null = null;
-			for (const candidate of all) {
-				let ancestor: HTMLElement | null = candidate.parentElement;
-				let hasPipelineAncestor = false;
-				while (ancestor && ancestor !== handle.container) {
-					if (ancestor.hasAttribute("data-pictel-pipeline")) {
-						hasPipelineAncestor = true;
-						break;
-					}
-					ancestor = ancestor.parentElement;
-				}
-				if (!hasPipelineAncestor) {
-					outer = candidate;
-					break;
-				}
-			}
+			// Outer Pipeline's output canvas is the one whose previous-sibling
+			// children wrapper contains another `[data-pictel-raster]` canvas (the
+			// inner / Image leaf canvas). The Image leaf canvas has no such
+			// sibling-with-raster-descendant.
+			const outer = all.find((candidate) => {
+				const prev = candidate.previousElementSibling;
+				return prev instanceof HTMLElement && prev.querySelector("canvas[data-pictel-raster]") !== null;
+			});
 
-			if (!outer) throw new Error("could not locate outer pipeline");
+			if (!outer) throw new Error("could not locate outer raster canvas");
 
 			const pixels = readPipelineOutput(outer);
 			const [r, g, b] = readPixel(pixels, 50, 50);
@@ -279,10 +245,10 @@ describe.sequential("Image integration", () => {
 		try {
 			await waitForPipeline(handle.container);
 
-			const leaf = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-			if (!leaf) throw new Error("no leaf pipeline found");
+			const canvasRoot = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
+			if (!canvasRoot) throw new Error("no Canvas root found");
 
-			expect(leaf.hasAttribute("data-pictel-pending")).toBe(false);
+			expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(false);
 			expect(unhandled).toHaveLength(0);
 		} finally {
 			window.removeEventListener("unhandledrejection", listener);

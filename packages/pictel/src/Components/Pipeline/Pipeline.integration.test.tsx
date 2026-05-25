@@ -10,31 +10,32 @@ import { applyInvert } from "../Effects/Invert";
 
 // --- Helpers ---
 
-function getOuterPipeline(container: HTMLElement): HTMLElement {
+/**
+ * Locate the outermost Pipeline output canvas in `container`. A Pipeline
+ * renders inline as `<div>{children}</div><canvas data-pictel-raster>`; an
+ * outer Pipeline's children wrapper contains an inner Pipeline's nodes
+ * (including the inner's own raster canvas). The outer's canvas is the one
+ * whose previous-sibling wrapper element contains another
+ * `[data-pictel-raster]` canvas in its subtree; if no such canvas exists
+ * (single-Pipeline composition), the lone raster canvas IS the outer.
+ */
+function getOuterCanvas(container: HTMLElement): HTMLCanvasElement {
 	const all = Array.from(
-		container.querySelectorAll<HTMLElement>("[data-pictel-pipeline]"),
+		container.querySelectorAll<HTMLCanvasElement>("canvas[data-pictel-raster]"),
 	);
 
-	if (all.length === 0) throw new Error("no [data-pictel-pipeline] found in container");
+	if (all.length === 0) throw new Error("no canvas[data-pictel-raster] found in container");
 
-	// Outer pipeline is the one with no [data-pictel-pipeline] ancestor.
-	for (const candidate of all) {
-		let hasPipelineAncestor = false;
-		let parent: HTMLElement | null = candidate.parentElement;
+	if (all.length === 1) return all[0]!;
 
-		while (parent && parent !== container) {
-			if (parent.hasAttribute("data-pictel-pipeline")) {
-				hasPipelineAncestor = true;
-				break;
-			}
+	const outer = all.find((candidate) => {
+		const prev = candidate.previousElementSibling;
+		return prev instanceof HTMLElement && prev.querySelector("canvas[data-pictel-raster]") !== null;
+	});
 
-			parent = parent.parentElement;
-		}
+	if (!outer) throw new Error("could not determine outer raster canvas");
 
-		if (!hasPipelineAncestor) return candidate;
-	}
-
-	throw new Error("could not determine outer pipeline");
+	return outer;
 }
 
 // --- Identity effect for testing ---
@@ -67,11 +68,9 @@ describe.sequential("Pipeline integration", () => {
 
 		try {
 			await waitForPipeline(handle.container);
-			const pipeline = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
+			const canvas = getOuterCanvas(handle.container);
 
-			if (!pipeline) throw new Error("no pipeline found");
-
-			const pixels = readPipelineOutput(pipeline);
+			const pixels = readPipelineOutput(canvas);
 			const [red, green, blue] = readPixel(pixels, 10, 10);
 
 			// Inverted red (#ff0000) = #00ffff: red ≈ 0, green ≈ 255, blue ≈ 255.
@@ -262,7 +261,7 @@ describe.sequential("Pipeline integration", () => {
 		try {
 			await waitForPipeline(handle.container);
 
-			const outer = getOuterPipeline(handle.container);
+			const outer = getOuterCanvas(handle.container);
 			const pixels = readPipelineOutput(outer);
 			const [red, green, blue] = readPixel(pixels, 10, 10);
 
@@ -275,7 +274,7 @@ describe.sequential("Pipeline integration", () => {
 		}
 	});
 
-	test("pipeline div layout stable after resolve — children-in-flow drive size", async () => {
+	test("pipeline layout stable after resolve — canvas at children-measured dims", async () => {
 		// After resolve, children are visibility:hidden but still in flow.
 		// The pipeline div must keep the same size as before resolve.
 		const handle = renderCanvas(
@@ -289,23 +288,22 @@ describe.sequential("Pipeline integration", () => {
 		try {
 			await waitForPipeline(handle.container);
 
-			const pipelineDiv = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
+			const canvas = getOuterCanvas(handle.container);
 
-			if (!pipelineDiv) throw new Error("no pipeline div");
-
-			// After resolve, the pipeline div should have non-zero dimensions
-			// driven by the children wrapper.
-			const rect = pipelineDiv.getBoundingClientRect();
+			// Canvas has non-zero CSS dimensions driven by the children's measured
+			// box at capture time.
+			const rect = canvas.getBoundingClientRect();
 			expect(rect.width).toBeGreaterThan(0);
 			expect(rect.height).toBeGreaterThan(0);
 
-			// Children wrapper should be visibility:hidden but in flow.
-			const childrenWrapper = pipelineDiv.firstElementChild as HTMLElement;
-			expect(childrenWrapper.style.visibility).toBe("hidden");
+			// Children wrapper is the canvas's previous sibling, with display:none
+			// once snapshot is set so children stay mounted but un-laid-out.
+			const childrenWrapper = canvas.previousElementSibling as HTMLElement | null;
+			expect(childrenWrapper).not.toBeNull();
+			expect(childrenWrapper?.style.display).toBe("none");
 
-			// Raster wrapper should be visible.
-			const rasterWrapper = pipelineDiv.querySelector<HTMLElement>("[data-pictel-raster]");
-			expect(rasterWrapper?.style.display).not.toBe("none");
+			// Canvas is in-flow at display: block (carries the pipeline's layout).
+			expect(canvas.style.display).toBe("block");
 		} finally {
 			handle.cleanup();
 		}
@@ -407,20 +405,14 @@ describe.sequential("Pipeline integration", () => {
 		);
 
 		try {
-			// waitForPipeline resolves when no [data-pictel-pending] elements remain.
-			// If releasePending is not called on error, this will timeout instead.
+			// waitForPipeline resolves when the Canvas root's [data-pictel-pending]
+			// is cleared. If the error path doesn't reset pending, this times out.
 			await waitForPipeline(handle.container);
 
-			// After pending clears on error path, the raster should NOT be visible
-			// (no output was drawn because the effect threw before drawToCanvas).
-			const pipeline = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-
-			if (!pipeline) throw new Error("no pipeline found");
-
-			const raster = pipeline.querySelector<HTMLElement>("[data-pictel-raster]");
-
-			// Raster stays hidden because execute() threw before revealing it.
-			expect(raster?.style.display).toBe("none");
+			// On error, no snapshot is set — so no [data-pictel-raster] canvas
+			// renders. The effect threw before setSnapshot ran.
+			const canvas = handle.container.querySelector<HTMLElement>("canvas[data-pictel-raster]");
+			expect(canvas).toBeNull();
 
 			// ErrorChip is rendered inside Canvas when errors accumulate.
 			// It returns null when there are no errors, so its presence proves

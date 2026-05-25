@@ -38,7 +38,7 @@ function mount(jsx: React.ReactElement): { container: HTMLElement; root: Root; c
 	};
 }
 
-/** Wait until no [data-pictel-pending] exists in container. */
+/** Wait until [data-pictel-canvas][data-pictel-pending] is no longer set. */
 function waitForResolved(container: HTMLElement, timeout = 5000): Promise<void> {
 	return new Promise<void>((resolve, reject) => {
 		const start = Date.now();
@@ -47,14 +47,14 @@ function waitForResolved(container: HTMLElement, timeout = 5000): Promise<void> 
 		function check() {
 			frames++;
 
-			if (frames >= 4 && container.querySelector("[data-pictel-pending]") === null) {
+			if (frames >= 4 && container.querySelector("[data-pictel-canvas][data-pictel-pending]") === null) {
 				resolve();
 				return;
 			}
 
 			if (Date.now() - start > timeout) {
-				const pending = Array.from(container.querySelectorAll("[data-pictel-pending]")).length;
-				reject(new Error(`waitForResolved timed out — ${String(pending)} pending elements remain`));
+				const pending = Array.from(container.querySelectorAll("[data-pictel-canvas][data-pictel-pending]")).length;
+				reject(new Error(`waitForResolved timed out — ${String(pending)} Canvas roots still pending`));
 				return;
 			}
 
@@ -232,7 +232,7 @@ describe("Pipeline — callback invocation", () => {
 });
 
 describe("Pipeline — pending flag lifecycle", () => {
-	it("data-pictel-pending is present during processing and cleared after resolve", async () => {
+	it("Canvas-root [data-pictel-pending] is cleared after resolve", async () => {
 		const effect = vi.fn<PipelineCallback>().mockResolvedValue({
 			pixels: new ImageData(new Uint8ClampedArray(64 * 64 * 4).fill(0), 64, 64),
 		});
@@ -246,17 +246,14 @@ describe("Pipeline — pending flag lifecycle", () => {
 		);
 		handles.push(handle);
 
-		// Wait for the pipeline to resolve; verify it's cleared afterwards.
-		// (Checking pending=true mid-render is racy with React concurrent mode
-		// in the jsdom unit test environment, so we just assert the final state.)
 		await waitForResolved(handle.container);
 
-		const pipelineDiv = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-		expect(pipelineDiv).not.toBeNull();
-		expect(pipelineDiv?.hasAttribute("data-pictel-pending")).toBe(false);
+		const canvasRoot = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
+		expect(canvasRoot).not.toBeNull();
+		expect(canvasRoot?.hasAttribute("data-pictel-pending")).toBe(false);
 	});
 
-	it("cleanup on unmount removes pending flag", async () => {
+	it("cleanup on unmount clears pending", async () => {
 		const effect = vi.fn<PipelineCallback>().mockResolvedValue({
 			pixels: new ImageData(new Uint8ClampedArray(64 * 64 * 4).fill(0), 64, 64),
 		});
@@ -268,21 +265,18 @@ describe("Pipeline — pending flag lifecycle", () => {
 				</Pipeline>
 			</Canvas>,
 		);
-		// Don't push to handles — we'll clean up manually.
 
 		await waitForResolved(handle.container);
 
-		const pipelineDiv = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-		expect(pipelineDiv?.hasAttribute("data-pictel-pending")).toBe(false);
+		const canvasRoot = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
+		expect(canvasRoot?.hasAttribute("data-pictel-pending")).toBe(false);
 
-		// Unmount — the pipeline cleanup should not leave pending state on the
-		// element. (The element is removed from DOM but the WeakMap entry is GC'd.)
 		handle.cleanup();
 	});
 });
 
 describe("Pipeline — overflow attrs", () => {
-	it("overflow from callback lands on data-pictel-overflow-* attrs", async () => {
+	it("overflow from callback lands on canvas data-pictel-overflow-* attrs", async () => {
 		const effect = vi.fn<PipelineCallback>().mockResolvedValue({
 			pixels: new ImageData(new Uint8ClampedArray(64 * 64 * 4).fill(0), 64, 64),
 			overflow: { top: 5, right: 10, bottom: 15, left: 20 },
@@ -299,14 +293,15 @@ describe("Pipeline — overflow attrs", () => {
 
 		await waitForResolved(handle.container);
 
-		const pipelineDiv = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-		expect(pipelineDiv?.dataset.pictelOverflowTop).toBe("5");
-		expect(pipelineDiv?.dataset.pictelOverflowRight).toBe("10");
-		expect(pipelineDiv?.dataset.pictelOverflowBottom).toBe("15");
-		expect(pipelineDiv?.dataset.pictelOverflowLeft).toBe("20");
+		const canvas = handle.container.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
+		expect(canvas).not.toBeNull();
+		expect(canvas?.dataset.pictelOverflowTop).toBe("5");
+		expect(canvas?.dataset.pictelOverflowRight).toBe("10");
+		expect(canvas?.dataset.pictelOverflowBottom).toBe("15");
+		expect(canvas?.dataset.pictelOverflowLeft).toBe("20");
 	});
 
-	it("cleanup on unmount removes overflow attrs", async () => {
+	it("cleanup on unmount removes canvas (with its overflow attrs)", async () => {
 		const effect = vi.fn<PipelineCallback>().mockResolvedValue({
 			pixels: new ImageData(new Uint8ClampedArray(64 * 64 * 4).fill(0), 64, 64),
 			overflow: { top: 5, right: 5, bottom: 5, left: 5 },
@@ -322,14 +317,10 @@ describe("Pipeline — overflow attrs", () => {
 
 		await waitForResolved(handle.container);
 
-		const pipelineDiv = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-		expect(pipelineDiv?.dataset.pictelOverflowTop).toBe("5");
+		const canvas = handle.container.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
+		expect(canvas?.dataset.pictelOverflowTop).toBe("5");
 
 		handle.cleanup();
-
-		// After unmount, cleanup runs. The pipeline div is removed from DOM along
-		// with its attrs — the cleanup successfully cleared them before removal.
-		// We can't query a removed element, but the cleanup path ran without error.
 	});
 });
 
@@ -353,16 +344,17 @@ describe("Pipeline — map renders offscreen", () => {
 
 		await waitForResolved(handle.container);
 
-		// The map content is portaled into the Canvas's offscreen host, which is a
-		// sibling of the pipeline div under the Canvas root. Verify the portaled
-		// node is in the document and that its ancestor chain reaches the Canvas
-		// root via the offscreen host — not via the pipeline div.
+		// The map content is portaled into the Canvas's offscreen host (a sibling
+		// of the Pipeline's inline DOM under the Canvas root). Verify the portaled
+		// node is in the document and that walking its ancestor chain up to
+		// [data-pictel-canvas] does NOT pass through any [data-pictel-raster]
+		// canvas's siblings — i.e., it's not inside the pipeline's inline tree.
 		const mapContent = document.querySelector("[data-testid='map-content']");
 		expect(mapContent).not.toBeNull();
 
 		let current: Element | null = mapContent;
 		let foundCanvas = false;
-		let foundPipeline = false;
+		let foundRaster = false;
 
 		while (current) {
 			if (current.hasAttribute("data-pictel-canvas")) {
@@ -370,15 +362,15 @@ describe("Pipeline — map renders offscreen", () => {
 				break;
 			}
 
-			if (current.hasAttribute("data-pictel-pipeline")) {
-				foundPipeline = true;
+			if (current.tagName === "CANVAS" && current.hasAttribute("data-pictel-raster")) {
+				foundRaster = true;
 			}
 
 			current = current.parentElement;
 		}
 
 		expect(foundCanvas).toBe(true);
-		expect(foundPipeline).toBe(false);
+		expect(foundRaster).toBe(false);
 	});
 });
 
@@ -401,13 +393,12 @@ describe("Pipeline — StrictMode safety", () => {
 
 		await waitForResolved(handle.container);
 
-		// Pipeline resolved — no pending, canvas is visible.
-		const pipelineDiv = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-		expect(pipelineDiv?.hasAttribute("data-pictel-pending")).toBe(false);
+		// Pipeline resolved — no pending on Canvas root, canvas is rendered.
+		const canvasRoot = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
+		expect(canvasRoot?.hasAttribute("data-pictel-pending")).toBe(false);
 
-		const canvas = pipelineDiv?.querySelector<HTMLCanvasElement>(":scope > [data-pictel-raster] > canvas");
+		const canvas = handle.container.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
 		expect(canvas).not.toBeNull();
-		// Canvas has been drawn (width/height set by drawToCanvas).
 		expect(canvas?.width).toBeGreaterThan(0);
 		expect(canvas?.height).toBeGreaterThan(0);
 	});

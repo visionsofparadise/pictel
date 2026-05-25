@@ -30,30 +30,6 @@ function deferred(): Deferred {
 }
 
 /**
- * Wait for the leaf [data-pictel-pipeline] to appear in the container.
- * createRoot.render returns before React commits + useLayoutEffect runs,
- * so this polls a few frames for the DOM to settle.
- */
-function waitForLeaf(container: HTMLElement, timeoutMs = 1000): Promise<HTMLElement> {
-	return new Promise((resolve, reject) => {
-		const start = performance.now();
-		const check = () => {
-			const leaf = container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-			if (leaf) {
-				resolve(leaf);
-				return;
-			}
-			if (performance.now() - start > timeoutMs) {
-				reject(new Error(`waitForLeaf: no [data-pictel-pipeline] within ${String(timeoutMs)}ms`));
-				return;
-			}
-			requestAnimationFrame(check);
-		};
-		setTimeout(check, 0);
-	});
-}
-
-/**
  * Wait until the Canvas root has `data-pictel-pending` set. Polls a few
  * frames to give React's `useSyncExternalStore` re-render time to flush after
  * a descendant Pipeline / RasterSource registers and notifies pending.
@@ -80,7 +56,7 @@ function waitForCanvasPending(container: HTMLElement, timeoutMs = 1000): Promise
 // --- Integration tests ---
 
 describe.sequential("RasterSource integration", () => {
-	test("DOM contract: emits pipeline marker + raster + canvas, clears pending after sync draw", async () => {
+	test("DOM contract: emits bare canvas[data-pictel-raster], clears Canvas pending after sync draw", async () => {
 		const handle = renderCanvas(
 			<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
 				<RasterSource width={100} height={100} draw={syncDrawRed} />
@@ -90,23 +66,22 @@ describe.sequential("RasterSource integration", () => {
 		try {
 			await waitForPipeline(handle.container);
 
-			const leaf = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
+			const canvas = handle.container.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
+			if (!canvas) throw new Error("no canvas[data-pictel-raster] found");
 
-			if (!leaf) throw new Error("no [data-pictel-pipeline] found");
+			expect(canvas.tagName).toBe("CANVAS");
+			expect(canvas.hasAttribute("data-pictel-raster")).toBe(true);
+			expect(canvas.width).toBe(100);
+			expect(canvas.height).toBe(100);
 
-			expect(leaf.hasAttribute("data-pictel-pipeline")).toBe(true);
-			expect(leaf.hasAttribute("data-pictel-pending")).toBe(false);
-
-			const canvas = leaf.querySelector<HTMLCanvasElement>(":scope > [data-pictel-raster] > canvas");
-			expect(canvas).not.toBeNull();
-			expect(canvas?.width).toBe(100);
-			expect(canvas?.height).toBe(100);
+			const canvasRoot = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
+			expect(canvasRoot?.hasAttribute("data-pictel-pending")).toBe(false);
 		} finally {
 			handle.cleanup();
 		}
 	});
 
-	test("sync draw clears pending", async () => {
+	test("sync draw clears Canvas pending", async () => {
 		const handle = renderCanvas(
 			<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
 				<RasterSource width={100} height={100} draw={syncDrawRed} />
@@ -116,11 +91,10 @@ describe.sequential("RasterSource integration", () => {
 		try {
 			await waitForPipeline(handle.container);
 
-			const leaf = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
+			const canvasRoot = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
+			if (!canvasRoot) throw new Error("no Canvas root found");
 
-			if (!leaf) throw new Error("no leaf pipeline found");
-
-			expect(leaf.hasAttribute("data-pictel-pending")).toBe(false);
+			expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(false);
 		} finally {
 			handle.cleanup();
 		}
@@ -184,34 +158,21 @@ describe.sequential("RasterSource integration", () => {
 		try {
 			await waitForPipeline(handle.container);
 
-			// Outer pipeline = the [data-pictel-pipeline] without an ancestor of
-			// the same. The leaf is the inner one (nested inside the outer).
+			// Two raster canvases: the RasterSource leaf and the outer Pipeline's
+			// output. The outer's canvas sits as a sibling of a wrapper div that
+			// contains the leaf canvas; the leaf has no such sibling-of-wrapper.
 			const all = Array.from(
-				handle.container.querySelectorAll<HTMLElement>("[data-pictel-pipeline]"),
+				handle.container.querySelectorAll<HTMLCanvasElement>("canvas[data-pictel-raster]"),
 			);
 
 			expect(all.length).toBeGreaterThanOrEqual(2);
 
-			// Locate the outer (no [data-pictel-pipeline] ancestor within container).
-			let outer: HTMLElement | null = null;
+			const outer = all.find((candidate) => {
+				const prev = candidate.previousElementSibling;
+				return prev instanceof HTMLElement && prev.querySelector("canvas[data-pictel-raster]") !== null;
+			});
 
-			for (const candidate of all) {
-				let ancestor: HTMLElement | null = candidate.parentElement;
-				let hasPipelineAncestor = false;
-				while (ancestor && ancestor !== handle.container) {
-					if (ancestor.hasAttribute("data-pictel-pipeline")) {
-						hasPipelineAncestor = true;
-						break;
-					}
-					ancestor = ancestor.parentElement;
-				}
-				if (!hasPipelineAncestor) {
-					outer = candidate;
-					break;
-				}
-			}
-
-			if (!outer) throw new Error("could not locate outer pipeline");
+			if (!outer) throw new Error("could not locate outer raster canvas");
 
 			const pixels = readPipelineOutput(outer);
 			const [r, g, b] = readPixel(pixels, 10, 10);

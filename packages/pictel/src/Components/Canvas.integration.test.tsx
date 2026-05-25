@@ -30,32 +30,30 @@ function ladder(level: number): (fn: () => Promise<void>) => Promise<void> {
 	};
 }
 
-function getPipeline(container: HTMLElement): HTMLElement {
-	const pipeline = container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-	if (!pipeline) throw new Error("no [data-pictel-pipeline] found in container");
+function getCanvas(container: HTMLElement): HTMLCanvasElement {
+	const canvas = container.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
+	if (!canvas) throw new Error("no canvas[data-pictel-raster] found in container");
 
-	return pipeline;
+	return canvas;
 }
 
-function getOuterPipeline(container: HTMLElement): HTMLElement {
+function getOuterCanvas(container: HTMLElement): HTMLCanvasElement {
 	const all = Array.from(
-		container.querySelectorAll<HTMLElement>("[data-pictel-pipeline]"),
+		container.querySelectorAll<HTMLCanvasElement>("canvas[data-pictel-raster]"),
 	);
-	if (all.length === 0) throw new Error("no [data-pictel-pipeline] found in container");
-	// Outer pipeline is the one whose ancestors contain no other pipeline.
+	if (all.length === 0) throw new Error("no canvas[data-pictel-raster] found in container");
+	if (all.length === 1) return all[0]!;
+
+	// Outer Pipeline's canvas is the one whose previous-sibling wrapper contains
+	// another raster canvas in its subtree.
 	for (const candidate of all) {
-		let hasPipelineAncestor = false;
-		let parent: HTMLElement | null = candidate.parentElement;
-		while (parent && parent !== container) {
-			if (parent.hasAttribute("data-pictel-pipeline")) {
-				hasPipelineAncestor = true;
-				break;
-			}
-			parent = parent.parentElement;
+		const prev = candidate.previousElementSibling;
+		if (prev instanceof HTMLElement && prev.querySelector("canvas[data-pictel-raster]") !== null) {
+			return candidate;
 		}
-		if (!hasPipelineAncestor) return candidate;
 	}
-	throw new Error("could not determine outer pipeline");
+
+	throw new Error("could not determine outer raster canvas");
 }
 
 describe.sequential("pipeline integration ladder", () => {
@@ -70,9 +68,9 @@ describe.sequential("pipeline integration ladder", () => {
 				await waitForPipeline(handle.container);
 				const img = handle.container.querySelector("img");
 				expect(img).not.toBeNull();
-				// No pipeline div expected for plain Canvas + img.
-				const pipeline = handle.container.querySelector("[data-pictel-pipeline]");
-				expect(pipeline).toBeNull();
+				// No raster canvas expected for plain Canvas + img.
+				const raster = handle.container.querySelector("canvas[data-pictel-raster]");
+				expect(raster).toBeNull();
 			} finally {
 				handle.cleanup();
 			}
@@ -90,8 +88,8 @@ describe.sequential("pipeline integration ladder", () => {
 			);
 			try {
 				await waitForPipeline(handle.container);
-				const pipeline = getPipeline(handle.container);
-				const pixels = readPipelineOutput(pipeline);
+				const canvas = getCanvas(handle.container);
+				const pixels = readPipelineOutput(canvas);
 				const [red, green, blue] = readPixel(pixels, 10, 10);
 				// BT.601 luminance of pure red: 0.299 * 255 ≈ 76.
 				expect(red).toBeGreaterThanOrEqual(74);
@@ -117,8 +115,8 @@ describe.sequential("pipeline integration ladder", () => {
 			);
 			try {
 				await waitForPipeline(handle.container);
-				const pipeline = getPipeline(handle.container);
-				const pixels = readPipelineOutput(pipeline);
+				const canvas = getCanvas(handle.container);
+				const pixels = readPipelineOutput(canvas);
 				// Sample further from the gradient edges (x=20 instead of x=8,
 				// x=108 instead of x=100): the IMG is rendered inside a
 				// childrenEl whose layout height (36px due to inline baseline)
@@ -155,7 +153,7 @@ describe.sequential("pipeline integration ladder", () => {
 			);
 			try {
 				await waitForPipeline(handle.container);
-				const outer = getOuterPipeline(handle.container);
+				const outer = getOuterCanvas(handle.container);
 				const pixels = readPipelineOutput(outer);
 				// Sample further from edges (see level 2 note on edge offset).
 				const [lowX] = readPixel(pixels, 20, 16);
@@ -187,8 +185,8 @@ describe.sequential("pipeline integration ladder", () => {
 			);
 			try {
 				await waitForPipeline(handle.container);
-				const pipeline = getPipeline(handle.container);
-				const pixels = readPipelineOutput(pipeline);
+				const canvas = getCanvas(handle.container);
+				const pixels = readPipelineOutput(canvas);
 				const [red, green, blue] = readPixel(pixels, 10, 10);
 				// lerp(1, 1.5, luminance(#808080)=0.5) = 1.25; 128 * 1.25 = 160.
 				expect(red).toBeGreaterThanOrEqual(150);
@@ -222,8 +220,8 @@ describe.sequential("pipeline integration ladder", () => {
 			);
 			try {
 				await waitForPipeline(handle.container);
-				const pipeline = getPipeline(handle.container);
-				const pixels = readPipelineOutput(pipeline);
+				const canvas = getCanvas(handle.container);
+				const pixels = readPipelineOutput(canvas);
 				const [red, green, blue] = readPixel(pixels, 20, 20);
 				// Red * green = 0 in all channels.
 				expect(red).toBeGreaterThanOrEqual(0);
@@ -252,8 +250,8 @@ describe.sequential("pipeline integration ladder", () => {
 			);
 			try {
 				await waitForPipeline(handle1.container);
-				const pipeline = getPipeline(handle1.container);
-				const pixels = readPipelineOutput(pipeline);
+				const canvas = getCanvas(handle1.container);
+				const pixels = readPipelineOutput(canvas);
 				const [red] = readPixel(pixels, 10, 10);
 				expect(red).toBeGreaterThanOrEqual(74);
 				expect(red).toBeLessThanOrEqual(78);
@@ -277,8 +275,8 @@ describe.sequential("pipeline integration ladder", () => {
 			);
 			try {
 				await waitForPipeline(handle4.container);
-				const pipeline = getPipeline(handle4.container);
-				const pixels = readPipelineOutput(pipeline);
+				const canvas = getCanvas(handle4.container);
+				const pixels = readPipelineOutput(canvas);
 				const [red] = readPixel(pixels, 10, 10);
 				expect(red).toBeGreaterThanOrEqual(150);
 				expect(red).toBeLessThanOrEqual(170);
@@ -300,8 +298,8 @@ describe.sequential("pipeline integration ladder", () => {
 			);
 			try {
 				await waitForPipeline(handle.container);
-				const pipeline = getPipeline(handle.container);
-				const pixels = readPipelineOutput(pipeline);
+				const canvas = getCanvas(handle.container);
+				const pixels = readPipelineOutput(canvas);
 				// Sample away from edges (see level 2 note on edge offset).
 				const [lowInverted] = readPixel(pixels, 20, 20);
 				// Original at x=20 of 160 → ~32; inverted → ~223.
@@ -335,8 +333,8 @@ describe.sequential("pipeline integration ladder", () => {
 			);
 			try {
 				await waitForPipeline(handle.container);
-				const pipeline = getPipeline(handle.container);
-				const pixels = readPipelineOutput(pipeline);
+				const canvas = getCanvas(handle.container);
+				const pixels = readPipelineOutput(canvas);
 				// Red column (first 40px) → ~76.
 				const [redGrayscale] = readPixel(pixels, 20, 20);
 				expect(redGrayscale).toBeGreaterThanOrEqual(71);
@@ -374,12 +372,11 @@ describe.sequential("resize behavior", () => {
 		try {
 			await waitForPipeline(handle.container);
 
-			const pipeline = handle.container.querySelector<HTMLElement>("[data-pictel-pipeline]");
-			if (!pipeline) throw new Error("no [data-pictel-pipeline] found in container");
-			expect(pipeline.hasAttribute("data-pictel-pending")).toBe(false);
+			const canvasRoot = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
+			if (!canvasRoot) throw new Error("no [data-pictel-canvas] found in container");
+			expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(false);
 
-			const canvas = pipeline.querySelector<HTMLCanvasElement>(":scope > [data-pictel-raster] > canvas");
-			if (!canvas) throw new Error("no output canvas found");
+			const canvas = getCanvas(handle.container);
 
 			const initialW = canvas.width;
 			const initialH = canvas.height;
@@ -391,13 +388,13 @@ describe.sequential("resize behavior", () => {
 				for (const mutation of mutations) {
 					if (mutation.type === "attributes" && mutation.attributeName === "data-pictel-pending") {
 						const target = mutation.target as HTMLElement;
-						if (target.getAttribute("data-pictel-pending") === "true") {
+						if (target.hasAttribute("data-pictel-pending")) {
 							pendingSetCount += 1;
 						}
 					}
 				}
 			});
-			observer.observe(pipeline, { attributes: true, attributeFilter: ["data-pictel-pending"] });
+			observer.observe(canvasRoot, { attributes: true, attributeFilter: ["data-pictel-pending"] });
 
 			handle.container.style.width = "600px";
 			handle.container.style.height = "600px";
@@ -410,7 +407,7 @@ describe.sequential("resize behavior", () => {
 
 			// Capture must NOT have re-triggered: the buffer is fixed.
 			expect(pendingSetCount).toBe(0);
-			expect(pipeline.hasAttribute("data-pictel-pending")).toBe(false);
+			expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(false);
 			expect(canvas.width).toBe(initialW);
 			expect(canvas.height).toBe(initialH);
 		} finally {
@@ -499,11 +496,7 @@ describe.sequential("render-mode query contract", () => {
 		);
 		try {
 			await waitForPipeline(handle.container);
-			const pipeline = getPipeline(handle.container);
-			const canvas = pipeline.querySelector<HTMLCanvasElement>(
-				":scope > [data-pictel-raster] > canvas",
-			);
-			if (!canvas) throw new Error("no output canvas found");
+			const canvas = getCanvas(handle.container);
 			// captureDimensions reflects the query values, not the prop.
 			expect(canvas.width).toBe(96);
 			expect(canvas.height).toBe(48);

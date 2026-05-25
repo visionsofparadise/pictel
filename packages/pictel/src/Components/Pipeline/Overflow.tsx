@@ -7,18 +7,24 @@ interface OverflowProps {
 /**
  * Reveals a wrapped pipeline's bleed at natural pixel ratio.
  *
- * By default a pipeline's canvas element fills the pipeline's content box
- * (children size) at `width: 100%; height: 100%`, so when an effect produces
- * bleed (Blur halo, drop shadow falloff, etc.) the canvas pixels are squished
- * into the content footprint. Overflow reads the pipeline's
- * `data-pictel-overflow-top/right/bottom/left` attributes and expands the
- * pipeline's raster wrapper (`[data-pictel-raster]`) outside the pipeline
- * bounds so the canvas renders at its natural pixel ratio. The bleed extends
- * visibly outside the pipeline box.
+ * By default a Pipeline's output canvas renders inline at the dimensions
+ * children measured at (`cssW × cssH`) with a backing buffer that may be
+ * larger when the effect produced bleed (Blur halo, drop shadow falloff,
+ * etc.). Bleed pixels are squished into the content footprint by default.
+ * Overflow finds the wrapped pipeline's
+ * `[data-pictel-raster]` canvas, reads its
+ * `data-pictel-overflow-{top,right,bottom,left}` data attributes, and
+ * applies absolute positioning to the canvas — expanded by the overflow
+ * sum on each axis and shifted by negative top/left — so the canvas
+ * renders at its natural pixel ratio, visibly extending outside the
+ * wrapper. Compose with an outer `overflow: hidden` wrapper (see `Clip`)
+ * to crop the bleed back to content size.
  *
- * Only acts when the wrapped pipeline is not pending; during pending/initial
- * state the pipeline renders plain. Composes with an outer `overflow: hidden`
- * wrapper (see `Clip`) to crop the bleed back to content size.
+ * Only acts when the wrapped pipeline has resolved (i.e. its raster canvas
+ * exists in the DOM). During pending the pipeline renders its children
+ * inline; Overflow waits for the canvas to mount before applying styles,
+ * watching the wrapper's subtree for the canvas's appearance/dimension
+ * changes.
  *
  * @param props
  * @category Pipeline
@@ -31,41 +37,54 @@ export function Overflow({ children }: OverflowProps) {
 
 		if (!wrapperEl) return;
 
-		const pipelineEl = wrapperEl.querySelector<HTMLElement>("[data-pictel-pipeline]");
+		function clear(): void {
+			if (!wrapperEl) return;
 
-		if (!pipelineEl) return;
-
-		const rasterEl = pipelineEl.querySelector<HTMLElement>(":scope > [data-pictel-raster]");
-
-		if (!rasterEl) return;
-
-		function clearStyles(): void {
-			if (!rasterEl) return;
-
-			rasterEl.style.top = "";
-			rasterEl.style.left = "";
-			rasterEl.style.width = "";
-			rasterEl.style.height = "";
+			wrapperEl.style.position = "";
+			wrapperEl.style.width = "";
+			wrapperEl.style.height = "";
+			wrapperEl.style.display = "";
 		}
 
 		function apply(): void {
-			if (!pipelineEl || !rasterEl) return;
+			if (!wrapperEl) return;
 
-			if (pipelineEl.getAttribute("data-pictel-pending") === "true") {
-				clearStyles();
+			const canvas = wrapperEl.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
+
+			if (!canvas) {
+				clear();
 
 				return;
 			}
 
-			const top = Number(pipelineEl.dataset.pictelOverflowTop ?? "0");
-			const right = Number(pipelineEl.dataset.pictelOverflowRight ?? "0");
-			const bottom = Number(pipelineEl.dataset.pictelOverflowBottom ?? "0");
-			const left = Number(pipelineEl.dataset.pictelOverflowLeft ?? "0");
+			const top = Number(canvas.dataset.pictelOverflowTop ?? "0");
+			const right = Number(canvas.dataset.pictelOverflowRight ?? "0");
+			const bottom = Number(canvas.dataset.pictelOverflowBottom ?? "0");
+			const left = Number(canvas.dataset.pictelOverflowLeft ?? "0");
 
-			rasterEl.style.top = `-${String(top)}px`;
-			rasterEl.style.left = `-${String(left)}px`;
-			rasterEl.style.width = `calc(100% + ${String(left + right)}px)`;
-			rasterEl.style.height = `calc(100% + ${String(top + bottom)}px)`;
+			// Content (CSS) dimensions = backing buffer minus the overflow margins.
+			// Reading canvas.width/height (intrinsic backing-buffer attributes) is
+			// stable across re-applies; reading canvas.style.width risks feeding
+			// our own previous write back through the loop.
+			const cssW = canvas.width - left - right;
+			const cssH = canvas.height - top - bottom;
+
+			if (cssW <= 0 && cssH <= 0) {
+				clear();
+
+				return;
+			}
+
+			wrapperEl.style.position = "relative";
+			wrapperEl.style.display = "inline-block";
+			wrapperEl.style.width = `${String(cssW)}px`;
+			wrapperEl.style.height = `${String(cssH)}px`;
+
+			canvas.style.position = "absolute";
+			canvas.style.top = `-${String(top)}px`;
+			canvas.style.left = `-${String(left)}px`;
+			canvas.style.width = `${String(cssW + left + right)}px`;
+			canvas.style.height = `${String(cssH + top + bottom)}px`;
 		}
 
 		apply();
@@ -73,20 +92,24 @@ export function Overflow({ children }: OverflowProps) {
 		const observer = new MutationObserver(() => {
 			apply();
 		});
-		observer.observe(pipelineEl, {
+		observer.observe(wrapperEl, {
+			childList: true,
+			subtree: true,
 			attributes: true,
 			attributeFilter: [
-				"data-pictel-pending",
 				"data-pictel-overflow-top",
 				"data-pictel-overflow-right",
 				"data-pictel-overflow-bottom",
 				"data-pictel-overflow-left",
+				"style",
+				"width",
+				"height",
 			],
 		});
 
 		return () => {
 			observer.disconnect();
-			clearStyles();
+			clear();
 		};
 	}, []);
 

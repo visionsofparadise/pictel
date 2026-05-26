@@ -69,11 +69,6 @@ const countTextStyle: CSSProperties = {
 	letterSpacing: "0.02em",
 };
 
-/**
- * Top-left error chip. Collapsed by default — shows an `AlertTriangle` icon
- * plus a count of pipeline errors. On hover, expands downward to show each
- * error as a row (id + message). Returns `null` when there are no errors.
- */
 export function ErrorChip({ errors }: ErrorChipProps) {
 	const [hovered, setHovered] = useState(false);
 

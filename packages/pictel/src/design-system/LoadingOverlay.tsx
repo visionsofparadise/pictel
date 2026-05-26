@@ -21,12 +21,6 @@ const spinnerContainerStyle: CSSProperties = {
 	zIndex: 10,
 };
 
-/**
- * Full-bleed darken layer plus a bottom-right spinner. Visible when `pending`
- * is true; renders nothing otherwise. Both layers are siblings (not nested) so
- * the spinner sits above the darken without inheriting `pointer-events: none`
- * being applied to a wrapper.
- */
 export function LoadingOverlay({ pending }: LoadingOverlayProps) {
 	if (!pending) return null;
 

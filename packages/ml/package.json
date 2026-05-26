@@ -1,8 +1,7 @@
 {
   "name": "@pictel/ml",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
-  "private": true,
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -13,6 +12,16 @@
     "dist"
   ],
   "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Matt Cavender",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/visionsofparadise/pictel.git",
+    "directory": "packages/ml"
+  },
   "scripts": {
     "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
     "unit": "vitest run",

@@ -9,20 +9,6 @@ const INTEGRATION_RADIUS = 4
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-/**
- * Compute the per-pixel gradient direction and magnitude using Sobel or Scharr
- * kernels and emit the result as a packed three-channel field:
- *
- * - R = (cos(theta) + 1) * 127.5    -- horizontal direction component, [-1, 1] -> [0, 255]
- * - G = (sin(theta) + 1) * 127.5    -- vertical direction component,   [-1, 1] -> [0, 255]
- * - B = magnitude / maxResponse * 255 -- gradient strength,            [0, 1]  -> [0, 255]
- * - A = source alpha
- *
- * Pixels with magnitude below `1e-6 * maxResponse` are emitted as
- * `R=128, G=128, B=0` (neutral direction, zero magnitude). The cos/sin
- * components are kept as floats until the final byte conversion to avoid
- * accumulated rounding error.
- */
 export function applyDirection(
 	pixels: ImageData,
 	kernel: "sobel" | "scharr",
@@ -59,36 +45,6 @@ export function applyDirection(
 	return new ImageData(output, width, height)
 }
 
-/**
- * Compute a smooth, contour-following orientation field via the structure
- * tensor and emit it in the same packed three-channel encoding as
- * `applyDirection`.
- *
- * Raw per-pixel gradient direction (`applyDirection`) is noisy: along an edge
- * the gradient flips 180 degrees pixel-to-pixel, and averaging those opposite
- * vectors cancels them out. The structure tensor avoids this by averaging the
- * *outer product* of the gradient (`gx*gx`, `gx*gy`, `gy*gy`) instead of the
- * gradient itself — orientation, which is direction modulo 180 degrees, does
- * not suffer the opposite-vector cancellation. The result is a field that
- * field-aligned consumers (`LIC`, `Hatch`) can follow coherently around forms.
- *
- * Algorithm:
- * 1. Per-pixel gradients `gx, gy` via `applyKernels` (Sobel or Scharr).
- * 2. Tensor components per pixel: `e = gx*gx`, `f = gx*gy`, `g = gy*gy`.
- * 3. Smooth `e, f, g` with a separable box blur at `INTEGRATION_RADIUS`.
- * 4. Eigenvalues `lambda1,2 = (e+g)/2 +/- sqrt(((e-g)/2)^2 + f^2)`.
- * 5. Dominant-gradient orientation `phi = 0.5 * atan2(2f, e - g)`; the flow
- *    direction *along* contours is `phi + PI/2`.
- * 6. Coherence (anisotropy) `coh = (lambda1 - lambda2) / (lambda1 + lambda2)`,
- *    range `[0, 1]`.
- * 7. Encode `R = (cos+1)*127.5`, `G = (sin+1)*127.5`, `B = coh*255`, `A` from
- *    the source. Degenerate pixels (`lambda1+lambda2 <= epsilon`) emit
- *    `R=128, G=128, B=0`, matching `applyDirection`'s neutral encoding.
- *
- * The B channel carries coherence here (it carries gradient magnitude in
- * `applyDirection`). A consumer that magnitude-gates on B should ignore it for
- * a structure field — set `uniformStep` on `LIC`/`Hatch`.
- */
 export function applyStructureField(
 	pixels: ImageData,
 	kernel: "sobel" | "scharr",

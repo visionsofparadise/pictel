@@ -1,8 +1,7 @@
 {
   "name": "@pictel/cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
-  "private": true,
   "bin": {
     "pictel": "./dist/index.js"
   },
@@ -11,6 +10,16 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Matt Cavender",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/visionsofparadise/pictel.git",
+    "directory": "packages/cli"
   },
   "files": ["dist", "shell"],
   "scripts": {

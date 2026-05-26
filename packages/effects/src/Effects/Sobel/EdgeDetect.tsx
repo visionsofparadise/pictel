@@ -6,13 +6,6 @@ import { applyKernels, SCHARR_X, SCHARR_Y, SOBEL_X, SOBEL_Y } from "./kernel"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-/**
- * Compute per-pixel gradient magnitude using Sobel or Scharr kernels and emit
- * the result as a grayscale ImageData (R=G=B=magnitude byte, alpha preserved).
- *
- * Magnitude is normalized against the kernel's theoretical maximum response so
- * the output spans the full 0..255 byte range regardless of kernel choice.
- */
 export function applyEdgeDetect(
 	pixels: ImageData,
 	kernel: "sobel" | "scharr",

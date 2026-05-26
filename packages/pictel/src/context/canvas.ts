@@ -1,12 +1,6 @@
 import { createContext, useContext } from "react";
 import type { RasterEffectError } from "../utils/errors";
 
-/**
- * Fixed pixel dimensions for the canvas's compositing buffer. The capture
- * pipeline rasterizes to exactly these dimensions; visual scale (preview
- * fit-to-viewport, display fit-to-container) is applied by Frame as a CSS
- * transform and does not affect buffer size.
- */
 export interface CanvasDimensions {
 	width: number;
 	height: number;

@@ -17,20 +17,6 @@ function stripeCoverage(radius: number, dist: number): number {
 	return clamp01((radius - dist) / AA)
 }
 
-/**
- * Line-engraving conversion. Lays a continuous line pattern over the image and
- * modulates each line's thickness by local darkness — light tone thins the
- * inked stripe to a hairline, dark tone swells it until neighbouring lines
- * merge. The line phase is warped by tone (`relief`) so the lines bow around
- * the form, the way an engraver's "modeling lines" follow a face. With
- * `crossHatch`, a second perpendicular set of lines fades in across the
- * darkest tones.
- *
- * Output is grayscale — black ink on white — and preserves source alpha.
- *
- * Angle convention matches `Hatch` and CSS gradients: `angle=0` is horizontal
- * lines, `angle=π/2` is vertical, increasing counter-clockwise.
- */
 export function applyEngrave(
 	pixels: ImageData,
 	spacing: number,

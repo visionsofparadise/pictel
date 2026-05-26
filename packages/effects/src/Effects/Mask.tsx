@@ -5,15 +5,8 @@ import { luminance } from "./utils/luminance"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-/** Which channel of the mask map drives the clip. */
 export type MaskSource = "alpha" | "luminance"
 
-/**
- * Clip `pixels` to `mask`. The mask value at each pixel — its alpha channel
- * (`source="alpha"`) or its luminance (`source="luminance"`) — multiplies the
- * source alpha. RGB is untouched; only transparency changes. The two buffers
- * must have matching dimensions.
- */
 export function applyMask(pixels: ImageData, mask: ImageData, source: MaskSource): ImageData {
 	if (pixels.width !== mask.width || pixels.height !== mask.height) {
 		throw new Error(

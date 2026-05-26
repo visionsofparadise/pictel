@@ -31,16 +31,6 @@ interface MedianCutBucket {
 	readonly samples: ReadonlyArray<Rgb>
 }
 
-/**
- * Median-cut palette derivation. Recursively splits the bucket with the longest
- * channel range at the median of that channel until `count` buckets exist; the
- * final palette is the per-channel mean of each bucket.
- *
- * Throws if the input has fewer than `count` unique colors — that's a configuration error.
- *
- * @param pixels Source image. Fully transparent pixels are ignored.
- * @param count Target palette size. Must be ≥ 1.
- */
 export function derivePalette(pixels: ImageData, count: number): Array<[number, number, number]> {
 	if (count < 1) throw new Error(`derivePalette: count must be ≥ 1 (received ${count})`)
 
@@ -175,13 +165,6 @@ function clamp255(value: number): number {
 	return value
 }
 
-/**
- * Maps each pixel to its nearest palette color, optionally with dithering.
- *
- * Floyd–Steinberg and Atkinson use error diffusion in raster order with a
- * Float32 working buffer. Bayer-4 and Bayer-8 are ordered dithering with the
- * canonical matrix.
- */
 export function applyQuantize(
 	pixels: ImageData,
 	palette: ReadonlyArray<Rgb>,
@@ -299,11 +282,6 @@ function diffuse(
 	buffer[offset + 2] = buffer[offset + 2]! + errB * weight
 }
 
-/**
- * Same as `applyQuantize` but the quantized result is mixed with the original
- * pixels by the map's luminance. Map=black returns the original; map=white
- * returns the fully quantized output.
- */
 export function applyMappedQuantize(
 	pixels: ImageData,
 	map: ImageData,

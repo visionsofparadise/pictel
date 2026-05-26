@@ -9,47 +9,6 @@ import { mixBlend } from "./utils/mix-blend"
 
 const SMOOTH_RADIUS = 1
 
-/**
- * Regularized iterative shock filter — the mathematically well-behaved limit of
- * "sharpen the image over and over."
- *
- * A raw shock filter (Osher–Rudin) repeatedly dilates pixels toward the bright
- * side of an edge and erodes them toward the dark side, steepening every edge
- * into a true discontinuity. Applied naively it amplifies noise into spurious
- * shocks. This implementation regularizes it: each iteration presmooths the
- * channels with a small box blur (`SMOOTH_RADIUS`) before estimating the
- * Laplacian sign, so the dilate/erode decision follows real structure rather
- * than noise. Each iteration is one blur-then-sharpen step.
- *
- * The shock *direction* is coupled across the three colour channels through
- * luminance. Deciding `sign(Laplacian)` per channel lets the channels disagree
- * about which side of an edge to pull from on a detailed photo, producing
- * per-channel colour fringing — a fine, colourful maze instead of bold coherent
- * flat regions. Computing one shared `sign(L)` map from the luminance of the
- * smoothed channels keeps the dilate/erode decision identical for R, G and B,
- * so every channel shocks the same way at every edge. Each channel still keeps
- * its own gradient magnitude, so it retains its own contrast.
- *
- * Per iteration (alpha passed through):
- *  1. Presmooth each of the R, G, B channel buffers → `sR, sG, sB`.
- *  2. Compute a single luminance buffer `Lum` (BT.601) from `sR, sG, sB`.
- *  3. Compute the 5-point Laplacian of `Lum`, edge-clamped → one shared
- *     `sign(L)` map for the iteration.
- *  4. Per channel, compute the gradient magnitude of that channel's *current*
- *     (un-presmoothed) buffer via central differences, edge-clamped.
- *  5. Shock step per channel: `I_new = I - sign(L) * gradMag * dt`,
- *     `dt = min(1, strength)`.
- *  6. Clamp to `[0, 255]`.
- *
- * Iterating converges to piecewise-flat regions separated by crisp edges — a
- * clean cartoon / line-drawing look with no ringing or colour fringing.
- * `iterations <= 0` returns an unchanged copy. Grayscale inputs (R = G = B) are
- * unaffected by the luminance coupling, since luminance then equals every
- * channel.
- *
- * Cost is `O(W*H*iterations)`. Acceptable for static demos; keep `iterations`
- * modest (~8–14) on larger images.
- */
 export function applyShockFilter(
 	pixels: ImageData,
 	iterations: number,
@@ -152,11 +111,6 @@ export function applyShockFilter(
 	return new ImageData(output, width, height)
 }
 
-/**
- * Map-driven shock filter. The shock-filtered result is computed from the
- * source pixels and mixed back with the original by map luminance: black map →
- * original, white map → fully shock-filtered.
- */
 export function applyMappedShockFilter(
 	pixels: ImageData,
 	map: ImageData,

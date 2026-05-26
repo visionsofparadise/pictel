@@ -27,11 +27,6 @@ interface SidebarRowProps {
 	forcedState?: "hover" | "selected";
 }
 
-/**
- * Single row in the Sidebar. Exported so the design-system showcase can render
- * forced-state instances (`default`, `hover`, `selected`) directly without
- * needing to script real interaction.
- */
 export function SidebarRow({ item, selected, onSelect, forcedState }: SidebarRowProps) {
 	const [hovered, setHovered] = useState(false);
 

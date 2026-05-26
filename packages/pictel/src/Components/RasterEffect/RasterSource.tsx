@@ -1,9 +1,6 @@
 import { useId, useLayoutEffect, useRef } from "react";
 import { useRasterEffectContext } from "../../context/raster-effect";
 
-/**
- * Props for the {@link RasterSource} primitive.
- */
 export interface RasterSourceProps {
 	/** Intrinsic width in pixels. Sets the canvas backing buffer and the CSS box. */
 	width: number;

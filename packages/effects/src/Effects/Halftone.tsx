@@ -8,7 +8,6 @@ import { mixBlend } from "./utils/mix-blend"
 
 type Context = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
 
-/** Color mode for the halftone screen. */
 export type HalftoneColorMode = "luminance" | "cmyk" | "color"
 
 function screenChannel(
@@ -66,40 +65,6 @@ const CMYK_INKS = {
 	k: [0, 0, 0],
 } as const
 
-/**
- * Convert a halftone screen and its dots into a halftone-rendered `ImageData`.
- *
- * Three color modes:
- *
- * **`"luminance"`** (default) — monochrome screen. Each grid cell's dot radius
- * is proportional to `1 − avgLuminance/255` (dark cells → big dots). Dots are
- * stamped in `dotColor` (default black `[0,0,0]`) on a white background — a
- * classic Ben-Day screen. This is the original, unchanged behavior.
- *
- * **`"cmyk"`** — process halftone. Each source pixel is separated into Cyan /
- * Magenta / Yellow / Key channels via gray-component replacement:
- *   `C = 1 − R/255`, `M = 1 − G/255`, `Y = 1 − B/255`, `K = min(C, M, Y)`,
- *   then `C' = (C − K)/(1 − K)` (and likewise M', Y') when `K < 1`, else 0.
- * Each of the four channels is screened on its own grid, rotated to its
- * classic process angle — Cyan 15°, Magenta 75°, Yellow 0°, Key 45° — with
- * per-cell dot radius proportional to that channel's average coverage. Dots
- * are stamped in their ink color (cyan, magenta, yellow, black) onto a white
- * background and overprinted via `globalCompositeOperation = "multiply"`, so
- * overlapping colored dots subtract toward darker, saturated color the way
- * real process printing builds an image. Output preserves source alpha.
- *
- * **`"color"`** — single-screen color halftone. One shared grid (no channel
- * separation, so nothing can misregister): each cell is stamped as a single
- * dot in that cell's own average color, with radius tracking the cell's
- * darkness (`1 − luminance/255`) so the white paper carries the highlights.
- * The clean comic-dot look. Output preserves source alpha.
- *
- * @param pixels Source image.
- * @param dotSize Grid cell size in pixels. Larger values produce coarser halftone.
- * @param angle Rotation of the (single) dot grid in degrees — `"luminance"` and `"color"` modes only. Default 0.
- * @param colorMode `"luminance"` (default), `"cmyk"`, or `"color"`. Default `"luminance"`.
- * @param dotColor Ink color `[r, g, b]` for the `"luminance"` screen. Default black `[0, 0, 0]`.
- */
 export function applyHalftone(
 	pixels: ImageData,
 	dotSize: number,

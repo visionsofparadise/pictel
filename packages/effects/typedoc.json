@@ -3,6 +3,7 @@
   "entryPoints": ["./src/index.ts"],
   "tsconfig": "./tsconfig.json",
   "plugin": ["typedoc-plugin-markdown"],
+  "readme": "./README.template.md",
   "out": ".",
   "cleanOutputDir": false,
   "router": "module",
@@ -14,7 +15,6 @@
   "excludeInternal": true,
   "categorizeByGroup": false,
   "categoryOrder": ["Effects", "BlendModes", "Generative", "Utilities", "*"],
-  "defaultCategory": "Other",
   "validation": { "notExported": false },
   "parametersFormat": "table",
   "interfacePropertiesFormat": "table"

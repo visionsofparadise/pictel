@@ -9,18 +9,6 @@ import { mixBlend } from "./utils/mix-blend"
 
 const TAU = 0.98
 
-/**
- * XDoG (Extended Difference of Gaussians) line-art outline.
- *
- * Algorithm (Winnemöller et al. 2012, stylized formulation):
- * `S = (1 + τ)·G_σ − τ·G_kσ` — the inner Gaussian with the high-frequency
- * component amplified by τ. Equivalent to `G_σ + τ·(G_σ − G_kσ)`. Uniform
- * regions reproduce as G_σ ≈ I, so they sit at their original luminance and
- * stay above ε after normalization to [0, 1]. Only edges, where G_σ < G_kσ on
- * the dark side, drop below ε and get sigmoid-darkened — producing a stroke
- * on the dark side of each edge against an otherwise white field. Output is
- * continuous tonal; chain `Threshold` for hard binary lines.
- */
 export function applyOutline(
 	pixels: ImageData,
 	sigma: number,
@@ -91,11 +79,6 @@ export function applyOutline(
 	return new ImageData(output, width, height)
 }
 
-/**
- * Map-driven XDoG outline. The outline is computed from the source pixels and
- * then mixed back with the original by map luminance: black map → original,
- * white map → fully outlined.
- */
 export function applyMappedOutline(
 	pixels: ImageData,
 	map: ImageData,

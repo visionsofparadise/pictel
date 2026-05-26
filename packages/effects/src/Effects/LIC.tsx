@@ -40,30 +40,6 @@ function sampleBilinear(image: ImageData, x: number, y: number): [number, number
 	return [red, green, blue, alpha]
 }
 
-/**
- * Line Integral Convolution: integrate `seed` along the vector field encoded
- * in `field`, producing streamline-aligned output. The field is decoded as
- * `cos = R/127.5 - 1`, `sin = G/127.5 - 1`, `magnitude = B/255` — the
- * Direction-style cos/sin/magnitude pack.
- *
- * For each output pixel, a forward and a backward Euler integration of
- * `length` steps is performed, sampling the seed bilinearly at each step and
- * accumulating with hat-function weighting `w = 1 - i / length`.
- *
- * Per-pixel step length scales with the field's magnitude channel as
- * `stepSize * (0.25 + 0.75 * magnitude)` — the floor at 25% prevents
- * stagnation in zero-magnitude regions while full-magnitude regions step the
- * full distance. This magnitude gating suits *field visualization* (streamline
- * length reflects field strength) but stalls on a smooth field whose magnitude
- * is low everywhere — e.g. a depth gradient. Set `uniformStep` to true to step
- * the full `stepSize` regardless of magnitude, so a smooth direction field is
- * followed at full integration distance.
- *
- * Out-of-bounds samples are clamped to the edge pixel (extension by clamping).
- *
- * Reference: Cabral & Leedom 1993, "Imaging Vector Fields Using Line Integral
- * Convolution".
- */
 export function applyLIC(
 	seed: ImageData,
 	field: ImageData,

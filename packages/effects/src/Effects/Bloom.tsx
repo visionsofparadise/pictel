@@ -7,25 +7,6 @@ import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-/**
- * Bloom / glow.
- *
- * Algorithm:
- *  1. Extract a highlight buffer — per pixel `lum = luminance(r,g,b)/255`,
- *     `knee = clamp01((lum − threshold) / (1 − threshold))`, and a quadratic
- *     soft-knee weight `weight = knee²`. The highlight pixel is the source
- *     colour scaled by `weight` (so only bright regions contribute, and they
- *     fade in smoothly rather than hard-clipping at the threshold).
- *  2. Blur the highlight buffer by `radius` via `applyUniformBlur`, which
- *     returns a padded `EffectResult` — the glow spreads outward.
- *  3. Screen-blend the blurred highlights (scaled by `intensity`) back over the
- *     original, reading the padded blur buffer through its `overflow` offsets.
- *     Screen per channel: `out = 255 − (255−base)·(255−min(255, bloom·intensity))/255`.
- *
- * The blur overflow is consumed internally — output is the same dimensions as
- * the input, so the glow is clipped to the frame (correct for a fixed-size
- * `Canvas`). Alpha is the source alpha.
- */
 export function applyBloom(
 	pixels: ImageData,
 	threshold: number,
@@ -82,11 +63,6 @@ export function applyBloom(
 	return new ImageData(output, width, height)
 }
 
-/**
- * Map-driven bloom. The bloom is computed from the source pixels and then mixed
- * back with the original by map luminance: black map → original, white map →
- * fully bloomed.
- */
 export function applyMappedBloom(
 	pixels: ImageData,
 	map: ImageData,

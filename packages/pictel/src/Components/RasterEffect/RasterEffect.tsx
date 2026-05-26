@@ -7,15 +7,6 @@ import { normalizeResult, type EffectResult } from "../utils/raster";
 import { captureWrapper } from "./utils/capture";
 import { getOwnUnloadedImages } from "./utils/scope";
 
-/**
- * Unified effect callback receiving the target (children) pixels and
- * optional apply/map pixels. Returns the processed pixels (as ImageData or
- * EffectResult; overflow defaults to zero when returning a bare ImageData).
- *
- * - `target` — pixels from children (base layer, in-flow, drives layout)
- * - `apply` — pixels from the `apply` prop subtree (overlay layer for blends), present when `apply` prop is set
- * - `map` — pixels from the `map` prop subtree (parameter modulation for effects), present when `map` prop is set
- */
 export type RasterEffectCallback = (
 	target: ImageData,
 	apply?: ImageData,

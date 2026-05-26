@@ -48,13 +48,6 @@ const qualityValueStyle: CSSProperties = {
 	textAlign: "right",
 };
 
-/**
- * Always-visible export strip floating in the top-right of the workspace
- * gutter. Holds local state for output format, quality, and an in-flight
- * rendering flag. On render-button click, calls `exportCanvas` with the
- * current page URL as the source — the iframe inside `exportCanvas` re-renders
- * the same canvas at target dimensions in `render` mode and triggers a download.
- */
 export function RenderStrip({ canvasName, width, height, disabled = false }: RenderStripProps) {
 	const { reportError } = useCanvasContext();
 	const [format, setFormat] = useState<Format>("png");

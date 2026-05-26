@@ -35,8 +35,15 @@ const mainStyle: CSSProperties = {
 };
 
 /**
- * Development preview shell that renders one or more Canvas components.
- * Provides a sidebar for selecting between canvases when multiple are present.
+ * A development shell that hosts one or more `Canvas` children and provides a sidebar
+ * for switching between them. The selected canvas is tracked in the URL via `?canvas=`.
+ *
+ * Use a Viewer when a project has multiple compositions you want to navigate during
+ * development. In `display` and `render` modes the sidebar is hidden and only the
+ * active Canvas is rendered, so the same component works for production embeds and
+ * headless export.
+ *
+ * - `mode` — Overrides automatic mode detection for every child Canvas. `"preview"` shows the sidebar, `"display"` renders only the active Canvas bare, `"render"` is the same but intended for headless export. Defaults to the `?mode=` URL parameter, or `"preview"` if unset.
  *
  * @param props
  * @category Layout

@@ -79,9 +79,7 @@ export function ProceduralNoise({
 	persistence = 0.5,
 	tint,
 }: ProceduralNoiseProps) {
-	// Content-based key keeps `draw` referentially stable when callers pass
-	// an inline `tint` tuple literal (fresh identity each render). Without this
-	// the leaf's useLayoutEffect would re-acquire pending every parent render.
+	// Content key, not tuple identity — inline `tint` literals would otherwise re-acquire pending every render.
 	const tintKey = tint ? tint.join(",") : ""
 
 	 
@@ -91,11 +89,9 @@ export function ProceduralNoise({
 
 			if (!context) return
 
-			// simplex-noise only provides simplex noise. "perlin" mode uses simplex
-			// with a seed offset to produce a visually distinct but structurally
-			// equivalent noise field.
+			// "perlin" mode is simplex with a seed offset — simplex-noise has no perlin implementation.
 			const noiseSeed = type === "perlin" ? seed + 0.5 : seed
-			// alea's type declaration uses `any` args, requiring a cast for strict TS
+			// alea's type declaration uses `any` args; the cast satisfies strict TS.
 			const prng: () => number = alea(noiseSeed)
 			const noise2D = createNoise2D(prng)
 

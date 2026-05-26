@@ -7,8 +7,6 @@ import { renderCanvas } from "../utils/render-canvas";
 import { readRasterEffectOutput, readPixel } from "../utils/read-raster-effect-output";
 import { waitForRasterEffect } from "../utils/wait-for-raster-effect";
 
-// --- Helpers ---
-
 function syncDrawRed(canvas: HTMLCanvasElement): void {
 	const ctx = canvas.getContext("2d");
 	if (!ctx) return;
@@ -52,8 +50,6 @@ function waitForCanvasPending(container: HTMLElement, timeoutMs = 1000): Promise
 		setTimeout(check, 0);
 	});
 }
-
-// --- Integration tests ---
 
 describe.sequential("RasterSource integration", () => {
 	test("DOM contract: emits bare canvas[data-pictel-raster], clears Canvas pending after sync draw", async () => {
@@ -118,10 +114,6 @@ describe.sequential("RasterSource integration", () => {
 		);
 
 		try {
-			// Poll for the Canvas-root pending mirror — the leaf registers with
-			// the parent registry in its layout effect; Canvas re-renders via
-			// `useSyncExternalStore` on the resulting notify, flipping the
-			// attribute. The createRoot.render call returns before any of this.
 			const canvasRoot = await waitForCanvasPending(handle.container);
 
 			expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(true);
@@ -137,11 +129,6 @@ describe.sequential("RasterSource integration", () => {
 	});
 
 	test("fast-path eligibility: parent RasterEffect captures the leaf canvas", async () => {
-		// Wrap a RasterSource in an identity RasterEffect. After both resolve, the
-		// outer pipeline's canvas pixels should match what the inner leaf drew.
-		// This proves capture worked end-to-end with RasterSource as the leaf;
-		// the fast path is the observable mechanism for that capture under the
-		// matching-dim contract.
 		function IdentityRasterEffect({ children }: { children: React.ReactNode }) {
 			const effect = useCallback<RasterEffectCallback>((pixels) => ({ pixels }), []);
 			return <RasterEffect effect={effect}>{children}</RasterEffect>;
@@ -158,9 +145,6 @@ describe.sequential("RasterSource integration", () => {
 		try {
 			await waitForRasterEffect(handle.container);
 
-			// Two raster canvases: the RasterSource leaf and the outer RasterEffect's
-			// output. The outer's canvas sits as a sibling of a wrapper div that
-			// contains the leaf canvas; the leaf has no such sibling-of-wrapper.
 			const all = Array.from(
 				handle.container.querySelectorAll<HTMLCanvasElement>("canvas[data-pictel-raster]"),
 			);
@@ -177,7 +161,6 @@ describe.sequential("RasterSource integration", () => {
 			const pixels = readRasterEffectOutput(outer);
 			const [r, g, b] = readPixel(pixels, 10, 10);
 
-			// Identity effect should reproduce the leaf's red fill.
 			expect(r).toBeGreaterThanOrEqual(240);
 			expect(g).toBeLessThanOrEqual(15);
 			expect(b).toBeLessThanOrEqual(15);
@@ -187,12 +170,7 @@ describe.sequential("RasterSource integration", () => {
 	});
 
 	test("abort on unmount: in-flight async draw is cancelled cleanly with no leaked pending", async () => {
-		// A draw that never resolves. Unmount before resolution and verify
-		// that the container is empty (no leaked [data-pictel-pending] anywhere)
-		// and no warnings escaped.
-		const drawNeverResolves = () => new Promise<void>(() => {
-			// never resolve
-		});
+		const drawNeverResolves = () => new Promise<void>(() => {});
 
 		const handle = renderCanvas(
 			<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
@@ -200,15 +178,11 @@ describe.sequential("RasterSource integration", () => {
 			</Canvas>,
 		);
 
-		// Let React commit so the leaf mounts, registers, and the Canvas
-		// re-renders with the pending mirror.
 		const canvasRoot = await waitForCanvasPending(handle.container);
 		expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(true);
 
 		handle.cleanup();
 
-		// After cleanup, the container is removed from the DOM. Querying the
-		// detached container should return no pending element.
 		expect(handle.container.querySelector("[data-pictel-pending]")).toBeNull();
 	});
 });

@@ -17,8 +17,7 @@ interface ToBlobCall {
 }
 
 function setupCapturedCanvas(toBlobCalls: Array<ToBlobCall>): HTMLCanvasElement {
-	// We don't use a real <canvas> here — jsdom's canvas.toBlob doesn't exist
-	// without extra setup, and we want to assert on the mime/quality args.
+	// jsdom canvas.toBlob doesn't exist without extra setup; fake the canvas to spy on mime/quality args.
 	const blob = new Blob(["fake"], { type: "image/png" });
 	return {
 		toBlob: (callback: BlobCallback, mimeType?: string, quality?: number) => {
@@ -39,10 +38,6 @@ function installFakeIframe(): {
 } {
 	const fakeDoc = document.implementation.createHTMLDocument("export-test");
 
-	// Post-2026-05-25 rework: `data-pictel-pending` lives only on the Canvas
-	// root. The fixture fabricates a single `[data-pictel-canvas]` div that
-	// begins pending; `pendingEl.remove()` clears the attribute to simulate
-	// the registry's anyPending falling to false.
 	const canvas = fakeDoc.createElement("div");
 	canvas.setAttribute("data-pictel-canvas", "");
 	canvas.setAttribute("data-pictel-pending", "");
@@ -67,10 +62,7 @@ function installFakeIframe(): {
 				configurable: true,
 				get: () => "complete",
 			});
-			// Fire the iframe's `load` event on the next tick so the export
-			// utility (which now waits for load before treating
-			// contentDocument as authoritative) can proceed. This mirrors the
-			// real browser sequence: src assigned -> navigation -> load event.
+			// Fire `load` next tick — exportCanvas waits for it before treating contentDocument as authoritative.
 			queueMicrotask(() => {
 				el.dispatchEvent(new Event("load"));
 			});
@@ -117,7 +109,6 @@ describe("exportCanvas", () => {
 	it("constructs the iframe URL with mode=render and the encoded canvas name", async () => {
 		const fake = installFakeIframe();
 
-		// Drop pending immediately so waitForReady resolves.
 		fake.pendingEl.remove();
 
 		await exportCanvas({
@@ -129,16 +120,8 @@ describe("exportCanvas", () => {
 		});
 
 		const iframes = document.querySelectorAll("iframe");
-		// The iframe is removed after export, so we can't read .src directly
-		// after the fact. Instead, verify by inspecting the captured src on the
-		// element passed to snapdom — snapdom is called with the canvas element
-		// inside the fake document, which lives under the iframe URL we set.
 
-		// Instead of inspecting iframe.src post-cleanup, capture it via a
-		// MutationObserver-style check: the test installs a fake iframe whose
-		// src is set during exportCanvas. We patch createElement to record it.
-
-		expect(iframes.length).toBe(0); // cleaned up
+		expect(iframes.length).toBe(0);
 		expect(mockToCanvas).toHaveBeenCalledTimes(1);
 		fake.restore();
 	});
@@ -147,7 +130,6 @@ describe("exportCanvas", () => {
 		const fake = installFakeIframe();
 		fake.pendingEl.remove();
 
-		// Snoop on iframe.src writes.
 		let observedSrc: string | null = null;
 		const originalAppendChild = document.body.appendChild.bind(document.body);
 		const appendSpy = vi.spyOn(document.body, "appendChild").mockImplementation(((node: Node) => {
@@ -170,7 +152,6 @@ describe("exportCanvas", () => {
 		const url = new URL(observedSrc!);
 		expect(url.searchParams.get("mode")).toBe("render");
 		expect(url.searchParams.get("canvas")).toBe("My Canvas / Name");
-		// The raw query string must use percent-encoding for the slash and space.
 		expect(url.search).toContain("canvas=");
 		expect(url.search).toMatch(/canvas=My(\+|%20)Canvas(\+|%20)%2F(\+|%20)Name/);
 
@@ -187,7 +168,7 @@ describe("exportCanvas", () => {
 			width: 100,
 			height: 100,
 			format: "png",
-			quality: 0.9, // should be ignored for PNG
+			quality: 0.9,
 			sourceUrl: "https://example.com/",
 		});
 
@@ -236,10 +217,7 @@ describe("exportCanvas", () => {
 	});
 
 	it("creates an object URL, triggers anchor click with download filename, then revokes", async () => {
-		// Don't use installFakeIframe here because we want to also intercept
-		// anchor creation in the same spy. The createElement implementation
-		// must call the genuine HTMLDocument.prototype.createElement, not the
-		// spy itself — otherwise we recurse forever.
+		// Intercept anchor creation in the same spy as iframe — call protoCreate, not the spy, to avoid infinite recursion.
 		const fakeDoc = document.implementation.createHTMLDocument("dl");
 		const canvasEl = fakeDoc.createElement("div");
 		canvasEl.setAttribute("data-pictel-canvas", "");
@@ -304,7 +282,6 @@ describe("exportCanvas", () => {
 			}),
 		).rejects.toMatchObject({ name: "ExportError", pipelineError: { id: "render" } });
 
-		// Iframe must be removed in the finally block.
 		expect(document.querySelectorAll("iframe").length).toBe(0);
 		fake.restore();
 	});

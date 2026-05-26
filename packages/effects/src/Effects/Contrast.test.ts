@@ -35,12 +35,9 @@ describe("applyContrast", () => {
 	})
 
 	it("amount 2 doubles contrast", () => {
-		// (200/255 - 0.5) * 2 + 0.5 = (0.284) * 2 + 0.5 = 1.069 * 255 ≈ 255 (clamped)
 		const result = applyContrast(pixel(200, 128, 50, 255), 2)
 		expect(result.data[0]).toBe(255)
-		// (128/255 - 0.5) * 2 + 0.5 ≈ 0.503 * 255 ≈ 128
 		expect(result.data[1]).toBeCloseTo(128, 0)
-		// (50/255 - 0.5) * 2 + 0.5 ≈ -0.108 * 255 → clamped to 0
 		expect(result.data[2]).toBe(0)
 	})
 

@@ -53,7 +53,6 @@ describe("mixBlend", () => {
 	it("50% gray map returns midpoint between original and result", () => {
 		const original = pixel(0, 0, 0, 0)
 		const result = pixel(200, 100, 50, 200)
-		// BT.601: 0.299*128 + 0.587*128 + 0.114*128 = 128, factor = 128/255 ≈ 0.502
 		const map = pixel(128, 128, 128, 255)
 
 		const output = mixBlend(original, result, map)

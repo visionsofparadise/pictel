@@ -3,7 +3,6 @@ import { darkerColor } from "./DarkerColor"
 
 describe("darkerColor", () => {
 	it("returns source when source is darker", () => {
-		// source luminance < dest luminance
 		const [r, g, b] = darkerColor(0.1, 0.1, 0.1, 0.9, 0.9, 0.9)
 		expect(r).toBeCloseTo(0.1, 5)
 		expect(g).toBeCloseTo(0.1, 5)

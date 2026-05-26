@@ -80,8 +80,6 @@ function countIntermediatePixels(image: ImageData): number {
 
 describe("applyOutline", () => {
 	it("solid uniform input of any luminance produces all-white output (no edges → no lines)", () => {
-		// Canonical XDoG: S = (1+τ)·G_σ − τ·G_kσ reproduces uniform input at its
-		// original luminance. With ε=0, any non-negative S → output 255.
 		for (const value of [0, 64, 128, 200, 255]) {
 			const input = solid(16, 16, value, value, value, 255)
 			const output = applyOutline(input, 1.0, 1.6, 0, 200)
@@ -95,14 +93,9 @@ describe("applyOutline", () => {
 	})
 
 	it("sharp dark→light step edge draws a stroke on the dark side of the boundary", () => {
-		// Pure 0→255 step. Canonical XDoG gives a dark stroke a pixel or two
-		// inside the dark half (where G_σ < G_kσ → S < 0). The rest of both
-		// halves renders white because uniform S equals input luminance, ≥ 0.
 		const input = stepEdge(32, 32, 0, 255)
 		const output = applyOutline(input, 1.0, 1.6, 0, 200)
 
-		// Window just inside the dark side of the edge — the inner blur lags
-		// the outer here. Far-bright window x=24..29 should remain white.
 		let edgeDark = 0
 		let farDark = 0
 
@@ -120,9 +113,6 @@ describe("applyOutline", () => {
 	})
 
 	it("larger sigma produces a thicker line response", () => {
-		// σ values are tested across a moderate range. Extreme σ on a small
-		// image makes both blurs converge to the global mean and the response
-		// vanishes — that's correct XDoG behavior, not a thicker line.
 		const input = stepEdge(64, 32, 0, 255)
 		const thin = applyOutline(input, 0.5, 1.6, 0, 200)
 		const thick = applyOutline(input, 2, 1.6, 0, 200)
@@ -160,7 +150,6 @@ describe("applyMappedOutline", () => {
 		const map = solid(16, 16, 0, 0, 0, 255)
 		const output = applyMappedOutline(input, map, 1.0, 1.6, 0, 200)
 
-		// Map luminance 0 → mixBlend returns the original input unchanged.
 		for (let i = 0; i < input.data.length; i++) {
 			expect(output.data[i]).toBe(input.data[i])
 		}

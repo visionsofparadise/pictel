@@ -61,7 +61,6 @@ describe("LinePattern", () => {
 		expect(rotateCalls).toHaveLength(1)
 		expect(rotateCalls[0][0]).toBeCloseTo(0)
 
-		// Verify save/restore wrapping
 		const saveCalls = callsOf(calls, "save")
 		const restoreCalls = callsOf(calls, "restore")
 

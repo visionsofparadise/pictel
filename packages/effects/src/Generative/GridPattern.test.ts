@@ -42,20 +42,15 @@ describe("GridPattern", () => {
 		const moveToCalls = callsOf(calls, "moveTo")
 		const lineToCalls = callsOf(calls, "lineTo")
 
-		// Vertical lines: x = 0, 50, 100, 150, 200 → 5 lines
-		// Horizontal lines: y = 0, 100, 200 → 3 lines
-		// Total = 8 lines
 		expect(moveToCalls).toHaveLength(8)
 		expect(lineToCalls).toHaveLength(8)
 
-		// Verify vertical line positions (first 5 moveTo calls)
 		expect(moveToCalls[0]).toEqual([0, 0])
 		expect(moveToCalls[1]).toEqual([50, 0])
 		expect(moveToCalls[2]).toEqual([100, 0])
 		expect(moveToCalls[3]).toEqual([150, 0])
 		expect(moveToCalls[4]).toEqual([200, 0])
 
-		// Verify horizontal line positions (next 3 moveTo calls)
 		expect(moveToCalls[5]).toEqual([0, 0])
 		expect(moveToCalls[6]).toEqual([0, 100])
 		expect(moveToCalls[7]).toEqual([0, 200])
@@ -68,7 +63,6 @@ describe("GridPattern", () => {
 
 		const moveToCalls = callsOf(calls, "moveTo")
 
-		// Vertical: x = 0, 50, 100 → 3. Horizontal: y = 0, 50, 100 → 3. Total = 6.
 		expect(moveToCalls).toHaveLength(6)
 	})
 

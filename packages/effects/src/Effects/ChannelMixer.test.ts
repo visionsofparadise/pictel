@@ -52,9 +52,6 @@ describe("applyChannelMix", () => {
 			[0.5, 0, 0.5],
 		]
 		const result = applyChannelMix(pixel(200, 100, 50, 255), mix)
-		// outR = 0.5*200 + 0.5*100 = 150
-		// outG = 0.5*100 + 0.5*50 = 75
-		// outB = 0.5*200 + 0.5*50 = 125
 		expect(result.data[0]).toBe(150)
 		expect(result.data[1]).toBe(75)
 		expect(result.data[2]).toBe(125)

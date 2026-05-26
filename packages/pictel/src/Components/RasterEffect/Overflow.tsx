@@ -5,26 +5,15 @@ interface OverflowProps {
 }
 
 /**
- * Reveals a wrapped raster effect's bleed at natural pixel ratio.
+ * Lets a wrapped effect's bleed render outside the content footprint instead of
+ * squishing into it. Use around a `Blur`, `DropShadow`, or any effect with halos
+ * or falloff when you want the soft edges to extend past the children's box.
  *
- * By default a RasterEffect's output canvas renders inline at the dimensions
- * children measured at (`cssW × cssH`) with a backing buffer that may be
- * larger when the effect produced bleed (Blur halo, drop shadow falloff,
- * etc.). Bleed pixels are squished into the content footprint by default.
- * Overflow finds the wrapped raster effect's
- * `[data-pictel-raster]` canvas, reads its
- * `data-pictel-overflow-{top,right,bottom,left}` data attributes, and
- * applies absolute positioning to the canvas — expanded by the overflow
- * sum on each axis and shifted by negative top/left — so the canvas
- * renders at its natural pixel ratio, visibly extending outside the
- * wrapper. Compose with an outer `overflow: hidden` wrapper (see `Clip`)
- * to crop the bleed back to content size.
+ * Wrap a single raster effect. The bleed extends outward at natural pixel scale;
+ * to crop it back to content size, wrap the result in `Clip` (or any
+ * `overflow: hidden` container).
  *
- * Only acts when the wrapped raster effect has resolved (i.e. its raster canvas
- * exists in the DOM). During pending the raster effect renders its children
- * inline; Overflow waits for the canvas to mount before applying styles,
- * watching the wrapper's subtree for the canvas's appearance/dimension
- * changes.
+ * - `children` — Required. A single raster effect whose output bleed should be revealed.
  *
  * @param props
  * @category RasterEffect
@@ -62,10 +51,7 @@ export function Overflow({ children }: OverflowProps) {
 			const bottom = Number(canvas.dataset.pictelOverflowBottom ?? "0");
 			const left = Number(canvas.dataset.pictelOverflowLeft ?? "0");
 
-			// Content (CSS) dimensions = backing buffer minus the overflow margins.
-			// Reading canvas.width/height (intrinsic backing-buffer attributes) is
-			// stable across re-applies; reading canvas.style.width risks feeding
-			// our own previous write back through the loop.
+			// Read backing-buffer attrs, not canvas.style.width — style reads feed our own writes back through the loop.
 			const cssW = canvas.width - left - right;
 			const cssH = canvas.height - top - bottom;
 

@@ -44,14 +44,11 @@ export default function Cutout() {
 }
 ```
 
-ML components are `RasterEffect`s: they accept `mode="parameter" | "mix"` and apply/map children the same way as any effect. Wrap in `<Map>` to use the result as a parameter source for downstream effects:
+ML components are `RasterEffect`s — they process their children and output pixels. To use the result as a map input for a downstream effect, pass the ML component through the `map` prop on that effect:
 
 ```tsx
-<DisplacementMap>
+<DisplacementMap map={<DepthMap><Image src="/photo.jpg" /></DepthMap>}>
   <Image src="/photo.jpg" />
-  <Map>
-    <DepthMap><Image src="/photo.jpg" /></DepthMap>
-  </Map>
 </DisplacementMap>
 ```
 
@@ -65,10 +62,10 @@ ML components are `RasterEffect`s: they accept `mode="parameter" | "mix"` and ap
 
 Defined in: [Components/RemoveBackground.tsx:38](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/RemoveBackground.tsx#L38)
 
-Removes the background from child content, outputting RGBA with model-derived alpha. Uses `onnx-community/BEN2-ONNX` by default.
+Removes the background from the child content — the subject keeps its color, everything else becomes transparent. Stack over any background (gradient, image, solid color) for cutout compositions. Requires WebGPU.
 
 - `model` — Hugging Face model ID for background removal. Defaults to `onnx-community/BEN2-ONNX`.
-- `revision` — Model revision hash. Overridable alongside `model`.
+- `revision` — Pinned model revision hash. Defaults to the commit the package ships against. Override alongside `model` when swapping models.
 
 #### Parameters
 
@@ -86,14 +83,14 @@ Removes the background from child content, outputting RGBA with model-derived al
 
 > **Sam2**(`props`): `Element`
 
-Defined in: [Components/Sam2.tsx:151](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Sam2.tsx#L151)
+Defined in: [Components/Sam2.tsx:145](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Sam2.tsx#L145)
 
-Point-prompted segmentation using SAM2. Outputs a white-on-black mask for the region matching the given prompts. Uses `onnx-community/sam2-hiera-tiny-ONNX` by default.
+Point-prompted segmentation — drop one or more `points` on what you want segmented and SAM2 returns a white-on-black mask of that region. Use `negativePoints` to carve regions out of the result. Reach for this over `SegFormer` when you want to target a specific subject rather than label everything. Pass through a downstream effect's `map` prop to confine that effect to the masked region. Requires WebGPU.
 
-- `points` — Positive point prompts indicating the target region.
-- `negativePoints` — Negative point prompts indicating regions to exclude.
+- `points` — Positive point prompts in pixel coordinates indicating the target region. Defaults to `[]` (no mask).
+- `negativePoints` — Negative point prompts in pixel coordinates indicating regions to exclude from the result. Defaults to `[]`.
 - `model` — Hugging Face model ID for SAM2. Defaults to `onnx-community/sam2-hiera-tiny-ONNX`.
-- `revision` — Model revision. Overridable alongside `model`.
+- `revision` — Pinned model revision. Defaults to `main`. Override alongside `model` when swapping models.
 
 #### Parameters
 
@@ -111,12 +108,12 @@ Point-prompted segmentation using SAM2. Outputs a white-on-black mask for the re
 
 > **SegFormer**(`props`): `Element`
 
-Defined in: [Components/SegFormer.tsx:83](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/SegFormer.tsx#L83)
+Defined in: [Components/SegFormer.tsx:79](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/SegFormer.tsx#L79)
 
-Automatic semantic segmentation via the `image-segmentation` pipeline. Outputs a color-coded segment map. Uses `Xenova/segformer-b0-finetuned-ade-512-512` by default.
+Automatic semantic segmentation — labels every region of the child content and outputs a color-coded segment map (each detected class gets a deterministic palette color). Reach for this when you want every object segmented without prompting; use `Sam2` instead when you need to target a specific region by clicking points. Pass through a downstream effect's `map` prop to drive per-segment effects. Requires WebGPU.
 
 - `model` — Hugging Face model ID for semantic segmentation. Defaults to `Xenova/segformer-b0-finetuned-ade-512-512`.
-- `revision` — Model revision. Overridable alongside `model`.
+- `revision` — Pinned model revision. Defaults to `main`. Override alongside `model` when swapping models.
 
 #### Parameters
 
@@ -156,10 +153,10 @@ Discriminated union component that delegates to [Sam2](#sam2) or [SegFormer](#se
 
 Defined in: [Components/Upscale.tsx:36](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Upscale.tsx#L36)
 
-Upscales child content to higher resolution via the `image-to-image` pipeline. Uses `Xenova/swin2SR-classical-sr-x2-64` by default.
+Upscales child content to higher resolution — the default model doubles each dimension. The canvas backing buffer grows; the rendered surface keeps the original layout footprint so upscaled pixels read as added detail rather than added size. Requires WebGPU.
 
-- `model` — Hugging Face model ID for super-resolution. Defaults to `Xenova/swin2SR-classical-sr-x2-64`.
-- `revision` — Model revision hash. Overridable alongside `model`.
+- `model` — Hugging Face model ID for super-resolution. Defaults to `Xenova/swin2SR-classical-sr-x2-64` (2×).
+- `revision` — Pinned model revision hash. Defaults to the commit the package ships against. Override alongside `model` when swapping models.
 
 #### Parameters
 
@@ -179,10 +176,10 @@ Upscales child content to higher resolution via the `image-to-image` pipeline. U
 
 Defined in: [Components/DepthMap.tsx:37](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/DepthMap.tsx#L37)
 
-Produces a grayscale depth map from child content via the `depth-estimation` pipeline. Uses `onnx-community/depth-anything-v2-small` by default.
+Produces a grayscale depth map of the child content — nearer surfaces brighter, farther surfaces darker. Pass through a downstream effect's `map` prop to drive depth-based effects (variable-radius blur, depth-cued color grading, parallax displacement). Requires WebGPU.
 
 - `model` — Hugging Face model ID for depth estimation. Defaults to `onnx-community/depth-anything-v2-small`.
-- `revision` — Model revision hash. Overridable alongside `model`.
+- `revision` — Pinned model revision hash. Defaults to the commit the package ships against. Override alongside `model` when swapping models.
 
 #### Parameters
 

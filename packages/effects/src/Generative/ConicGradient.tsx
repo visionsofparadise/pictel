@@ -74,9 +74,7 @@ export function ConicGradient({
 	centerY = 0.5,
 	startAngle = 0,
 }: ConicGradientProps) {
-	// Content-based key keeps `draw` referentially stable when callers pass
-	// inline `stops` array literals (fresh identity each render). Without this
-	// the leaf's useLayoutEffect would re-acquire pending every parent render.
+	// Content key, not array identity — inline `stops` literals would otherwise re-acquire pending every render.
 	const stopsKey = stops.map((stop) => `${stop.color}@${String(stop.position)}`).join("|")
 
 	 

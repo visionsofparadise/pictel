@@ -25,7 +25,6 @@ export function boxBlurChannel(
 	const window = rounded * 2 + 1
 	const horizontal = new Float32Array(width * height)
 
-	// Horizontal pass: for each row, slide a window of width `window`.
 	for (let y = 0; y < height; y++) {
 		const row = y * width
 
@@ -47,7 +46,6 @@ export function boxBlurChannel(
 
 	const output = new Float32Array(width * height)
 
-	// Vertical pass over the horizontally blurred buffer.
 	for (let x = 0; x < width; x++) {
 		for (let y = 0; y < height; y++) {
 			let sum = 0

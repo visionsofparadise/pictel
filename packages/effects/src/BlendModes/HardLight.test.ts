@@ -28,7 +28,6 @@ describe("hardLight", () => {
 
 	it("boundary at source = 0.5", () => {
 		const [r] = hardLight(0.5, 0, 0, 0.6, 0, 0)
-		// sr <= 0.5 uses multiply branch: 2 * 0.5 * 0.6 = 0.6
 		expect(r).toBeCloseTo(0.6, 5)
 	})
 })

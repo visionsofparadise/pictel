@@ -26,24 +26,20 @@ interface ImageProps {
 }
 
 /**
- * Loads a raster image source once on mount, decodes it via the browser's
- * native image loader, and draws the decoded pixels into the leaf canvas at
- * the requested fit. The source decode happens once per `src` change — not
- * once per capture — so parent pipeline captures read pixels from the leaf
- * canvas, never re-decoding the source bytes.
+ * Loads a raster image, decodes it, and renders it into a canvas at the requested
+ * output size and fit. Use `Image` instead of a raw `<img>` for any source that will
+ * be processed by effects — the decoded pixels live in a canvas that effects can read
+ * directly without re-decoding the source for every capture.
  *
- * Renders through {@link RasterSource}, so the emitted DOM is a bare
- * `<canvas data-pictel-raster>` that a parent pipeline's capture can read
- * directly via the fast path when intrinsic dims match the requested
- * capture dims.
+ * Wrap in a styled `<div>` if you need to position or style it — the API is closed
+ * (no `className`, `style`, event handlers, or ref forwarding). Decode failures leave
+ * the canvas blank and do not throw or surface errors.
  *
- * Decode failures (network error, malformed image, abort) clear pending and
- * leave the canvas blank. No error is surfaced to `reportError` — Image is a
- * leaf, and the pipeline error log is reserved for effect callbacks.
- *
- * Closed API: no `className`, `style`, `id`, `data-*`, `aria-*`, event
- * handlers, or ref forwarding. Wrap in a styled `<div>` if positioning is
- * needed.
+ * - `src` — Required. URL or data URL of the source image.
+ * - `width` — Required. Output width in pixels. Sets the canvas backing buffer and the CSS box.
+ * - `height` — Required. Output height in pixels.
+ * - `fit` — How the decoded source maps into the output box. Semantics match CSS `object-fit`: `"cover"` fills the box and crops overflow; `"contain"` fits inside the box and letterboxes with transparency; `"fill"` stretches to the exact box; `"none"` draws at intrinsic size, centered, clipping overflow. Defaults to `"cover"`.
+ * - `crossOrigin` — CORS mode for cross-origin sources. One of `"anonymous"` or `"use-credentials"`. Defaults to unset (no CORS).
  *
  * @param props
  * @category Raster Source
@@ -51,9 +47,7 @@ interface ImageProps {
 export function Image({ src, width, height, fit = "cover", crossOrigin }: ImageProps) {
 	const draw = useCallback(
 		async (canvas: HTMLCanvasElement, signal: AbortSignal) => {
-			// `new window.Image()` rather than `new Image()`: the exported `Image`
-			// component shadows the global `Image` constructor inside this module's
-			// scope, so we must reach for the constructor via `window`.
+			// `window.Image` — the exported `Image` component shadows the global constructor in this module.
 			const img = new window.Image();
 
 			if (crossOrigin) img.crossOrigin = crossOrigin;
@@ -63,8 +57,7 @@ export function Image({ src, width, height, fit = "cover", crossOrigin }: ImageP
 			try {
 				await img.decode();
 			} catch {
-				// Decode failure: leave the canvas blank. RasterSource is a leaf;
-				// no reportError surfacing per design.
+				// Decode failure: leave canvas blank — RasterSource is a leaf, no reportError surfacing per design.
 				return;
 			}
 

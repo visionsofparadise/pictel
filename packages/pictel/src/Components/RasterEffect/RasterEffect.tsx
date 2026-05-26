@@ -53,24 +53,19 @@ interface Lifecycle {
 }
 
 /**
- * Unified raster-effect primitive. Handles all effect and blend cases through
- * prop-carried secondary inputs.
+ * The primitive every effect, blend, and map-driven component is built on. Captures
+ * its children as pixels, hands them to an `effect` callback, and renders the result
+ * in place of the children.
  *
- * DOM contribution per RasterEffect instance:
+ * Most consumers reach for a higher-level component (`Blur`, `Multiply`, `DisplacementMap`,
+ * etc.) rather than `RasterEffect` directly. Use it when authoring a custom effect: the
+ * callback receives `ImageData` for the children and optionally for an overlay (`apply`)
+ * or modulation map (`map`), and returns transformed `ImageData`.
  *
- * - Inline (in the parent's layout slot): a wrapper `<div>` carrying
- *   `children` — block-level and sized to children's intrinsic box while
- *   no snapshot is set, hidden (`display: none`) once a snapshot is set
- *   (children stay mounted but un-laid-out). When a snapshot is set, a
- *   sibling `<canvas data-pictel-raster>` renders inline carrying the
- *   captured pixels at the snapshot's CSS dimensions.
- * - In the Canvas-level offscreen host (when `apply` or `map` are set):
- *   pictel-owned slot divs receiving the apply/map subtrees via React
- *   portals. These subtrees are isolated from the composition's CSS
- *   cascade.
- *
- * All present input wrappers (children, apply slot, map slot) are captured
- * in parallel via snapdom or the fast path when eligible.
+ * - `effect` — Required. Called with the captured children pixels and, if supplied, the `apply` and `map` pixels. May return `ImageData` directly, or an `EffectResult` with `pixels` + `overflow` when the effect produces bleed (blur halos, drop shadows). Async returns are supported.
+ * - `children` — Required. The base layer the effect operates on. Rendered live in the layout, then replaced by the output canvas once the effect resolves.
+ * - `apply` — Optional overlay layer for blend-style effects. Captured in parallel with children and passed to `effect` as the second argument. Renders offscreen — not visible in the live composition.
+ * - `map` — Optional parameter map for map-driven effects (displacement fields, depth, segmentation masks). Captured in parallel with children and passed to `effect` as the third argument. Renders offscreen — not visible in the live composition.
  *
  * @param props
  * @category RasterEffect

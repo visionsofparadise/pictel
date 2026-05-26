@@ -35,8 +35,7 @@ export function waitForRasterEffect(
 
 			requestAnimationFrame(check);
 		}
-		// Yield a macrotask first so React's initial commit has a chance to
-		// land before we start polling frames.
+		// Yield a macrotask first so React's initial commit lands before polling starts.
 		setTimeout(check, 0);
 	});
 }

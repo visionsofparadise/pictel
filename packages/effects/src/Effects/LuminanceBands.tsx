@@ -10,7 +10,6 @@ function quantizeLuminance(yValue: number, bands: number, thresholds?: Array<num
 	const clamped = Math.max(2, bands)
 
 	if (thresholds?.length === clamped - 1) {
-		// Find tier index: number of thresholds yValue is >=
 		let tier = 0
 
 		for (let index = 0; index < thresholds.length; index++) {
@@ -23,7 +22,6 @@ function quantizeLuminance(yValue: number, bands: number, thresholds?: Array<num
 		return (lower + upper) / 2
 	}
 
-	// Equal spacing: boundaries at 255 * (i+1) / bands for i in 0..bands-2
 	const tier = Math.min(clamped - 1, Math.floor(yValue * clamped / 256))
 	const lower = (255 * tier) / clamped
 	const upper = (255 * (tier + 1)) / clamped
@@ -75,7 +73,6 @@ export function applyMappedLuminanceBands(pixels: ImageData, map: ImageData, ban
 
 		const yQ = quantizeLuminance(y, bands, thresholds)
 
-		// Map's luminance modulates strength: lerp between original Y and quantized Y.
 		const mapLum = luminance(mapData[px]!, mapData[px + 1]!, mapData[px + 2]!) / 255
 		const yMixed = y + (yQ - y) * mapLum
 
@@ -105,13 +102,13 @@ interface LuminanceBandsProps {
 }
 
 /**
- * Quantizes luminance into discrete tiers while preserving chrominance, the cel-shading primitive.
+ * Quantizes brightness into discrete tiers while leaving color alone — the
+ * cel-shading primitive. Output keeps the original color of each pixel and
+ * only discretizes its shading.
  *
- * Splits each pixel into YCbCr (ITU-R BT.601), quantizes Y into `bands` tiers, then recombines
- * with the original Cb/Cr. Output keeps original color, discretizes shading.
- *
- * - `bands` — Number of discrete luminance tiers. Minimum 2.
- * - `thresholds` — Optional explicit tier boundaries (length = bands - 1, ascending values in 0..255). Defaults to equal spacing.
+ * - `bands` — Number of discrete brightness tiers. Minimum 2.
+ * - `thresholds` — Optional explicit tier boundaries (length = `bands - 1`, ascending values in `0..255`). Defaults to equal spacing.
+ * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
  *
  * @param props
  * @category Effects

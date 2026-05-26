@@ -4,8 +4,7 @@ const PENDING_TIMEOUT_MS = 30_000;
 
 // Puppeteer's default `--use-angle=swiftshader-webgl` blocks WebGPU adapter
 // discovery — must be removed via ignoreDefaultArgs. `--enable-unsafe-webgpu`
-// exposes a hardware adapter; the served shell is a localhost (secure-context)
-// origin so `navigator.gpu` is present.
+// exposes a hardware adapter on a localhost (secure-context) origin.
 export function launchBrowser(): Promise<Browser> {
   return puppeteer.launch({
     headless: true,
@@ -105,7 +104,6 @@ export async function renderEntry({
   }
 }
 
-// The render shell's `document` as seen inside a Puppeteer-evaluated callback.
 // The package's tsconfig is Node-only (no DOM `lib`); the predicates below run
 // in the browser via Puppeteer, never in Node.
 declare const document: {

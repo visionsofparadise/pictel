@@ -5,7 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { Canvas } from "../Canvas";
 import { RasterEffect, type RasterEffectCallback } from "./RasterEffect";
 
-// Minimal mock for snapdom so captureWrapper works in jsdom.
+// snapdom requires a real layout engine — stub in jsdom.
 vi.mock("@zumer/snapdom", () => ({
 	snapdom: {
 		toCanvas: vi.fn().mockResolvedValue({
@@ -65,7 +65,7 @@ function waitForResolved(container: HTMLElement, timeout = 5000): Promise<void> 
 	});
 }
 
-// Ensure ImageData is available in jsdom.
+// jsdom does not ship ImageData.
 if (typeof globalThis.ImageData === "undefined") {
 	class FakeImageData {
 		data: Uint8ClampedArray;
@@ -82,22 +82,12 @@ if (typeof globalThis.ImageData === "undefined") {
 	globalThis.ImageData = FakeImageData as unknown as typeof ImageData;
 }
 
-// Ensure ResizeObserver is available in jsdom. jsdom does not perform layout,
-// so getBoundingClientRect() and offsetWidth/Height always return zero. Patch
-// both globally to return a fixed 64×64 rect so gate()'s zero-size check is
-// satisfied. The fake ResizeObserver is a no-op stub — since the dim getters
-// already return non-zero, gate() passes through the zero-size check on its
-// initial synchronous run without needing an observer callback.
+// jsdom does not perform layout (offsetWidth/Height + getBoundingClientRect return 0) and lacks ResizeObserver — fake all three to satisfy the zero-size gate.
 if (typeof globalThis.ResizeObserver === "undefined") {
-	// Patch getBoundingClientRect globally so gate()'s zero-size check passes.
-	// jsdom never performs layout — return a fixed non-zero rect instead of 0×0.
 	Element.prototype.getBoundingClientRect = function () {
 		return { width: 64, height: 64, top: 0, left: 0, right: 64, bottom: 64, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
 	};
 
-	// RasterEffect now reads offsetWidth/offsetHeight (transform-independent layout
-	// box) for content sizing. jsdom returns 0 for these — patch to match the
-	// faked bounding rect.
 	Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
 		configurable: true,
 		get: () => 64,
@@ -107,8 +97,6 @@ if (typeof globalThis.ResizeObserver === "undefined") {
 		get: () => 64,
 	});
 
-	// No-op stub: gate() already passes the zero-size check via the patched
-	// dim getters, so the observer never needs to fire to re-trigger it.
 	class FakeResizeObserver {
 		constructor(_callback: ResizeObserverCallback) {}
 		observe(_target: Element) { /* no-op */ }
@@ -344,11 +332,6 @@ describe("RasterEffect — map renders offscreen", () => {
 
 		await waitForResolved(handle.container);
 
-		// The map content is portaled into the Canvas's offscreen host (a sibling
-		// of the RasterEffect's inline DOM under the Canvas root). Verify the portaled
-		// node is in the document and that walking its ancestor chain up to
-		// [data-pictel-canvas] does NOT pass through any [data-pictel-raster]
-		// canvas's siblings — i.e., it's not inside the pipeline's inline tree.
 		const mapContent = document.querySelector("[data-testid='map-content']");
 		expect(mapContent).not.toBeNull();
 
@@ -393,7 +376,6 @@ describe("RasterEffect — StrictMode safety", () => {
 
 		await waitForResolved(handle.container);
 
-		// RasterEffect resolved — no pending on Canvas root, canvas is rendered.
 		const canvasRoot = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
 		expect(canvasRoot?.hasAttribute("data-pictel-pending")).toBe(false);
 

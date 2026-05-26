@@ -70,12 +70,10 @@ describe("estimateDepth", () => {
 
 		expect(result.width).toBe(2)
 		expect(result.height).toBe(1)
-		// Pixel 1: depth=100, should be R=G=B=100, A=255
 		expect(result.data[0]).toBe(100)
 		expect(result.data[1]).toBe(100)
 		expect(result.data[2]).toBe(100)
 		expect(result.data[3]).toBe(255)
-		// Pixel 2: depth=200, should be R=G=B=200, A=255
 		expect(result.data[4]).toBe(200)
 		expect(result.data[5]).toBe(200)
 		expect(result.data[6]).toBe(200)

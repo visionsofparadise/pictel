@@ -23,23 +23,19 @@ export interface RasterSourceProps {
 }
 
 /**
- * Shared leaf primitive for raster-producing components (Image, generatives).
- * Emits a bare `<canvas data-pictel-raster>` — the same tag the resolved
- * {@link RasterEffect} emits — so a parent capture recognizes it via
- * `tryFastPath` and reads the canvas ImageData directly when intrinsic
- * dims match the requested capture dims.
+ * The leaf primitive for components that produce pixels from a draw callback —
+ * `Image` and the generative components (`LinearGradient`, `ProceduralNoise`, etc.)
+ * are built on it. Renders a canvas at the requested intrinsic size and lets the
+ * `draw` callback paint into it.
  *
- * Pending state is reported via `RasterEffectContext`: `useLayoutEffect`
- * registers with the parent registry and flips a JS pendingRef
- * synchronously before any wrapping RasterEffect's layout effect runs (child
- * layout effects run before parents per React semantics), so the parent's
- * first gate observes this leaf as pending via `registry.anyPending()`.
- * The single Canvas-root `data-pictel-pending` attribute is derived from
- * the registry — no per-element pending attribute exists.
+ * Reach for `RasterSource` when authoring a custom pixel source: anything that
+ * computes pixels from props rather than capturing them from the DOM. Wrap in a
+ * styled `<div>` if you need to position or style it — the API is closed
+ * (no `className`, `style`, event handlers, or ref forwarding).
  *
- * Closed API: no `className`, `style`, `id`, `data-*`, `aria-*`, event
- * handlers, or ref forwarding. Wrap in a styled `<div>` if positioning is
- * needed. Matches the closed effect-component API (2026-04-09).
+ * - `width` — Required. Intrinsic width in pixels. Sets both the canvas backing buffer and the rendered CSS box.
+ * - `height` — Required. Intrinsic height in pixels.
+ * - `draw` — Required. Called with the canvas and an `AbortSignal` once the backing buffer is sized. May be sync (gradients, patterns) or async (decoding an image). Wrap in `useCallback` and use content-based keys in the deps when inputs are inline literals — identity changes re-run the draw.
  *
  * @param props
  * @category RasterEffect

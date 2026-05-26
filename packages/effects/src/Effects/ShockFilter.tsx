@@ -134,16 +134,13 @@ interface ShockFilterProps {
 }
 
 /**
- * Regularized iterative shock filter — sharpens an image into a clean
- * cartoon / line-drawing.
+ * Iterative edge-aware sharpening — flattens regions and crispens edges into a
+ * clean cartoon / line-drawing look without the ringing of a single-pass
+ * `<Sharpen>`. More iterations push regions further toward flat colour and
+ * harden the edges further; cost scales with `iterations`.
  *
- * Each iteration presmooths the image, then takes one Osher–Rudin shock step
- * (dilate toward the bright side of each edge, erode toward the dark side).
- * Iterating converges to piecewise-flat regions separated by crisp edges, with
- * no ringing — unlike a single-pass `Sharpen`. Cost is `O(W*H*iterations)`.
- *
- * - `iterations` — Number of blur-then-sharpen passes. Default 8.
- * - `strength` — Shock step size per iteration (clamped to ≤ 1). Default 1.
+ * - `iterations` — Number of passes. Default 8.
+ * - `strength` — Per-iteration step size, clamped to ≤ 1. Default 1.
  * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
  *
  * @param props

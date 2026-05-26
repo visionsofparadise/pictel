@@ -27,10 +27,10 @@ interface RemoveBackgroundProps {
 }
 
 /**
- * Removes the background from child content, outputting RGBA with model-derived alpha. Uses `onnx-community/BEN2-ONNX` by default.
+ * Removes the background from the child content — the subject keeps its color, everything else becomes transparent. Stack over any background (gradient, image, solid color) for cutout compositions. Requires WebGPU.
  *
  * - `model` — Hugging Face model ID for background removal. Defaults to `onnx-community/BEN2-ONNX`.
- * - `revision` — Model revision hash. Overridable alongside `model`.
+ * - `revision` — Pinned model revision hash. Defaults to the commit the package ships against. Override alongside `model` when swapping models.
  *
  * @param props
  * @category Segmentation

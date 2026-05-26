@@ -63,12 +63,16 @@ const offscreenHostStyle: CSSProperties = {
 };
 
 /**
- * Root compositing surface. Contains layers, effects, and blend modes as children.
- * Each Canvas is an independent composition with its own pixel pipeline.
+ * The root of a pictel composition. Layers, effects, blend modes, and raster sources
+ * go inside as children, and the Canvas renders the composed image.
  *
- * - `name` — Display name shown in the Viewer sidebar. Used as the `aria-label`.
- * - `dimensions` — Fixed compositing buffer size in pixels (`{ width, height }`). Required. The pipeline rasterizes at exactly these dimensions; visual fit is a CSS concern handled by Frame.
- * - `mode` — Overrides URL-based mode detection. One of `"preview"`, `"display"`, or `"render"`.
+ * Every pictel composition needs a Canvas — effects and raster sources require one
+ * as an ancestor. Use a single Canvas for a one-off image, or wrap multiple Canvases
+ * in a `Viewer` to switch between them during development.
+ *
+ * - `name` — Display name shown in the `Viewer` sidebar and used as the `aria-label`. Optional; required if you want this Canvas to be selectable in a `Viewer`.
+ * - `dimensions` — Authored pixel size as `{ width, height }`. Required. The composition is rasterized at exactly these dimensions; preview and display layouts scale visually around this fixed buffer.
+ * - `mode` — Overrides automatic mode detection. `"preview"` shows the full development chrome (workspace, error chip, render button), `"display"` is a bare embed for production use, `"render"` strips all chrome for headless export. Defaults to the `?mode=` URL parameter, or `"preview"` if unset.
  *
  * @param props
  * @category Layout

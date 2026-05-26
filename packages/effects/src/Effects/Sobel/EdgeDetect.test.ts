@@ -27,7 +27,6 @@ function uniform(width: number, height: number, value: number, alpha = 255): Ima
 }
 
 function verticalEdge(size: number, alpha = 255): ImageData {
-	// Left half (x < size/2) black, right half white.
 	const data = new Uint8ClampedArray(size * size * 4)
 	const mid = size / 2
 	for (let y = 0; y < size; y++) {
@@ -44,7 +43,6 @@ function verticalEdge(size: number, alpha = 255): ImageData {
 }
 
 function diagonalEdge(size: number, alpha = 255): ImageData {
-	// Pixels with y > x are white, otherwise black -- diagonal split.
 	const data = new Uint8ClampedArray(size * size * 4)
 	for (let y = 0; y < size; y++) {
 		for (let x = 0; x < size; x++) {
@@ -75,9 +73,6 @@ describe("applyEdgeDetect", () => {
 		const input = verticalEdge(size)
 		const result = applyEdgeDetect(input, "sobel")
 
-		// Boundary columns are x=7 and x=8. Sample interior rows (avoid 1px border).
-		// A 0->255 horizontal step edge produces gx = 4*255, gy = 0, so the normalized
-		// magnitude is 1/sqrt(2) of the kernel's maxResponse -> ~180/255.
 		for (let y = 2; y < size - 2; y++) {
 			const left = result.data[(y * size + 7) * 4]!
 			const right = result.data[(y * size + 8) * 4]!
@@ -85,7 +80,6 @@ describe("applyEdgeDetect", () => {
 			expect(right).toBeGreaterThan(150)
 		}
 
-		// Far away from the edge — interior, two columns away — should be 0.
 		for (let y = 2; y < size - 2; y++) {
 			const farLeft = result.data[(y * size + 2) * 4]!
 			const farRight = result.data[(y * size + size - 3) * 4]!
@@ -99,7 +93,6 @@ describe("applyEdgeDetect", () => {
 		const input = diagonalEdge(size)
 		const result = applyEdgeDetect(input, "sobel")
 
-		// Sample on the diagonal, away from borders -- should have nonzero response.
 		for (let i = 3; i < size - 3; i++) {
 			const onDiagonal = result.data[(i * size + i) * 4]!
 			expect(onDiagonal).toBeGreaterThan(100)
@@ -107,16 +100,11 @@ describe("applyEdgeDetect", () => {
 	})
 
 	it("scharr produces a larger response than sobel on a diagonal edge", () => {
-		// On a diagonal edge, Scharr's better rotational symmetry means it
-		// reports a larger normalized magnitude than Sobel (Sobel underestimates
-		// off-axis gradients). On axis-aligned edges the normalized magnitudes
-		// match by construction (both saturate to 1/sqrt(2) of maxResponse).
 		const size = 16
 		const input = diagonalEdge(size)
 		const sobel = applyEdgeDetect(input, "sobel")
 		const scharr = applyEdgeDetect(input, "scharr")
 
-		// Sample on the diagonal interior.
 		const sobelMag = sobel.data[(8 * size + 8) * 4]!
 		const scharrMag = scharr.data[(8 * size + 8) * 4]!
 		expect(scharrMag).toBeGreaterThan(sobelMag)

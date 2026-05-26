@@ -161,14 +161,18 @@ API reference below — generated from JSDoc on the source.
 
 > **Canvas**(`props`): `Element`
 
-Defined in: [Components/Canvas.tsx:76](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Canvas.tsx#L76)
+Defined in: [Components/Canvas.tsx:80](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Canvas.tsx#L80)
 
-Root compositing surface. Contains layers, effects, and blend modes as children.
-Each Canvas is an independent composition with its own pixel pipeline.
+The root of a pictel composition. Layers, effects, blend modes, and raster sources
+go inside as children, and the Canvas renders the composed image.
 
-- `name` — Display name shown in the Viewer sidebar. Used as the `aria-label`.
-- `dimensions` — Fixed compositing buffer size in pixels (`{ width, height }`). Required. The pipeline rasterizes at exactly these dimensions; visual fit is a CSS concern handled by Frame.
-- `mode` — Overrides URL-based mode detection. One of `"preview"`, `"display"`, or `"render"`.
+Every pictel composition needs a Canvas — effects and raster sources require one
+as an ancestor. Use a single Canvas for a one-off image, or wrap multiple Canvases
+in a `Viewer` to switch between them during development.
+
+- `name` — Display name shown in the `Viewer` sidebar and used as the `aria-label`. Optional; required if you want this Canvas to be selectable in a `Viewer`.
+- `dimensions` — Authored pixel size as `{ width, height }`. Required. The composition is rasterized at exactly these dimensions; preview and display layouts scale visually around this fixed buffer.
+- `mode` — Overrides automatic mode detection. `"preview"` shows the full development chrome (workspace, error chip, render button), `"display"` is a bare embed for production use, `"render"` strips all chrome for headless export. Defaults to the `?mode=` URL parameter, or `"preview"` if unset.
 
 #### Parameters
 
@@ -186,10 +190,17 @@ Each Canvas is an independent composition with its own pixel pipeline.
 
 > **Viewer**(`props`): `Element`
 
-Defined in: [Components/Viewer.tsx:44](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Viewer.tsx#L44)
+Defined in: [Components/Viewer.tsx:51](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Viewer.tsx#L51)
 
-Development preview shell that renders one or more Canvas components.
-Provides a sidebar for selecting between canvases when multiple are present.
+A development shell that hosts one or more `Canvas` children and provides a sidebar
+for switching between them. The selected canvas is tracked in the URL via `?canvas=`.
+
+Use a Viewer when a project has multiple compositions you want to navigate during
+development. In `display` and `render` modes the sidebar is hidden and only the
+active Canvas is rendered, so the same component works for production embeds and
+headless export.
+
+- `mode` — Overrides automatic mode detection for every child Canvas. `"preview"` shows the sidebar, `"display"` renders only the active Canvas bare, `"render"` is the same but intended for headless export. Defaults to the `?mode=` URL parameter, or `"preview"` if unset.
 
 #### Parameters
 
@@ -207,14 +218,16 @@ Provides a sidebar for selecting between canvases when multiple are present.
 
 > **Clip**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/Clip.tsx:19](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/Clip.tsx#L19)
+Defined in: [Components/RasterEffect/Clip.tsx:23](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/Clip.tsx#L23)
 
-Clips a wrapped pipeline's bleed back to its content footprint.
+Frames a wrapped effect at its content size, cropping any bleed (blur halos,
+drop shadow falloff) back to the content edges. Useful when you want the soft
+edges of an effect to render at natural scale internally but be clipped to a
+crisp rectangular footprint in the layout.
 
-Composes `Overflow` — which exposes bleed at natural pixel ratio — inside
-an `overflow: hidden` container sized to the raster effect's content. The bleed
-extends outside the raster effect via `Overflow` and is then cropped at the
-content edges by the outer.
+Wrap a single raster effect.
+
+- `children` — Required. A single raster effect to frame and crop.
 
 #### Parameters
 
@@ -232,28 +245,17 @@ content edges by the outer.
 
 > **Overflow**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/Overflow.tsx:32](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/Overflow.tsx#L32)
+Defined in: [Components/RasterEffect/Overflow.tsx:21](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/Overflow.tsx#L21)
 
-Reveals a wrapped raster effect's bleed at natural pixel ratio.
+Lets a wrapped effect's bleed render outside the content footprint instead of
+squishing into it. Use around a `Blur`, `DropShadow`, or any effect with halos
+or falloff when you want the soft edges to extend past the children's box.
 
-By default a RasterEffect's output canvas renders inline at the dimensions
-children measured at (`cssW × cssH`) with a backing buffer that may be
-larger when the effect produced bleed (Blur halo, drop shadow falloff,
-etc.). Bleed pixels are squished into the content footprint by default.
-Overflow finds the wrapped raster effect's
-`[data-pictel-raster]` canvas, reads its
-`data-pictel-overflow-{top,right,bottom,left}` data attributes, and
-applies absolute positioning to the canvas — expanded by the overflow
-sum on each axis and shifted by negative top/left — so the canvas
-renders at its natural pixel ratio, visibly extending outside the
-wrapper. Compose with an outer `overflow: hidden` wrapper (see `Clip`)
-to crop the bleed back to content size.
+Wrap a single raster effect. The bleed extends outward at natural pixel scale;
+to crop it back to content size, wrap the result in `Clip` (or any
+`overflow: hidden` container).
 
-Only acts when the wrapped raster effect has resolved (i.e. its raster canvas
-exists in the DOM). During pending the raster effect renders its children
-inline; Overflow waits for the canvas to mount before applying styles,
-watching the wrapper's subtree for the canvas's appearance/dimension
-changes.
+- `children` — Required. A single raster effect whose output bleed should be revealed.
 
 #### Parameters
 
@@ -271,26 +273,21 @@ changes.
 
 > **RasterEffect**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/RasterEffect.tsx:78](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L78)
+Defined in: [Components/RasterEffect/RasterEffect.tsx:73](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L73)
 
-Unified raster-effect primitive. Handles all effect and blend cases through
-prop-carried secondary inputs.
+The primitive every effect, blend, and map-driven component is built on. Captures
+its children as pixels, hands them to an `effect` callback, and renders the result
+in place of the children.
 
-DOM contribution per RasterEffect instance:
+Most consumers reach for a higher-level component (`Blur`, `Multiply`, `DisplacementMap`,
+etc.) rather than `RasterEffect` directly. Use it when authoring a custom effect: the
+callback receives `ImageData` for the children and optionally for an overlay (`apply`)
+or modulation map (`map`), and returns transformed `ImageData`.
 
-- Inline (in the parent's layout slot): a wrapper `<div>` carrying
-  `children` — block-level and sized to children's intrinsic box while
-  no snapshot is set, hidden (`display: none`) once a snapshot is set
-  (children stay mounted but un-laid-out). When a snapshot is set, a
-  sibling `<canvas data-pictel-raster>` renders inline carrying the
-  captured pixels at the snapshot's CSS dimensions.
-- In the Canvas-level offscreen host (when `apply` or `map` are set):
-  pictel-owned slot divs receiving the apply/map subtrees via React
-  portals. These subtrees are isolated from the composition's CSS
-  cascade.
-
-All present input wrappers (children, apply slot, map slot) are captured
-in parallel via snapdom or the fast path when eligible.
+- `effect` — Required. Called with the captured children pixels and, if supplied, the `apply` and `map` pixels. May return `ImageData` directly, or an `EffectResult` with `pixels` + `overflow` when the effect produces bleed (blur halos, drop shadows). Async returns are supported.
+- `children` — Required. The base layer the effect operates on. Rendered live in the layout, then replaced by the output canvas once the effect resolves.
+- `apply` — Optional overlay layer for blend-style effects. Captured in parallel with children and passed to `effect` as the second argument. Renders offscreen — not visible in the live composition.
+- `map` — Optional parameter map for map-driven effects (displacement fields, depth, segmentation masks). Captured in parallel with children and passed to `effect` as the third argument. Renders offscreen — not visible in the live composition.
 
 #### Parameters
 
@@ -308,25 +305,21 @@ in parallel via snapdom or the fast path when eligible.
 
 > **RasterSource**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/RasterSource.tsx:47](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterSource.tsx#L47)
+Defined in: [Components/RasterEffect/RasterSource.tsx:43](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterSource.tsx#L43)
 
-Shared leaf primitive for raster-producing components (Image, generatives).
-Emits a bare `<canvas data-pictel-raster>` — the same tag the resolved
-[RasterEffect](#rastereffect) emits — so a parent capture recognizes it via
-`tryFastPath` and reads the canvas ImageData directly when intrinsic
-dims match the requested capture dims.
+The leaf primitive for components that produce pixels from a draw callback —
+`Image` and the generative components (`LinearGradient`, `ProceduralNoise`, etc.)
+are built on it. Renders a canvas at the requested intrinsic size and lets the
+`draw` callback paint into it.
 
-Pending state is reported via `RasterEffectContext`: `useLayoutEffect`
-registers with the parent registry and flips a JS pendingRef
-synchronously before any wrapping RasterEffect's layout effect runs (child
-layout effects run before parents per React semantics), so the parent's
-first gate observes this leaf as pending via `registry.anyPending()`.
-The single Canvas-root `data-pictel-pending` attribute is derived from
-the registry — no per-element pending attribute exists.
+Reach for `RasterSource` when authoring a custom pixel source: anything that
+computes pixels from props rather than capturing them from the DOM. Wrap in a
+styled `<div>` if you need to position or style it — the API is closed
+(no `className`, `style`, event handlers, or ref forwarding).
 
-Closed API: no `className`, `style`, `id`, `data-*`, `aria-*`, event
-handlers, or ref forwarding. Wrap in a styled `<div>` if positioning is
-needed. Matches the closed effect-component API (2026-04-09).
+- `width` — Required. Intrinsic width in pixels. Sets both the canvas backing buffer and the rendered CSS box.
+- `height` — Required. Intrinsic height in pixels.
+- `draw` — Required. Called with the canvas and an `AbortSignal` once the backing buffer is sized. May be sync (gradients, patterns) or async (decoding an image). Wrap in `useCallback` and use content-based keys in the deps when inputs are inline literals — identity changes re-run the draw.
 
 #### Parameters
 
@@ -344,26 +337,22 @@ needed. Matches the closed effect-component API (2026-04-09).
 
 > **Image**(`props`): `Element`
 
-Defined in: [Components/Image/Image.tsx:51](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Image/Image.tsx#L51)
+Defined in: [Components/Image/Image.tsx:47](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Image/Image.tsx#L47)
 
-Loads a raster image source once on mount, decodes it via the browser's
-native image loader, and draws the decoded pixels into the leaf canvas at
-the requested fit. The source decode happens once per `src` change — not
-once per capture — so parent pipeline captures read pixels from the leaf
-canvas, never re-decoding the source bytes.
+Loads a raster image, decodes it, and renders it into a canvas at the requested
+output size and fit. Use `Image` instead of a raw `<img>` for any source that will
+be processed by effects — the decoded pixels live in a canvas that effects can read
+directly without re-decoding the source for every capture.
 
-Renders through [RasterSource](#rastersource), so the emitted DOM is a bare
-`<canvas data-pictel-raster>` that a parent pipeline's capture can read
-directly via the fast path when intrinsic dims match the requested
-capture dims.
+Wrap in a styled `<div>` if you need to position or style it — the API is closed
+(no `className`, `style`, event handlers, or ref forwarding). Decode failures leave
+the canvas blank and do not throw or surface errors.
 
-Decode failures (network error, malformed image, abort) clear pending and
-leave the canvas blank. No error is surfaced to `reportError` — Image is a
-leaf, and the pipeline error log is reserved for effect callbacks.
-
-Closed API: no `className`, `style`, `id`, `data-*`, `aria-*`, event
-handlers, or ref forwarding. Wrap in a styled `<div>` if positioning is
-needed.
+- `src` — Required. URL or data URL of the source image.
+- `width` — Required. Output width in pixels. Sets the canvas backing buffer and the CSS box.
+- `height` — Required. Output height in pixels.
+- `fit` — How the decoded source maps into the output box. Semantics match CSS `object-fit`: `"cover"` fills the box and crops overflow; `"contain"` fits inside the box and letterboxes with transparency; `"fill"` stretches to the exact box; `"none"` draws at intrinsic size, centered, clipping overflow. Defaults to `"cover"`.
+- `crossOrigin` — CORS mode for cross-origin sources. One of `"anonymous"` or `"use-credentials"`. Defaults to unset (no CORS).
 
 #### Parameters
 

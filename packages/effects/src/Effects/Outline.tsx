@@ -110,16 +110,14 @@ interface OutlineProps {
 }
 
 /**
- * XDoG (Extended Difference of Gaussians) — stylized illustrative line art.
+ * Stylized illustrative line art (XDoG) — produces a drawn-on-paper outline
+ * over the image. Output is continuous tonal; chain `<Threshold>` if you want
+ * hard binary outlines.
  *
- * Two Gaussian blurs at σ and k·σ are subtracted then mapped through a soft
- * tanh sigmoid to produce a drawn-looking edge response. Output is continuous
- * tonal; chain `Threshold` if you want hard binary outlines.
- *
- * - `sigma` — Inner Gaussian σ in pixels. Default 1.
- * - `k` — Outer-to-inner σ ratio. Default 1.6 (Winnemöller et al. 2012).
- * - `epsilon` — XDoG threshold (normalized [-1, 1]). Default 0 — produces canonical "drawn on white paper" output where uniform regions of any luminance stay white and only edge dark sides get drawn.
- * - `phi` — Sigmoid sharpness. Higher → more binary; lower → softer. Default 200.
+ * - `sigma` — Inner line width control in pixels. Larger values produce thicker, softer lines. Default 1.
+ * - `k` — Outer-to-inner radius ratio. Default 1.6.
+ * - `epsilon` — Outline threshold in `[-1, 1]`. Default 0 — uniform regions stay white and only the dark side of edges gets drawn. Negative values thicken strokes; positive values darken low-luminance regions toward sketchy output.
+ * - `phi` — Edge sharpness. Higher is more binary; lower is softer. Default 200.
  * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
  *
  * @param props

@@ -36,11 +36,9 @@ describe("parseCubeFile", () => {
 		const result = parseCubeFile(cube)
 		expect(result.size).toBe(2)
 		expect(result.lut.length).toBe(2 * 2 * 2 * 3)
-		// First entry: 0,0,0
 		expect(result.lut[0]).toBe(0)
 		expect(result.lut[1]).toBe(0)
 		expect(result.lut[2]).toBe(0)
-		// Second entry (r=1,g=0,b=0): 1,0,0
 		expect(result.lut[3]).toBe(1)
 		expect(result.lut[4]).toBe(0)
 		expect(result.lut[5]).toBe(0)
@@ -74,10 +72,7 @@ describe("parseCubeFile", () => {
 })
 
 describe("applyLut", () => {
-	// Identity LUT size 2: corners map to themselves
 	function identityLut2(): Float32Array {
-		// R varies fastest, then G, then B
-		// (r,g,b) for r,g,b in {0,1}
 		const data = new Float32Array(2 * 2 * 2 * 3)
 		for (let b = 0; b < 2; b++) {
 			for (let g = 0; g < 2; g++) {
@@ -103,28 +98,21 @@ describe("applyLut", () => {
 	})
 
 	it("trilinear interpolation produces intermediate values", () => {
-		// LUT that doubles red channel (clamped to 1.0)
 		const lut = new Float32Array(2 * 2 * 2 * 3)
 		for (let b = 0; b < 2; b++) {
 			for (let g = 0; g < 2; g++) {
 				for (let r = 0; r < 2; r++) {
 					const idx = (b * 4 + g * 2 + r) * 3
-					lut[idx] = Math.min(r * 2, 1) // red doubled
+					lut[idx] = Math.min(r * 2, 1)
 					lut[idx + 1] = g
 					lut[idx + 2] = b
 				}
 			}
 		}
 
-		// Input with r=64 (0.251 normalized), which maps to coord 0.251
-		// Interpolation between r=0 (output 0) and r=1 (output 1.0 clamped from 2)
-		// Result: lerp(0, 1, 0.251) * 255 = ~64
 		const input = pixel(64, 0, 0, 255)
 		const result = applyLut(input, lut, 2)
 
-		// At r=0 output is 0, at r=1 output is 1.0 (min(2,1))
-		// So for r=64/255, coord = 64/255 * 1 = 0.251
-		// lerp(0, 1, 0.251) = 0.251, * 255 = ~64
 		expect(result.data[0]).toBeCloseTo(64, 0)
 	})
 

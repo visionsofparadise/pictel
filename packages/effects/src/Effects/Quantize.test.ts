@@ -56,7 +56,6 @@ const BLUE: [number, number, number] = [0, 0, 255]
 
 describe("derivePalette", () => {
 	it("derives a palette containing each band's representative color from a 4-color image", () => {
-		// 4-color image: red, green, blue, white — one quadrant each.
 		const data = new Uint8ClampedArray(16 * 16 * 4)
 		for (let y = 0; y < 16; y++) {
 			for (let x = 0; x < 16; x++) {
@@ -78,8 +77,6 @@ describe("derivePalette", () => {
 		const palette = derivePalette(image, 4)
 
 		expect(palette).toHaveLength(4)
-		// Each input color should be present (or very close to) in the palette.
-		// Median-cut on 4 distinct uniform clusters reproduces exact cluster means.
 		for (const expected of [RED, GREEN, BLUE, WHITE]) {
 			const found = palette.some(
 				(p) => Math.abs(p[0] - expected[0]) < 5 && Math.abs(p[1] - expected[1]) < 5 && Math.abs(p[2] - expected[2]) < 5,
@@ -146,7 +143,6 @@ describe("applyQuantize (dither: floyd-steinberg)", () => {
 		for (let x = 96; x < 160; x++) {
 			if (result.data[x * 4] === 255) midWhite++
 		}
-		// Roughly half the 64 middle pixels should be white.
 		expect(midWhite).toBeGreaterThan(16)
 		expect(midWhite).toBeLessThan(48)
 	})
@@ -154,9 +150,6 @@ describe("applyQuantize (dither: floyd-steinberg)", () => {
 
 describe("applyQuantize (dither: atkinson)", () => {
 	it("produces a dithered output different from Floyd–Steinberg on the same input", () => {
-		// Atkinson's 6/8-only error propagation produces a visibly distinct
-		// pattern from Floyd–Steinberg's 16/16. The diff over a uniform
-		// mid-gray field is small per-pixel but accumulates spatially.
 		const input = uniformImage(32, 32, 128, 128, 128, 255)
 		const fs = applyQuantize(input, [BLACK, WHITE], "floyd-steinberg")
 		const atk = applyQuantize(input, [BLACK, WHITE], "atkinson")
@@ -170,10 +163,6 @@ describe("applyQuantize (dither: atkinson)", () => {
 	})
 
 	it("preserves highlights better than Floyd–Steinberg on a bright gray field", () => {
-		// Atkinson loses 2/8 of error per pixel, so when quantizing a bright
-		// near-white field (input=200) to {black, white}, the negative error
-		// from white-snapped pixels dampens less aggressively across the field.
-		// Net: Atkinson keeps more pixels white than F-S does.
 		const input = uniformImage(64, 64, 200, 200, 200, 255)
 		const fs = applyQuantize(input, [BLACK, WHITE], "floyd-steinberg")
 		const atk = applyQuantize(input, [BLACK, WHITE], "atkinson")

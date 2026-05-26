@@ -38,7 +38,6 @@ describe("applyDuotone", () => {
 	})
 
 	it("maps mid-gray to midpoint between dark and light", () => {
-		// BT.601 luminance of (128,128,128) = 128, t = 128/255 ≈ 0.502
 		const result = applyDuotone(pixel(128, 128, 128, 255), dark, light)
 		const t = 128 / 255
 		expect(result.data[0]).toBeCloseTo(20 + t * (220 - 20), 0)

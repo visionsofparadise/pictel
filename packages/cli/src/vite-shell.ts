@@ -101,25 +101,20 @@ export async function buildViteConfig({
 
   const userConfig: UserConfig = loaded?.config ?? {};
 
-  // Pick only the transform/resolve layer — never the app-shape layer.
   const adoptedPlugins: Array<PluginOption> = userConfig.plugins
     ? [userConfig.plugins].flat(Infinity as 1)
     : [];
 
   const entryPlugin = pictelEntryPlugin(entryAbsPath);
 
-  // Compose: pictel's virtual-entry plugin + the adopted plugins. Prepend
-  // pictel's own React plugin only when the adopted set has none.
   const plugins: Array<PluginOption> = hasReactPlugin(adoptedPlugins)
     ? [entryPlugin, ...adoptedPlugins]
     : [react(), entryPlugin, ...adoptedPlugins];
 
   return {
-    // App-shape layer — pictel-owned.
     root: SHELL_DIR,
     configFile: false,
     plugins,
-    // Transform/resolve layer — adopted from the user config when present.
     resolve: userConfig.resolve,
     css: userConfig.css,
     define: userConfig.define,

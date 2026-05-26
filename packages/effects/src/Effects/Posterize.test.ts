@@ -22,9 +22,6 @@ function pixel(r: number, g: number, b: number, a: number): ImageData {
 describe("applyPosterize", () => {
 	it("levels=2 produces binary output (0 or 255)", () => {
 		const result = applyPosterize(pixel(100, 200, 127, 255), 2)
-		// 100/255 = 0.392 -> round(0.392*1)/1*255 = 0
-		// 200/255 = 0.784 -> round(0.784*1)/1*255 = 255
-		// 127/255 = 0.498 -> round(0.498*1)/1*255 = 0
 		expect(result.data[0]).toBe(0)
 		expect(result.data[1]).toBe(255)
 		expect(result.data[2]).toBe(0)
@@ -38,7 +35,6 @@ describe("applyPosterize", () => {
 	})
 
 	it("levels=4 maps value 100 correctly", () => {
-		// 100/255 = 0.392, * 3 = 1.176, round = 1, / 3 * 255 = 85
 		const result = applyPosterize(pixel(100, 100, 100, 255), 4)
 		expect(result.data[0]).toBe(85)
 	})
@@ -65,10 +61,6 @@ describe("applyMappedPosterize", () => {
 		const input = pixel(100, 200, 150, 255)
 		const map = pixel(0, 0, 0, 255)
 		const result = applyMappedPosterize(input, map, 16)
-		// Black map = luminance 0 → levels = 2 → binary output
-		// 100/255 = 0.392, round(0.392*1)/1*255 = 0
-		// 200/255 = 0.784, round(0.784*1)/1*255 = 255
-		// 150/255 = 0.588, round(0.588*1)/1*255 = 255
 		expect(result.data[0]).toBe(0)
 		expect(result.data[1]).toBe(255)
 		expect(result.data[2]).toBe(255)
@@ -78,19 +70,15 @@ describe("applyMappedPosterize", () => {
 		const input = pixel(100, 200, 150, 255)
 		const map = pixel(255, 255, 255, 255)
 		const result = applyMappedPosterize(input, map, 256)
-		// White map = luminance 1 → levels = 256 → output ≈ input
 		expect(result.data[0]).toBe(100)
 		expect(result.data[1]).toBe(200)
 		expect(result.data[2]).toBe(150)
 	})
 
 	it("gradient map produces varying posterization", () => {
-		// 2-pixel image: first pixel with black map, second with white map
 		const input = new ImageData(new Uint8ClampedArray([100, 100, 100, 255, 100, 100, 100, 255]), 2, 1)
 		const map = new ImageData(new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255]), 2, 1)
 		const result = applyMappedPosterize(input, map, 16)
-		// Black map pixel → 2 levels: 100/255=0.392, round(0.392*1)/1*255 = 0
-		// White map pixel → 16 levels: 100/255=0.392, round(0.392*15)/15*255 = round(5.88)/15*255 = 6/15*255 = 102
 		expect(result.data[0]).toBe(0)
 		expect(result.data[4]).toBe(102)
 	})

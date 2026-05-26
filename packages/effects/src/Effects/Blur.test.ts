@@ -58,8 +58,6 @@ describe("applyUniformBlur", () => {
 		expect(result.pixels.height).toBe(3)
 		expect(result.overflow).toEqual({ top: 1, right: 1, bottom: 1, left: 1 })
 
-		// Center pixel (1,1) should have the highest value since it's the
-		// source pixel averaged with transparent neighbors.
 		const centerIdx = (1 * 3 + 1) * 4
 
 		expect(result.pixels.data[centerIdx]).toBeGreaterThan(0)
@@ -73,7 +71,6 @@ describe("applyUniformBlur", () => {
 		expect(result.pixels.height).toBe(4)
 		expect(result.overflow).toEqual({ top: 1, right: 1, bottom: 1, left: 1 })
 
-		// Edge clamping extends the solid color, so all output pixels should be 180.
 		for (let i = 0; i < result.pixels.data.length; i += 4) {
 			expect(result.pixels.data[i]).toBe(180)
 		}
@@ -83,7 +80,6 @@ describe("applyUniformBlur", () => {
 		const input = pixel(255, 255, 255, 255)
 		const result = applyUniformBlur(input, 1)
 
-		// Edge clamping extends the single pixel, so the entire 3x3 output is 255.
 		const centerIdx = (1 * 3 + 1) * 4
 		const centerAlpha = result.pixels.data[centerIdx + 3]
 
@@ -102,7 +98,7 @@ describe("applyUniformBlur", () => {
 describe("applyVariableBlur", () => {
 	it("all-black map produces no blur with zero overflow", () => {
 		const input = solidImage(3, 3, 100, 150, 200, 255)
-		const map = solidImage(3, 3, 0, 0, 0, 255) // black = luminance 0
+		const map = solidImage(3, 3, 0, 0, 0, 255)
 
 		const result = applyVariableBlur(input, map, 5)
 
@@ -110,7 +106,6 @@ describe("applyVariableBlur", () => {
 		expect(result.pixels.width).toBe(3)
 		expect(result.pixels.height).toBe(3)
 
-		// Output should be identical to input since effective radius is 0 everywhere.
 		for (let i = 0; i < input.data.length; i++) {
 			expect(result.pixels.data[i]).toBe(input.data[i])
 		}
@@ -118,21 +113,18 @@ describe("applyVariableBlur", () => {
 
 	it("all-white map produces blur equivalent to full radius", () => {
 		const input = pixel(200, 100, 50, 255)
-		const map = pixel(255, 255, 255, 255) // white = luminance 255
+		const map = pixel(255, 255, 255, 255)
 
 		const result = applyVariableBlur(input, map, 2)
 
-		// Peak luminance is 255, so maxRadius = ceil(1 * 2) = 2.
 		expect(result.overflow).toEqual({ top: 2, right: 2, bottom: 2, left: 2 })
 		expect(result.pixels.width).toBe(5)
 		expect(result.pixels.height).toBe(5)
 	})
 
 	it("half-black half-white map blurs only the white region", () => {
-		// 4x1 image: uniform color.
 		const input = solidImage(4, 1, 200, 200, 200, 255)
 
-		// Map: left half black, right half white.
 		const mapData = new Uint8ClampedArray(4 * 1 * 4)
 
 		for (let x = 0; x < 4; x++) {
@@ -146,13 +138,9 @@ describe("applyVariableBlur", () => {
 		const map = new ImageData(mapData, 4, 1)
 		const result = applyVariableBlur(input, map, 1)
 
-		// Peak luminance is 255, maxRadius = 1. Output is 6x3.
 		const maxR = 1
 		const outW = 4 + 2 * maxR
 
-		// Left-half source pixels (x=0, x=1) have black map => effectiveR=0 => unblurred.
-		// They should match the original value exactly.
-		// In output coords, source (0,0) is at output (maxR, maxR) = (1, 1).
 		for (let sx = 0; sx < 2; sx++) {
 			const ox = sx + maxR
 			const oy = maxR
@@ -162,9 +150,6 @@ describe("applyVariableBlur", () => {
 			expect(result.pixels.data[idx + 3]).toBe(255)
 		}
 
-		// Right-half source pixels (x=2, x=3) have white map => effectiveR=1 => blurred.
-		// With edge clamping and uniform input, blurred values stay at 200.
-		// Just verify the effect executed (output has correct dimensions).
 		expect(result.pixels.width).toBe(outW)
 		expect(result.pixels.height).toBe(3)
 	})
@@ -172,7 +157,6 @@ describe("applyVariableBlur", () => {
 	it("overflow equals ceil(peakMapLuminance/255 * radius)", () => {
 		const input = solidImage(2, 2, 100, 100, 100, 255)
 
-		// Map with mid-gray: luminance of (128,128,128) ~ 128.
 		const map = solidImage(2, 2, 128, 128, 128, 255)
 
 		const result = applyVariableBlur(input, map, 10)

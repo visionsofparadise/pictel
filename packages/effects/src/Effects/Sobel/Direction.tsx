@@ -130,31 +130,20 @@ interface DirectionProps {
 }
 
 /**
- * Outputs the gradient field of the input as a packed three-channel encoding
- * suitable for sampling-correct downstream consumption (e.g. `LIC`, mapped
- * effects).
+ * Produces a direction field describing how the image flows at every pixel.
+ * Feed this through the `map` prop on `LIC` or the field-aligned mode of
+ * `Hatch` to drive streamline-following effects.
  *
- * - `kernel` — `sobel` (default) or `scharr`.
- * - `mode` — `gradient` (default) emits the noisy per-pixel gradient direction;
- *   `structure` emits a smooth contour-following orientation field from the
- *   structure tensor. This `mode` selects the field type and is unrelated to
- *   the `"parameter"|"mix"` `mode` on other effects.
+ * Output is not meant to be visually readable — it renders as red/green static
+ * in DevTools. That's correct; the encoding favors sampling accuracy over
+ * legibility.
  *
- * @remarks
- * The output channels are packed as:
- * - R = cos(theta) packed [-1, 1] -> [0, 255]  (horizontal direction component)
- * - G = sin(theta) packed [-1, 1] -> [0, 255]  (vertical direction component)
- * - B = field strength unsigned [0, 1] -> [0, 255]  (gradient magnitude in
- *   `gradient` mode; structure-tensor coherence in `structure` mode)
- *
- * This split-component encoding (rather than a single packed angle) avoids the
- * 1 deg / 359 deg wraparound problem so that bilinear sampling of cos and sin
- * separately, followed by `atan2(sin', cos')`, yields a correct interpolated
- * direction at fractional positions.
- *
- * The packed output does NOT visualize as a recognizable image in DevTools —
- * it appears as red/green static. This is by design (correctness over visual
- * readability). To visually inspect direction, decode in a custom effect.
+ * - `kernel` — `"sobel"` (default) or `"scharr"`. Scharr produces a larger,
+ *   more rotationally symmetric response.
+ * - `mode` — `"gradient"` (default) emits the per-pixel gradient direction;
+ *   `"structure"` emits a smooth, contour-following orientation field — the
+ *   one to reach for when feeding `LIC` or `Hatch` over an organic field.
+ *   Unrelated to the `"parameter"|"mix"` `mode` on other effects.
  *
  * @param props
  * @category Effects

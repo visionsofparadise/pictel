@@ -8,8 +8,6 @@ import { solidImage } from "../utils/test-images";
 import { waitForRasterEffect } from "../utils/wait-for-raster-effect";
 import { Image } from "./Image";
 
-// --- Helpers ---
-
 interface Deferred<T = void> {
 	promise: Promise<T>;
 	resolve: (value: T) => void;
@@ -107,12 +105,8 @@ function mockImageDecodeDeferred(d: Deferred<void>, naturalWidth: number, natura
 function mockImageDecodeNever() {
 	return vi
 		.spyOn(HTMLImageElement.prototype, "decode")
-		.mockImplementation(() => new Promise<void>(() => {
-			// never resolves
-		}));
+		.mockImplementation(() => new Promise<void>(() => {}));
 }
-
-// --- Integration tests ---
 
 describe.sequential("Image integration", () => {
 	afterEach(() => {
@@ -142,7 +136,6 @@ describe.sequential("Image integration", () => {
 			const pixels = readRasterEffectOutput(canvas);
 			const [r, g, b, a] = readPixel(pixels, 50, 50);
 
-			// "fill" stretches the 50x50 red source over the entire 100x100 canvas.
 			expect(r).toBeGreaterThanOrEqual(240);
 			expect(g).toBeLessThanOrEqual(15);
 			expect(b).toBeLessThanOrEqual(15);
@@ -202,10 +195,6 @@ describe.sequential("Image integration", () => {
 			);
 			expect(all.length).toBeGreaterThanOrEqual(2);
 
-			// Outer RasterEffect's output canvas is the one whose previous-sibling
-			// children wrapper contains another `[data-pictel-raster]` canvas (the
-			// inner / Image leaf canvas). The Image leaf canvas has no such
-			// sibling-with-raster-descendant.
 			const outer = all.find((candidate) => {
 				const prev = candidate.previousElementSibling;
 				return prev instanceof HTMLElement && prev.querySelector("canvas[data-pictel-raster]") !== null;
@@ -228,8 +217,7 @@ describe.sequential("Image integration", () => {
 		const src = solidImage("green", 50, 50);
 		mockImageDecode({ naturalWidth: 50, naturalHeight: 50, fail: true });
 
-		// If the rejection escapes the draw callback's try/catch, this listener
-		// captures it and we can assert no unhandled rejection occurred.
+		// Catch escaped rejections from the draw callback's try/catch.
 		const unhandled: Array<unknown> = [];
 		const listener = (event: PromiseRejectionEvent) => {
 			unhandled.push(event.reason);

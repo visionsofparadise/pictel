@@ -33,7 +33,7 @@ interface GrayscaleProps {
 }
 
 /**
- * Converts pixels to grayscale using BT.601 luminance weighting.
+ * Desaturates pixels toward perceptual grayscale.
  *
  * - `amount` — Desaturation amount. 0 is unchanged, 1 is fully grayscale. Default 1.
  *

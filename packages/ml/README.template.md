@@ -44,14 +44,11 @@ export default function Cutout() {
 }
 ```
 
-ML components are `RasterEffect`s: they accept `mode="parameter" | "mix"` and apply/map children the same way as any effect. Wrap in `<Map>` to use the result as a parameter source for downstream effects:
+ML components are `RasterEffect`s — they process their children and output pixels. To use the result as a map input for a downstream effect, pass the ML component through the `map` prop on that effect:
 
 ```tsx
-<DisplacementMap>
+<DisplacementMap map={<DepthMap><Image src="/photo.jpg" /></DepthMap>}>
   <Image src="/photo.jpg" />
-  <Map>
-    <DepthMap><Image src="/photo.jpg" /></DepthMap>
-  </Map>
 </DisplacementMap>
 ```
 

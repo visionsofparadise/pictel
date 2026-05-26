@@ -2,11 +2,7 @@ import { describe, it, expect, beforeAll, vi } from "vitest"
 import { applyHalftone } from "./Halftone"
 import { sampleWindow } from "./utils/sample-window"
 
-// Mock canvas context for jsdom (no real Canvas2D).
-//
-// `fillStyle` is a single mutable property, so to know which ink color a given
-// dot was stamped in we record the current `fillStyle` alongside every `fill()`
-// call. `fillColors` is a parallel array to the `fill` mock's calls.
+// `fillStyle` is a single mutable property, so we record it at each `fill()` to recover per-dot ink colors.
 const fillColors: string[] = []
 const mockCtx = {
 	fillStyle: "",
@@ -35,7 +31,6 @@ beforeAll(() => {
 		}
 	} as unknown as typeof globalThis.ImageData
 
-	// Mock OffscreenCanvas
 	globalThis.OffscreenCanvas = class {
 		width: number
 		height: number
@@ -71,9 +66,7 @@ describe("applyHalftone", () => {
 		const input = solidImage(100, 100, 0, 0, 0)
 		applyHalftone(input, 10)
 
-		// Should have drawn dots (arc calls)
 		expect(mockCtx.arc).toHaveBeenCalled()
-		// Full coverage → radius reaches the cell half-diagonal: half * √2 = 5 * √2 ≈ 7.07
 		const firstArcCall = mockCtx.arc.mock.calls[0] as [number, number, number, number, number]
 		expect(firstArcCall[2]).toBeCloseTo(5 * Math.SQRT2, 1)
 	})
@@ -87,7 +80,6 @@ describe("applyHalftone", () => {
 		const input = solidImage(100, 100, 255, 255, 255)
 		applyHalftone(input, 10)
 
-		// Luminance = 255, radius = 0 -> no arc calls
 		expect(mockCtx.arc).not.toHaveBeenCalled()
 	})
 
@@ -110,7 +102,6 @@ describe("applyHalftone", () => {
 
 		const input = solidImage(100, 100, 0, 0, 0)
 
-		// Small dots -> more arc calls
 		mockCtx.arc.mockClear()
 		applyHalftone(input, 5)
 		const smallDotCalls = mockCtx.arc.mock.calls.length
@@ -183,7 +174,6 @@ describe("applyHalftone with non-zero angle", () => {
 
 		const { left, right } = countDotSidesByScreenX(mockCtx.arc.mock.calls, width / 2)
 
-		// Baseline: source-left is black so dots appear on the screen-left.
 		expect(left).toBeGreaterThan(0)
 		expect(left).toBeGreaterThan(right * 5)
 	})
@@ -201,12 +191,7 @@ describe("applyHalftone with non-zero angle", () => {
 		const input = leftBlackRightWhiteImage(width, height)
 		applyHalftone(input, dotSize, 45)
 
-		// Only the dot lattice rotates — the image does not. Every dot is
-		// sampled and drawn at the same point, so a dot is stamped only where
-		// the source is actually dark. The source's left half is black, so
-		// (apart from a few cells straddling the centre boundary) every dot
-		// lands on the screen-left. If the image itself were rotated, the black
-		// band would smear diagonally and dots would spill across the centre.
+		// Regression: only the dot lattice rotates, not the image. If a regression rotates the source, the black band smears diagonally and spills across centre.
 		const { left, right } = countDotSidesByScreenX(mockCtx.arc.mock.calls, width / 2)
 		expect(left).toBeGreaterThan(0)
 		expect(right).toBeLessThan(left / 4)
@@ -223,9 +208,7 @@ describe("applyHalftone with non-zero angle", () => {
 		const input = solidImage(width, height, 128, 128, 128)
 		applyHalftone(input, 8, 45)
 
-		// The fix moves rotation out of the canvas transform and into per-cell
-		// coordinate math. If a regression reintroduces context.rotate/translate
-		// the photo will rotate again.
+		// Regression: rotation lives in per-cell math, not canvas transform. Re-introducing rotate/translate here would rotate the photo.
 		expect(mockCtx.rotate).not.toHaveBeenCalled()
 		expect(mockCtx.translate).not.toHaveBeenCalled()
 	})
@@ -244,12 +227,10 @@ describe("applyHalftone luminance mode — dotColor", () => {
 		mockCtx.fill.mockClear()
 		fillColors.length = 0
 
-		// Dark image so dots are drawn.
 		const input = solidImage(100, 100, 0, 0, 0)
 		applyHalftone(input, 10, 0, "luminance", [255, 0, 0])
 
 		expect(mockCtx.arc).toHaveBeenCalled()
-		// Every dot stamped in the requested red ink.
 		expect(fillColors.length).toBeGreaterThan(0)
 		expect(fillColors.every((c) => c === rgb(255, 0, 0))).toBe(true)
 	})
@@ -262,7 +243,7 @@ describe("applyHalftone luminance mode — dotColor", () => {
 		fillColors.length = 0
 
 		const input = solidImage(50, 50, 0, 0, 0)
-		// Three-arg call form — the original signature, must still work.
+		// Back-compat: the three-arg signature predates the mode/color params.
 		applyHalftone(input, 10, 0)
 
 		expect(fillColors.length).toBeGreaterThan(0)
@@ -272,8 +253,6 @@ describe("applyHalftone luminance mode — dotColor", () => {
 
 describe("applyHalftone cmyk mode", () => {
 	it("pure red field produces magenta and yellow dots, no cyan", () => {
-		// R=255,G=0,B=0 → C=0, M=1, Y=1, K=0. After GCR (K=0) the chromatic
-		// channels are unchanged: cyan demand is zero, magenta/yellow are full.
 		const outputData = new Uint8ClampedArray(120 * 120 * 4)
 		mockCtx.getImageData.mockReturnValue(new ImageData(outputData, 120, 120))
 		mockCtx.arc.mockClear()
@@ -295,7 +274,6 @@ describe("applyHalftone cmyk mode", () => {
 	})
 
 	it("pure white field stays white (no dots in any channel)", () => {
-		// R=G=B=255 → C=M=Y=K=0 — no ink demand anywhere.
 		const outputData = new Uint8ClampedArray(120 * 120 * 4)
 		mockCtx.getImageData.mockReturnValue(new ImageData(outputData, 120, 120))
 		mockCtx.arc.mockClear()
@@ -310,8 +288,6 @@ describe("applyHalftone cmyk mode", () => {
 	})
 
 	it("pure black field goes solid via the Key channel", () => {
-		// R=G=B=0 → C=M=Y=1, K=1. GCR pulls all ink into Key; the chromatic
-		// channels become 0, the Key channel is full coverage.
 		const outputData = new Uint8ClampedArray(120 * 120 * 4)
 		mockCtx.getImageData.mockReturnValue(new ImageData(outputData, 120, 120))
 		mockCtx.arc.mockClear()
@@ -331,14 +307,12 @@ describe("applyHalftone cmyk mode", () => {
 		expect(yellow).toBe(0)
 		expect(key).toBeGreaterThan(0)
 
-		// Full coverage — Key dots stamped at max radius: the cell half-diagonal, half * √2 = 6 * √2 ≈ 8.49.
 		const keyArcs = mockCtx.arc.mock.calls as [number, number, number, number, number][]
 		expect(keyArcs.length).toBeGreaterThan(0)
 		expect(keyArcs[0]![2]).toBeCloseTo(6 * Math.SQRT2, 1)
 	})
 
 	it("pure blue field produces cyan and magenta dots, no yellow", () => {
-		// R=0,G=0,B=255 → C=1, M=1, Y=0, K=0 — cyan and magenta inks build blue.
 		const outputData = new Uint8ClampedArray(120 * 120 * 4)
 		mockCtx.getImageData.mockReturnValue(new ImageData(outputData, 120, 120))
 		mockCtx.arc.mockClear()
@@ -365,7 +339,6 @@ describe("applyHalftone cmyk mode", () => {
 		const input = solidImage(60, 60, 255, 0, 0)
 		applyHalftone(input, 12, 0, "cmyk")
 
-		// Restored to the default after the screen is stamped.
 		expect(mockCtx.globalCompositeOperation).toBe("source-over")
 	})
 
@@ -387,12 +360,11 @@ describe("applyHalftone cmyk mode", () => {
 			data[i] = 200
 			data[i + 1] = 50
 			data[i + 2] = 100
-			data[i + 3] = 128 // half-transparent
+			data[i + 3] = 128
 		}
 		const input = new ImageData(data, 4, 4)
 
-		// The mocked context returns fully opaque pixels; applyHalftone must
-		// copy the source alpha back over them.
+		// The mocked context returns opaque pixels; applyHalftone must restore source alpha over them.
 		const outputData = new Uint8ClampedArray(4 * 4 * 4).fill(255)
 		mockCtx.getImageData.mockReturnValue(new ImageData(outputData, 4, 4))
 
@@ -419,9 +391,7 @@ describe("sampleWindow — CMYK screen registration", () => {
 	const half = 5 // dotSize 10
 
 	it("is exactly dotSize-square regardless of sub-pixel dot position", () => {
-		// The registration bug: a floor/ceil window grows to 11px on fractional
-		// centers. Every interior window must be exactly 2*half across, whether
-		// the dot center is integer (Yellow 0°) or fractional (rotated screens).
+		// Regression: floor/ceil window grows to 11px on fractional centers, pulling the CMYK layers out of registration.
 		for (const offset of [0, 0.1, 0.25, 0.5, 0.71, 0.9]) {
 			const win = sampleWindow(1000, 1000, 500 + offset, 500 + offset, half)
 			expect(win.endX - win.startX).toBe(2 * half)
@@ -430,22 +400,15 @@ describe("sampleWindow — CMYK screen registration", () => {
 	})
 
 	it("keeps the window centroid within half a pixel of every dot center", () => {
-		// All four CMYK screens rotate to different angles, so their lattice
-		// points carry different fractional parts. The sample window must track
-		// each dot to within ±0.5px per axis — the discrete-grid floor — so the
-		// separations stay registered. A floor/ceil window drifts further, and
-		// by a channel-specific amount, pulling the layers apart.
+		// Regression: each CMYK screen rotates to a different angle, so per-channel fractional drift in window centroid pulls layers apart.
 		for (let cx = 500; cx < 510; cx += 0.137) {
 			const win = sampleWindow(1000, 1000, cx, cx, half)
-			// Window centroid: pixel centers are x+0.5.
 			const centroidX = (win.startX + win.endX) / 2
 			expect(Math.abs(centroidX - cx)).toBeLessThanOrEqual(0.5)
 		}
 	})
 
 	it("clamps to image bounds without widening the window elsewhere", () => {
-		// A dot near the top-left corner: the window clips at 0 but the
-		// in-bounds side is unaffected.
 		const win = sampleWindow(1000, 1000, 1, 1, half)
 		expect(win.startX).toBe(0)
 		expect(win.startY).toBe(0)
@@ -456,8 +419,6 @@ describe("sampleWindow — CMYK screen registration", () => {
 
 describe("applyHalftone color mode", () => {
 	it("stamps each dot in the cell's own average color", () => {
-		// A solid red field — every cell averages to pure red, so every dot is
-		// stamped rgb(255, 0, 0). One shared grid, no channel separation.
 		const outputData = new Uint8ClampedArray(120 * 120 * 4)
 		mockCtx.getImageData.mockReturnValue(new ImageData(outputData, 120, 120))
 		mockCtx.arc.mockClear()
@@ -473,7 +434,6 @@ describe("applyHalftone color mode", () => {
 	})
 
 	it("draws no dots on pure white (zero ink demand)", () => {
-		// min(255,255,255)/255 = 1 → coverage 0 → no dots.
 		const outputData = new Uint8ClampedArray(120 * 120 * 4)
 		mockCtx.getImageData.mockReturnValue(new ImageData(outputData, 120, 120))
 		mockCtx.arc.mockClear()
@@ -502,7 +462,7 @@ describe("applyHalftone color mode", () => {
 			data[i] = 200
 			data[i + 1] = 50
 			data[i + 2] = 100
-			data[i + 3] = 128 // half-transparent
+			data[i + 3] = 128
 		}
 		const input = new ImageData(data, 4, 4)
 

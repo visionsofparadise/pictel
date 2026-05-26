@@ -28,7 +28,6 @@ describe("overlay", () => {
 
 	it("boundary at dest = 0.5", () => {
 		const [r] = overlay(0.6, 0, 0, 0.5, 0, 0)
-		// dr <= 0.5 uses multiply branch: 2 * 0.6 * 0.5 = 0.6
 		expect(r).toBeCloseTo(0.6, 5)
 	})
 })

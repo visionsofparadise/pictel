@@ -307,15 +307,14 @@ export interface QuantizeProps {
 }
 
 /**
- * Maps the image to a restricted color palette. Either a fixed `palette` (an
- * array of `[r, g, b]` triples) or an auto-derived palette of `count` colors
- * via median-cut. `palette` and `count` are mutually exclusive.
+ * Maps the image to a restricted color palette — the GIF / pixel-art / retro
+ * look. Either a fixed `palette` (an array of `[r, g, b]` triples) or an
+ * auto-derived palette of `count` colors. `palette` and `count` are mutually
+ * exclusive.
  *
- * Dither modes:
- * - `"none"` — flat nearest-color mapping
- * - `"floyd-steinberg"` — error diffusion (sharp, classic GIF look)
- * - `"atkinson"` — error diffusion with 6/8 propagation (Mac System 1 look)
- * - `"bayer-4"` / `"bayer-8"` — ordered dithering (deterministic crosshatch pattern)
+ * - `palette` — Fixed palette. Mutually exclusive with `count`.
+ * - `count` — Auto-derive a palette of this size from the source. Mutually exclusive with `palette`.
+ * - `dither` — Dithering style. `"none"` (default) is flat nearest-color mapping; `"floyd-steinberg"` is the sharp classic GIF look; `"atkinson"` is the Mac System 1 look; `"bayer-4"` and `"bayer-8"` produce a deterministic ordered crosshatch.
  *
  * @param props
  * @category Effects

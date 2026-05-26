@@ -36,11 +36,9 @@ describe.sequential("Clip component", () => {
 			const canvas = handle.container.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
 			if (!canvas) throw new Error("no output canvas found");
 
-			// Backing buffer carries bleed.
 			expect(canvas.width).toBe(120);
 			expect(canvas.height).toBe(120);
 
-			// CSS box stays at content dims — bleed squished into content footprint.
 			const canvasRect = canvas.getBoundingClientRect();
 			expect(Math.round(canvasRect.width)).toBe(100);
 			expect(Math.round(canvasRect.height)).toBe(100);
@@ -69,29 +67,22 @@ describe.sequential("Clip component", () => {
 			const canvas = handle.container.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
 			if (!canvas) throw new Error("no output canvas found");
 
-			// Backing buffer still carries bleed.
 			expect(canvas.width).toBe(120);
 			expect(canvas.height).toBe(120);
 
-			// Overflow wrapper is canvas's direct parent (RasterEffect emits the canvas
-			// as a sibling of its children wrapper; both live inside the Overflow
-			// wrapper div). Clip is the outer `overflow: hidden` div.
 			const overflowWrapper = canvas.parentElement;
 			if (!overflowWrapper) throw new Error("no Overflow wrapper found");
 			const clipOuter = overflowWrapper.parentElement;
 			if (!clipOuter) throw new Error("no Clip outer found");
 
-			// Clip outer sizes to the RasterEffect's layout (content size).
 			const clipRect = clipOuter.getBoundingClientRect();
 			expect(Math.round(clipRect.width)).toBe(100);
 			expect(Math.round(clipRect.height)).toBe(100);
 
-			// Canvas is absolutely positioned, expanded to content + bleed, shifted.
 			const canvasRect = canvas.getBoundingClientRect();
 			expect(Math.round(canvasRect.width)).toBe(120);
 			expect(Math.round(canvasRect.height)).toBe(120);
 
-			// Canvas shifted -10 from the Overflow wrapper on each side.
 			const overflowRect = overflowWrapper.getBoundingClientRect();
 			expect(Math.round(canvasRect.left - overflowRect.left)).toBe(-10);
 			expect(Math.round(canvasRect.top - overflowRect.top)).toBe(-10);

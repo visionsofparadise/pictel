@@ -62,7 +62,6 @@ describe("upscale", () => {
 		const inputPixels = new Uint8ClampedArray([255, 0, 0, 255])
 		const input = new ImageData(inputPixels, 1, 1)
 
-		// Mock pipeline returns a 2x2 image (2x the 1x1 input)
 		const upscaledData = new Uint8ClampedArray([
 			255, 0, 0, 255,
 			255, 0, 0, 255,

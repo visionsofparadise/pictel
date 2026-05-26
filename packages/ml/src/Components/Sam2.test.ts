@@ -91,7 +91,6 @@ describe("sam2Segment", () => {
 	it("produces a white-on-black mask from the best scoring mask", async () => {
 		const { sam2Segment } = await import("./Sam2")
 
-		// 2x2 mask: top-left and bottom-right are foreground
 		const maskData = new Uint8Array([1, 0, 0, 1])
 		setupMocks(maskData, [1, 1, 2, 2], new Float32Array([0.95]))
 
@@ -101,25 +100,21 @@ describe("sam2Segment", () => {
 		expect(result.width).toBe(2)
 		expect(result.height).toBe(2)
 
-		// Top-left: white (foreground)
 		expect(result.data[0]).toBe(255)
 		expect(result.data[1]).toBe(255)
 		expect(result.data[2]).toBe(255)
 		expect(result.data[3]).toBe(255)
 
-		// Top-right: black (background)
 		expect(result.data[4]).toBe(0)
 		expect(result.data[5]).toBe(0)
 		expect(result.data[6]).toBe(0)
 		expect(result.data[7]).toBe(255)
 
-		// Bottom-left: black (background)
 		expect(result.data[8]).toBe(0)
 		expect(result.data[9]).toBe(0)
 		expect(result.data[10]).toBe(0)
 		expect(result.data[11]).toBe(255)
 
-		// Bottom-right: white (foreground)
 		expect(result.data[12]).toBe(255)
 		expect(result.data[13]).toBe(255)
 		expect(result.data[14]).toBe(255)
@@ -145,7 +140,6 @@ describe("sam2Segment", () => {
 		const inputPoints = callArgs.input_points as MockTensor
 		const inputLabels = callArgs.input_labels as MockTensor
 
-		// 2 positive + 1 negative = 3 points
 		expect(inputPoints.dims).toEqual([1, 1, 3, 2])
 		expect(Array.from(inputPoints.data as Float32Array)).toEqual([10, 20, 30, 40, 50, 60])
 
@@ -156,7 +150,6 @@ describe("sam2Segment", () => {
 	it("selects the mask with the highest IoU score", async () => {
 		const { sam2Segment } = await import("./Sam2")
 
-		// 3 masks for a 1x1 image: mask 0 = off, mask 1 = on (best), mask 2 = off
 		const maskData = new Uint8Array([0, 1, 0])
 		const iouScores = new Float32Array([0.5, 0.99, 0.3])
 
@@ -177,7 +170,6 @@ describe("sam2Segment", () => {
 		const input = new ImageData(new Uint8ClampedArray(1 * 1 * 4), 1, 1)
 		const result = await sam2Segment(input, mockModel as never, mockProcessor as never, [{ x: 0, y: 0 }], [])
 
-		// Best mask (index 1) is on, so output should be white
 		expect(result.data[0]).toBe(255)
 		expect(result.data[1]).toBe(255)
 		expect(result.data[2]).toBe(255)

@@ -5,11 +5,9 @@ import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { useProps } from "./useProps";
 
-// pictel's unit vitest config has no React act-environment setup; declare it so
-// act() flushes correctly and does not warn.
+// Unit vitest config has no act-environment setup — declare it so act() flushes without warning.
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-// Render useProps in a throwaway component and capture the value it returns.
 function renderUseProps<T>(): T {
 	let captured: T | undefined;
 

@@ -93,15 +93,13 @@ interface BilateralProps {
 }
 
 /**
- * Edge-preserving smoothing via the bilateral filter — Gaussian-weighted average
- * where the weight depends on both spatial distance and color distance, so pixels
- * across edges (large color difference) do not blend together.
+ * Edge-preserving smoothing. Blurs flat regions while keeping edges crisp — useful
+ * as a cel-shading or skin-smoothing primitive. Large `spatialSigma` values are
+ * perceptibly slow on large images; keep it under 6 for interactive use.
  *
  * - `spatialSigma` — Spatial radius in pixels. Sensible values are 2–6.
  * - `colorSigma` — Color tolerance in 0–255 units. Larger values bridge more across edges.
- *
- * Cost is `O(W * H * r²)` where `r = ceil(2 * spatialSigma)`. Large `spatialSigma`
- * values are perceptibly slow on large images.
+ * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
  *
  * @param props
  * @category Effects

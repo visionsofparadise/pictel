@@ -65,7 +65,6 @@ describe("segFormerSegment", () => {
 	it("produces color-coded output from pipeline segments", async () => {
 		const { segFormerSegment } = await import("./SegFormer")
 
-		// 2x1 image: segment 0 covers pixel 0, segment 1 covers pixel 1
 		const mask0 = new MockRawImage(new Uint8ClampedArray([255, 0, 0, 255, 0, 0, 0, 255]), 2, 1, 4)
 		const mask1 = new MockRawImage(new Uint8ClampedArray([0, 0, 0, 255, 255, 0, 0, 255]), 2, 1, 4)
 
@@ -80,13 +79,11 @@ describe("segFormerSegment", () => {
 		expect(result.width).toBe(2)
 		expect(result.height).toBe(1)
 
-		// Pixel 0: segment 0 color [230, 25, 75]
 		expect(result.data[0]).toBe(230)
 		expect(result.data[1]).toBe(25)
 		expect(result.data[2]).toBe(75)
 		expect(result.data[3]).toBe(255)
 
-		// Pixel 1: segment 1 color [60, 180, 75]
 		expect(result.data[4]).toBe(60)
 		expect(result.data[5]).toBe(180)
 		expect(result.data[6]).toBe(75)

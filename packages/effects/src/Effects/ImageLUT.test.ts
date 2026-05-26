@@ -60,40 +60,34 @@ describe("applyImageLut", () => {
 	})
 
 	it("known small LUT (size=2) maps correctly", () => {
-		// Size-2 LUT that swaps R and B channels
-		const width = 4 // 2 blocks of 2 pixels
+		const width = 4
 		const height = 2
 		const data = new Uint8ClampedArray(width * height * 4)
 
-		// Block 0 (b=0): output B=0
-		// Block 1 (b=1): output B=255
 		for (let b = 0; b < 2; b++) {
 			for (let g = 0; g < 2; g++) {
 				for (let r = 0; r < 2; r++) {
 					const x = b * 2 + r
 					const y = g
 					const idx = (y * width + x) * 4
-					// Swap: output R = input B, output G = input G, output B = input R
-					data[idx] = b * 255     // output R = blue level
-					data[idx + 1] = g * 255 // output G = green level
-					data[idx + 2] = r * 255 // output B = red level
+					data[idx] = b * 255
+					data[idx + 1] = g * 255
+					data[idx + 2] = r * 255
 					data[idx + 3] = 255
 				}
 			}
 		}
 
 		const lut = new ImageData(data, width, height)
-		const input = pixel(255, 0, 0, 255) // pure red
+		const input = pixel(255, 0, 0, 255)
 		const result = applyImageLut(input, lut, 2)
 
-		// Pure red (255,0,0) -> swapped -> (0,0,255) pure blue
 		expect(result.data[0]).toBeCloseTo(0, 0)
 		expect(result.data[1]).toBeCloseTo(0, 0)
 		expect(result.data[2]).toBeCloseTo(255, 0)
 	})
 
 	it("interpolates between blue slices", () => {
-		// Size-2 LUT: block 0 outputs all black, block 1 outputs all white
 		const width = 4
 		const height = 2
 		const data = new Uint8ClampedArray(width * height * 4)
@@ -114,12 +108,9 @@ describe("applyImageLut", () => {
 		}
 
 		const lut = new ImageData(data, width, height)
-		// Input with blue=128 -> between slices 0 and 1
 		const input = pixel(0, 0, 128, 255)
 		const result = applyImageLut(input, lut, 2)
 
-		// Blue 128/255 * 1 = 0.502, frac between b0=0 (black) and b1=1 (white)
-		// lerp(0, 255, 0.502) ≈ 128
 		expect(result.data[0]).toBeCloseTo(128, 0)
 		expect(result.data[1]).toBeCloseTo(128, 0)
 		expect(result.data[2]).toBeCloseTo(128, 0)

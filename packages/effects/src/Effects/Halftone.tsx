@@ -179,25 +179,21 @@ interface HalftoneProps {
 }
 
 /**
- * Converts the image to a halftone pattern.
+ * Converts the image to a dot-screen halftone. Three flavors:
  *
- * In the default `"luminance"` mode, dot radius varies with local luminance
- * and dots are stamped in `dotColor` on white — a Ben-Day screen.
- *
- * In `"cmyk"` mode it produces a true process halftone: the image is separated
- * into Cyan / Magenta / Yellow / Key channels (via gray-component replacement),
- * each channel is screened on its own grid rotated to its classic process
- * angle (Cyan 15°, Magenta 75°, Yellow 0°, Key 45°), dots are stamped in their
- * ink color and overprinted with multiply compositing — color emerges from the
- * overlapping colored dots, the true process-print look.
- *
- * In `"color"` mode it produces a single-screen color halftone: one shared
- * grid, each cell stamped as one dot in that cell's own average color. With no
- * overlapping screens there is nothing to misregister — the clean comic-dot
- * look, and the mode to reach for in a pop-art treatment.
+ * - `"luminance"` (default) — monochrome Ben-Day screen: dot radius varies
+ *   with local luminance, dots are stamped in `dotColor` on white.
+ * - `"cmyk"` — true process halftone: Cyan, Magenta, Yellow, and Key are each
+ *   screened on their own grid at the classic process angles (Cyan 15°,
+ *   Magenta 75°, Yellow 0°, Key 45°) and overprinted — the look of CMYK
+ *   newsprint where colour emerges from overlapping colored dots.
+ * - `"color"` — single-screen color halftone: one shared grid, each cell a
+ *   dot in that cell's own average color. No overlapping screens, so the
+ *   pattern can't misregister — the clean comic-dot look. Reach for this in
+ *   pop-art treatments.
  *
  * - `dotSize` — Grid cell size in pixels. Larger values produce coarser halftone.
- * - `angle` — Rotation of the dot grid in degrees (`"luminance"`/`"color"` modes only). Default 0.
+ * - `angle` — Rotation of the dot grid in degrees (`"luminance"` / `"color"` modes only). Default 0.
  * - `colorMode` — `"luminance"` (default), `"cmyk"`, or `"color"`.
  * - `dotColor` — Ink color `[r, g, b]` for the `"luminance"` screen. Default black `[0, 0, 0]`.
  *

@@ -35,7 +35,6 @@ function uniformField(width: number, height: number, r: number, g: number, b: nu
 }
 
 function verticalStripes(width: number, height: number): ImageData {
-	// Alternating black/white columns
 	return makeImage(width, height, (x) => {
 		const v = x % 2 === 0 ? 0 : 255
 		return [v, v, v, 255]
@@ -63,23 +62,17 @@ function stddev(values: number[]): number {
 
 describe("applyLIC", () => {
 	it("smears vertical stripes into row-uniform output under a uniform horizontal field", () => {
-		// Horizontal field: cos=1, sin=0, magnitude=1 → R=255, G=128 (≈127.5), B=255
 		const seed = verticalStripes(32, 16)
 		const field = uniformField(32, 16, 255, 128, 255)
 		const result = applyLIC(seed, field, 20, 1.0)
 
 		const channel = readChannel(result, 0)
 
-		// Streamlines run horizontally and average ~20 stripes — the full row
-		// should converge near the global mean (127.5). Per-row variation
-		// drops sharply vs. the input (originally alternating 0/255, stddev≈127.5).
 		const rowStddevs: number[] = channel.map((row) => stddev(row))
 		const avgRow = rowStddevs.reduce((s, v) => s + v, 0) / rowStddevs.length
 
 		expect(avgRow).toBeLessThan(50)
 
-		// And output values cluster near 127 (mid-gray) — the average of an
-		// equal mix of black and white stripes.
 		for (const row of channel) {
 			const mean = row.reduce((s, v) => s + v, 0) / row.length
 			expect(Math.abs(mean - 127)).toBeLessThan(20)
@@ -87,16 +80,12 @@ describe("applyLIC", () => {
 	})
 
 	it("preserves vertical stripes under a uniform vertical field", () => {
-		// Vertical field: cos=0, sin=1, magnitude=1 → R=128, G=255, B=255
 		const seed = verticalStripes(32, 16)
 		const field = uniformField(32, 16, 128, 255, 255)
 		const result = applyLIC(seed, field, 20, 1.0)
 
 		const channel = readChannel(result, 0)
 
-		// Each column samples only itself (integration runs along the stripe),
-		// so the alternating 0/255 pattern is preserved — per-row stddev stays
-		// high, near the input's ~127.
 		const rowStddevs: number[] = channel.map((row) => stddev(row))
 		const avgRow = rowStddevs.reduce((s, v) => s + v, 0) / rowStddevs.length
 
@@ -104,9 +93,6 @@ describe("applyLIC", () => {
 	})
 
 	it("integrates over a small neighborhood with a zero-magnitude field", () => {
-		// Magnitude=0 (B=0), direction R=255 (cos=1) G=128 (sin≈0) — step is
-		// floored at 0.25 rather than 0, so integration walks a small
-		// neighborhood instead of stagnating.
 		const seed = verticalStripes(32, 16)
 		const field = uniformField(32, 16, 255, 128, 0)
 		const result = applyLIC(seed, field, 20, 1.0)
@@ -115,17 +101,11 @@ describe("applyLIC", () => {
 		const rowStddevs: number[] = channel.map((row) => stddev(row))
 		const avgRow = rowStddevs.reduce((s, v) => s + v, 0) / rowStddevs.length
 
-		// Some smearing happens (avgRow drops below the unmixed input's ~127),
-		// but it's a smaller neighborhood than the full-magnitude case (which
-		// converges near 0) — output still shows residual stripe structure.
 		expect(avgRow).toBeLessThan(127)
 		expect(avgRow).toBeGreaterThan(20)
 	})
 
 	it("integrates at full step on a zero-magnitude field when uniformStep is set", () => {
-		// Same zero-magnitude horizontal field as the test above, but uniformStep
-		// ignores the magnitude channel — integration walks the full distance and
-		// smears the stripes as if the field were full-magnitude.
 		const seed = verticalStripes(32, 16)
 		const field = uniformField(32, 16, 255, 128, 0)
 		const result = applyLIC(seed, field, 20, 1.0, true)
@@ -134,8 +114,6 @@ describe("applyLIC", () => {
 		const rowStddevs: number[] = channel.map((row) => stddev(row))
 		const avgRow = rowStddevs.reduce((s, v) => s + v, 0) / rowStddevs.length
 
-		// Full integration converges near the global mean — far more smearing
-		// than the magnitude-gated default, which left residual stripe structure.
 		expect(avgRow).toBeLessThan(50)
 	})
 
@@ -147,7 +125,6 @@ describe("applyLIC", () => {
 	})
 
 	it("preserves seed alpha", () => {
-		// Seed has alpha=128 everywhere; output should preserve it.
 		const seed = makeImage(8, 8, () => [200, 100, 50, 128])
 		const field = uniformField(8, 8, 255, 128, 255)
 		const result = applyLIC(seed, field, 10, 1.0)

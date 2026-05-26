@@ -201,24 +201,22 @@ interface HatchProps {
 }
 
 /**
- * Hatching effect. Bands the source into tonal tiers (Grayscale → Posterize)
- * and renders per-band line layers, multiplied onto a white background. Two
- * modes:
+ * Renders the source as tonal bands of ink hatching on white. Two modes:
  *
  * - **Constant-angle** (no `map` prop): each band uses a fixed angle and
  *   spacing. Pass `angles` and `spacing` arrays of length `bands`.
- * - **Field-aligned** (with `map` prop): each band's lines are produced by
- *   running an isotropic binary-noise seed through LIC along the supplied
- *   vector field, then sharpening the result into crisp ink. The streamlines
- *   curve to follow the field in every orientation. The map is expected to be
- *   a Direction-style cos/sin/magnitude encoding (see `Direction`). Per-band
- *   `spacing` sets the noise density (`min(0.5, 2 / spacing)`) and so the
- *   tonal progression. For a smooth field (e.g. a structure-tensor field), set
- *   `uniformStep` so the lines follow it — the default magnitude-gated step
- *   stalls on smooth fields.
+ * - **Field-aligned** (with `map` prop): hatching follows the supplied
+ *   direction field, so the strokes curve around the form. The `map` is
+ *   expected to be a `Direction`-style field (see `Direction`). The
+ *   lightest band stays pure white. Source alpha is preserved.
  *
- * The lightest band draws no lines — it stays pure white. Output preserves
- * the source alpha.
+ * - `bands` — Number of tonal tiers. Minimum 2. Default 4.
+ * - `angles` — Per-band line angles in radians (constant-angle mode). Length must equal `bands`.
+ * - `spacing` — Per-band line spacing in pixels. Length must equal `bands`. In constant-angle mode this is the literal stripe period; in field-aligned mode it controls per-band density (tighter spacing yields darker hatching).
+ * - `length` — Field-aligned integration length per direction. Default 20.
+ * - `stepSize` — Field-aligned step size in pixels. Default 1.0.
+ * - `uniformStep` — Field-aligned mode: integrate at a constant step length, ignoring the field's magnitude channel. Default false. Set true when the map is a smooth field (e.g. a depth gradient) so the lines actually follow it.
+ * - `map` — Optional direction field as JSX. When provided, switches to field-aligned mode and the hatching follows the field.
  *
  * @param props
  * @category Effects

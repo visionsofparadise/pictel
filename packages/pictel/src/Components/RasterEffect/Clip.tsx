@@ -1,17 +1,21 @@
 import type { ReactNode } from "react";
 import { Overflow } from "./Overflow";
 
+// FIX: Wait, this doesn't clip properly, don't we have to get the children dimensions an explicitly clip to that? How are we determining what is overflow and what is contents?
+
 interface ClipProps {
 	children: ReactNode;
 }
 
 /**
- * Clips a wrapped pipeline's bleed back to its content footprint.
+ * Frames a wrapped effect at its content size, cropping any bleed (blur halos,
+ * drop shadow falloff) back to the content edges. Useful when you want the soft
+ * edges of an effect to render at natural scale internally but be clipped to a
+ * crisp rectangular footprint in the layout.
  *
- * Composes `Overflow` — which exposes bleed at natural pixel ratio — inside
- * an `overflow: hidden` container sized to the raster effect's content. The bleed
- * extends outside the raster effect via `Overflow` and is then cropped at the
- * content edges by the outer.
+ * Wrap a single raster effect.
+ *
+ * - `children` — Required. A single raster effect to frame and crop.
  *
  * @param props
  * @category RasterEffect

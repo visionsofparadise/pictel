@@ -91,14 +91,11 @@ interface BloomProps {
 }
 
 /**
- * Bloom — a soft glow bleeding out of an image's bright regions.
+ * Adds a soft glow that bleeds out of the bright regions of the image. The
+ * glow is clipped to the frame — output dimensions match the input.
  *
- * Bright pixels are extracted via a quadratic soft-knee threshold on
- * luminance, blurred, and screen-blended back over the original. The glow is
- * clipped to the frame (output matches input dimensions).
- *
- * - `threshold` — Luminance cutoff (0–1) for what counts as a highlight. Default 0.75.
- * - `radius` — Blur radius of the glow in pixels. Default 16.
+ * - `threshold` — Luminance cutoff in `[0, 1]` for what counts as a highlight. Highlights fade in smoothly through a soft knee. Default 0.75.
+ * - `radius` — Glow blur radius in pixels. Larger values spread the glow further. Default 16.
  * - `intensity` — Glow strength multiplier. Default 1.
  * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
  *

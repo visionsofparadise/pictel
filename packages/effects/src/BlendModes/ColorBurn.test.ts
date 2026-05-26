@@ -4,7 +4,6 @@ import { colorBurn } from "./ColorBurn"
 describe("colorBurn", () => {
 	it("darkens channels via color burn", () => {
 		const [r, g, b] = colorBurn(0.8, 0.8, 0.8, 0.6, 0.6, 0.6)
-		// colorBurn(dst, src) = max(0, 1 - (1 - dst) / src) = max(0, 1 - 0.4/0.8) = 0.5
 		expect(r).toBeCloseTo(0.5, 5)
 		expect(g).toBeCloseTo(0.5, 5)
 		expect(b).toBeCloseTo(0.5, 5)
@@ -26,7 +25,6 @@ describe("colorBurn", () => {
 
 	it("clamps to zero for low dest values", () => {
 		const [r, g, b] = colorBurn(0.2, 0.2, 0.2, 0.1, 0.1, 0.1)
-		// colorBurn(0.1, 0.2) = max(0, 1 - 0.9/0.2) = max(0, -3.5) = 0
 		expect(r).toBe(0)
 		expect(g).toBe(0)
 		expect(b).toBe(0)

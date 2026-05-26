@@ -33,10 +33,8 @@ describe("boxBlurChannel", () => {
 
 		const result = boxBlurChannel(src, width, height, 1)
 
-		// The spike's value is reduced as it spreads.
 		expect(result[center]).toBeGreaterThan(0)
 		expect(result[center]).toBeLessThan(100)
-		// Immediate orthogonal neighbors receive some of the energy.
 		expect(result[center - 1]).toBeGreaterThan(0)
 		expect(result[center + 1]).toBeGreaterThan(0)
 		expect(result[center - width]).toBeGreaterThan(0)

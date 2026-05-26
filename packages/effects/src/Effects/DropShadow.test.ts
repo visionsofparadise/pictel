@@ -22,8 +22,6 @@ function solidPixel(r: number, g: number, b: number, a: number): ImageData {
 describe("applyDropShadow", () => {
 	it("output dimensions include overflow from blur and offset", () => {
 		const result = applyDropShadow(solidPixel(255, 0, 0, 255), 5, 5, 3, "#000000")
-		// Without blur: outW = 1 + 2*3 + 5 = 12, outH = 1 + 2*3 + 5 = 12
-		// With blur applied by applyUniformBlur: adds 2*3 more = 18 x 18
 		expect(result.pixels.width).toBeGreaterThan(1)
 		expect(result.pixels.height).toBeGreaterThan(1)
 	})
@@ -39,21 +37,17 @@ describe("applyDropShadow", () => {
 
 	it("shadow color is applied", () => {
 		const result = applyDropShadow(solidPixel(255, 255, 255, 255), 2, 2, 0, "#ff0000")
-		// The shadow should be red — check a pixel at the shadow offset area
 		const { width, data } = result.pixels
-		// Shadow is at offset (2, 2) from source position; source is at (max(0,-offsetX), max(0,-offsetY)) = (0, 0)
-		// Shadow pixel at (2, 2) before source composite
 		const shadowX = 2
 		const shadowY = 2
 		const idx = (shadowY * width + shadowX) * 4
-		expect(data[idx]).toBe(255) // red
-		expect(data[idx + 1]).toBe(0) // green
-		expect(data[idx + 2]).toBe(0) // blue
+		expect(data[idx]).toBe(255)
+		expect(data[idx + 1]).toBe(0)
+		expect(data[idx + 2]).toBe(0)
 	})
 
 	it("source pixels are composited over shadow", () => {
 		const result = applyDropShadow(solidPixel(0, 255, 0, 255), 2, 2, 0, "#ff0000")
-		// Source is at (0, 0) in the output
 		const idx = 0
 		expect(result.pixels.data[idx]).toBe(0)
 		expect(result.pixels.data[idx + 1]).toBe(255)
@@ -70,7 +64,6 @@ describe("applyDropShadow", () => {
 
 	it("zero blur radius produces unblurred shadow", () => {
 		const result = applyDropShadow(solidPixel(255, 0, 0, 255), 3, 3, 0, "#000000")
-		// Without blur: outW = 1 + 0 + 3 = 4, outH = 1 + 0 + 3 = 4
 		expect(result.pixels.width).toBe(4)
 		expect(result.pixels.height).toBe(4)
 	})

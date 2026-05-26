@@ -77,17 +77,15 @@ Compose with map-producing effects:
 
 > **Bilateral**(`props`): `Element`
 
-Defined in: [Effects/Bilateral.tsx:109](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Bilateral.tsx#L109)
+Defined in: [Effects/Bilateral.tsx:107](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Bilateral.tsx#L107)
 
-Edge-preserving smoothing via the bilateral filter — Gaussian-weighted average
-where the weight depends on both spatial distance and color distance, so pixels
-across edges (large color difference) do not blend together.
+Edge-preserving smoothing. Blurs flat regions while keeping edges crisp — useful
+as a cel-shading or skin-smoothing primitive. Large `spatialSigma` values are
+perceptibly slow on large images; keep it under 6 for interactive use.
 
 - `spatialSigma` — Spatial radius in pixels. Sensible values are 2–6.
 - `colorSigma` — Color tolerance in 0–255 units. Larger values bridge more across edges.
-
-Cost is `O(W * H * r²)` where `r = ceil(2 * spatialSigma)`. Large `spatialSigma`
-values are perceptibly slow on large images.
+- `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
 
 #### Parameters
 
@@ -105,16 +103,13 @@ values are perceptibly slow on large images.
 
 > **Bloom**(`props`): `Element`
 
-Defined in: [Effects/Bloom.tsx:108](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Bloom.tsx#L108)
+Defined in: [Effects/Bloom.tsx:105](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Bloom.tsx#L105)
 
-Bloom — a soft glow bleeding out of an image's bright regions.
+Adds a soft glow that bleeds out of the bright regions of the image. The
+glow is clipped to the frame — output dimensions match the input.
 
-Bright pixels are extracted via a quadratic soft-knee threshold on
-luminance, blurred, and screen-blended back over the original. The glow is
-clipped to the frame (output matches input dimensions).
-
-- `threshold` — Luminance cutoff (0–1) for what counts as a highlight. Default 0.75.
-- `radius` — Blur radius of the glow in pixels. Default 16.
+- `threshold` — Luminance cutoff in `[0, 1]` for what counts as a highlight. Highlights fade in smoothly through a soft knee. Default 0.75.
+- `radius` — Glow blur radius in pixels. Larger values spread the glow further. Default 16.
 - `intensity` — Glow strength multiplier. Default 1.
 - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
 
@@ -273,17 +268,22 @@ applies trilinear-interpolated color transformation.
 
 > **Direction**(`props`): `Element`
 
-Defined in: [Effects/Sobel/Direction.tsx:162](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sobel/Direction.tsx#L162)
+Defined in: [Effects/Sobel/Direction.tsx:151](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sobel/Direction.tsx#L151)
 
-Outputs the gradient field of the input as a packed three-channel encoding
-suitable for sampling-correct downstream consumption (e.g. `LIC`, mapped
-effects).
+Produces a direction field describing how the image flows at every pixel.
+Feed this through the `map` prop on `LIC` or the field-aligned mode of
+`Hatch` to drive streamline-following effects.
 
-- `kernel` — `sobel` (default) or `scharr`.
-- `mode` — `gradient` (default) emits the noisy per-pixel gradient direction;
-  `structure` emits a smooth contour-following orientation field from the
-  structure tensor. This `mode` selects the field type and is unrelated to
-  the `"parameter"|"mix"` `mode` on other effects.
+Output is not meant to be visually readable — it renders as red/green static
+in DevTools. That's correct; the encoding favors sampling accuracy over
+legibility.
+
+- `kernel` — `"sobel"` (default) or `"scharr"`. Scharr produces a larger,
+  more rotationally symmetric response.
+- `mode` — `"gradient"` (default) emits the per-pixel gradient direction;
+  `"structure"` emits a smooth, contour-following orientation field — the
+  one to reach for when feeding `LIC` or `Hatch` over an organic field.
+  Unrelated to the `"parameter"|"mix"` `mode` on other effects.
 
 #### Parameters
 
@@ -294,23 +294,6 @@ effects).
 #### Returns
 
 `Element`
-
-#### Remarks
-
-The output channels are packed as:
-- R = cos(theta) packed [-1, 1] -> [0, 255]  (horizontal direction component)
-- G = sin(theta) packed [-1, 1] -> [0, 255]  (vertical direction component)
-- B = field strength unsigned [0, 1] -> [0, 255]  (gradient magnitude in
-  `gradient` mode; structure-tensor coherence in `structure` mode)
-
-This split-component encoding (rather than a single packed angle) avoids the
-1 deg / 359 deg wraparound problem so that bilinear sampling of cos and sin
-separately, followed by `atan2(sin', cos')`, yields a correct interpolated
-direction at fractional positions.
-
-The packed output does NOT visualize as a recognizable image in DevTools —
-it appears as red/green static. This is by design (correctness over visual
-readability). To visually inspect direction, decode in a custom effect.
 
 ***
 
@@ -473,7 +456,7 @@ Adds deterministic monochromatic film grain noise to the image.
 
 Defined in: [Effects/Grayscale.tsx:43](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Grayscale.tsx#L43)
 
-Converts pixels to grayscale using BT.601 luminance weighting.
+Desaturates pixels toward perceptual grayscale.
 
 - `amount` — Desaturation amount. 0 is unchanged, 1 is fully grayscale. Default 1.
 
@@ -493,27 +476,23 @@ Converts pixels to grayscale using BT.601 luminance weighting.
 
 > **Halftone**(`props`): `Element`
 
-Defined in: [Effects/Halftone.tsx:207](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Halftone.tsx#L207)
+Defined in: [Effects/Halftone.tsx:203](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Halftone.tsx#L203)
 
-Converts the image to a halftone pattern.
+Converts the image to a dot-screen halftone. Three flavors:
 
-In the default `"luminance"` mode, dot radius varies with local luminance
-and dots are stamped in `dotColor` on white — a Ben-Day screen.
-
-In `"cmyk"` mode it produces a true process halftone: the image is separated
-into Cyan / Magenta / Yellow / Key channels (via gray-component replacement),
-each channel is screened on its own grid rotated to its classic process
-angle (Cyan 15°, Magenta 75°, Yellow 0°, Key 45°), dots are stamped in their
-ink color and overprinted with multiply compositing — color emerges from the
-overlapping colored dots, the true process-print look.
-
-In `"color"` mode it produces a single-screen color halftone: one shared
-grid, each cell stamped as one dot in that cell's own average color. With no
-overlapping screens there is nothing to misregister — the clean comic-dot
-look, and the mode to reach for in a pop-art treatment.
+- `"luminance"` (default) — monochrome Ben-Day screen: dot radius varies
+  with local luminance, dots are stamped in `dotColor` on white.
+- `"cmyk"` — true process halftone: Cyan, Magenta, Yellow, and Key are each
+  screened on their own grid at the classic process angles (Cyan 15°,
+  Magenta 75°, Yellow 0°, Key 45°) and overprinted — the look of CMYK
+  newsprint where colour emerges from overlapping colored dots.
+- `"color"` — single-screen color halftone: one shared grid, each cell a
+  dot in that cell's own average color. No overlapping screens, so the
+  pattern can't misregister — the clean comic-dot look. Reach for this in
+  pop-art treatments.
 
 - `dotSize` — Grid cell size in pixels. Larger values produce coarser halftone.
-- `angle` — Rotation of the dot grid in degrees (`"luminance"`/`"color"` modes only). Default 0.
+- `angle` — Rotation of the dot grid in degrees (`"luminance"` / `"color"` modes only). Default 0.
 - `colorMode` — `"luminance"` (default), `"cmyk"`, or `"color"`.
 - `dotColor` — Ink color `[r, g, b]` for the `"luminance"` screen. Default black `[0, 0, 0]`.
 
@@ -533,26 +512,24 @@ look, and the mode to reach for in a pop-art treatment.
 
 > **Hatch**(`props`): `Element`
 
-Defined in: [Effects/Hatch.tsx:226](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Hatch.tsx#L226)
+Defined in: [Effects/Hatch.tsx:224](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Hatch.tsx#L224)
 
-Hatching effect. Bands the source into tonal tiers (Grayscale → Posterize)
-and renders per-band line layers, multiplied onto a white background. Two
-modes:
+Renders the source as tonal bands of ink hatching on white. Two modes:
 
 - **Constant-angle** (no `map` prop): each band uses a fixed angle and
   spacing. Pass `angles` and `spacing` arrays of length `bands`.
-- **Field-aligned** (with `map` prop): each band's lines are produced by
-  running an isotropic binary-noise seed through LIC along the supplied
-  vector field, then sharpening the result into crisp ink. The streamlines
-  curve to follow the field in every orientation. The map is expected to be
-  a Direction-style cos/sin/magnitude encoding (see `Direction`). Per-band
-  `spacing` sets the noise density (`min(0.5, 2 / spacing)`) and so the
-  tonal progression. For a smooth field (e.g. a structure-tensor field), set
-  `uniformStep` so the lines follow it — the default magnitude-gated step
-  stalls on smooth fields.
+- **Field-aligned** (with `map` prop): hatching follows the supplied
+  direction field, so the strokes curve around the form. The `map` is
+  expected to be a `Direction`-style field (see `Direction`). The
+  lightest band stays pure white. Source alpha is preserved.
 
-The lightest band draws no lines — it stays pure white. Output preserves
-the source alpha.
+- `bands` — Number of tonal tiers. Minimum 2. Default 4.
+- `angles` — Per-band line angles in radians (constant-angle mode). Length must equal `bands`.
+- `spacing` — Per-band line spacing in pixels. Length must equal `bands`. In constant-angle mode this is the literal stripe period; in field-aligned mode it controls per-band density (tighter spacing yields darker hatching).
+- `length` — Field-aligned integration length per direction. Default 20.
+- `stepSize` — Field-aligned step size in pixels. Default 1.0.
+- `uniformStep` — Field-aligned mode: integrate at a constant step length, ignoring the field's magnitude channel. Default false. Set true when the map is a smooth field (e.g. a depth gradient) so the lines actually follow it.
+- `map` — Optional direction field as JSX. When provided, switches to field-aligned mode and the hatching follows the field.
 
 #### Parameters
 
@@ -637,23 +614,19 @@ Inverts pixel colors.
 
 > **LIC**(`props`): `Element`
 
-Defined in: [Effects/LIC.tsx:163](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/LIC.tsx#L163)
+Defined in: [Effects/LIC.tsx:157](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/LIC.tsx#L157)
 
-Line Integral Convolution. Smears the seed children along a vector field
-supplied by the `map` prop, producing streamline-aligned output. The map
-is expected to be a Direction-style three-channel encoding: red = cos(θ)
-packed into [0,255], green = sin(θ) packed into [0,255], blue = magnitude
-in [0,255].
+Smears the children along a direction field, producing streamline-aligned
+output — the look you'd use to visualize a vector field or to drive
+field-following stylization. Pair with `Direction` passed via `map` to
+derive the field from an image.
 
-Requires a `map` prop providing the vector field. Without a map the
-effect throws — LIC has no meaning without a field.
+Requires the `map` prop. Without one the effect throws.
 
-Reference: Cabral & Leedom 1993, "Imaging Vector Fields Using Line Integral
-Convolution".
-
-- `length` — Number of integration steps in each direction (forward and backward). Default 20.
-- `stepSize` — Base step size in pixels per integration step. Default 1.0.
-- `uniformStep` — Integrate at a constant step length, ignoring the field's magnitude channel. Default false. Set true to follow a smooth field (e.g. a depth gradient) at full integration distance.
+- `length` — Streamline length in steps per direction (forward and backward). Higher values produce longer smears. Default 20.
+- `stepSize` — Step size in pixels per integration step. Default 1.
+- `uniformStep` — Walk at a constant step length, ignoring the field's magnitude channel. Default false — step length scales with magnitude, which suits visualizing the field but can stall on smooth fields. Set true to follow a smooth field (e.g. a depth gradient) at full distance.
+- `map` — Required. Vector field as JSX (typically a `Direction`-style encoding).
 
 #### Parameters
 
@@ -671,15 +644,15 @@ Convolution".
 
 > **LuminanceBands**(`props`): `Element`
 
-Defined in: [Effects/LuminanceBands.tsx:119](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/LuminanceBands.tsx#L119)
+Defined in: [Effects/LuminanceBands.tsx:116](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/LuminanceBands.tsx#L116)
 
-Quantizes luminance into discrete tiers while preserving chrominance, the cel-shading primitive.
+Quantizes brightness into discrete tiers while leaving color alone — the
+cel-shading primitive. Output keeps the original color of each pixel and
+only discretizes its shading.
 
-Splits each pixel into YCbCr (ITU-R BT.601), quantizes Y into `bands` tiers, then recombines
-with the original Cb/Cr. Output keeps original color, discretizes shading.
-
-- `bands` — Number of discrete luminance tiers. Minimum 2.
-- `thresholds` — Optional explicit tier boundaries (length = bands - 1, ascending values in 0..255). Defaults to equal spacing.
+- `bands` — Number of discrete brightness tiers. Minimum 2.
+- `thresholds` — Optional explicit tier boundaries (length = `bands - 1`, ascending values in `0..255`). Defaults to equal spacing.
+- `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
 
 #### Parameters
 
@@ -750,18 +723,16 @@ Adjusts pixel opacity by scaling the alpha channel.
 
 > **Outline**(`props`): `Element`
 
-Defined in: [Effects/Outline.tsx:128](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Outline.tsx#L128)
+Defined in: [Effects/Outline.tsx:126](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Outline.tsx#L126)
 
-XDoG (Extended Difference of Gaussians) — stylized illustrative line art.
+Stylized illustrative line art (XDoG) — produces a drawn-on-paper outline
+over the image. Output is continuous tonal; chain `<Threshold>` if you want
+hard binary outlines.
 
-Two Gaussian blurs at σ and k·σ are subtracted then mapped through a soft
-tanh sigmoid to produce a drawn-looking edge response. Output is continuous
-tonal; chain `Threshold` if you want hard binary outlines.
-
-- `sigma` — Inner Gaussian σ in pixels. Default 1.
-- `k` — Outer-to-inner σ ratio. Default 1.6 (Winnemöller et al. 2012).
-- `epsilon` — XDoG threshold (normalized [-1, 1]). Default 0 — produces canonical "drawn on white paper" output where uniform regions of any luminance stay white and only edge dark sides get drawn.
-- `phi` — Sigmoid sharpness. Higher → more binary; lower → softer. Default 200.
+- `sigma` — Inner line width control in pixels. Larger values produce thicker, softer lines. Default 1.
+- `k` — Outer-to-inner radius ratio. Default 1.6.
+- `epsilon` — Outline threshold in `[-1, 1]`. Default 0 — uniform regions stay white and only the dark side of edges gets drawn. Negative values thicken strokes; positive values darken low-luminance regions toward sketchy output.
+- `phi` — Edge sharpness. Higher is more binary; lower is softer. Default 200.
 - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
 
 #### Parameters
@@ -802,17 +773,16 @@ Reduces color depth to a fixed number of levels per channel, creating a poster-l
 
 > **Quantize**(`props`): `Element`
 
-Defined in: [Effects/Quantize.tsx:323](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Quantize.tsx#L323)
+Defined in: [Effects/Quantize.tsx:322](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Quantize.tsx#L322)
 
-Maps the image to a restricted color palette. Either a fixed `palette` (an
-array of `[r, g, b]` triples) or an auto-derived palette of `count` colors
-via median-cut. `palette` and `count` are mutually exclusive.
+Maps the image to a restricted color palette — the GIF / pixel-art / retro
+look. Either a fixed `palette` (an array of `[r, g, b]` triples) or an
+auto-derived palette of `count` colors. `palette` and `count` are mutually
+exclusive.
 
-Dither modes:
-- `"none"` — flat nearest-color mapping
-- `"floyd-steinberg"` — error diffusion (sharp, classic GIF look)
-- `"atkinson"` — error diffusion with 6/8 propagation (Mac System 1 look)
-- `"bayer-4"` / `"bayer-8"` — ordered dithering (deterministic crosshatch pattern)
+- `palette` — Fixed palette. Mutually exclusive with `count`.
+- `count` — Auto-derive a palette of this size from the source. Mutually exclusive with `palette`.
+- `dither` — Dithering style. `"none"` (default) is flat nearest-color mapping; `"floyd-steinberg"` is the sharp classic GIF look; `"atkinson"` is the Mac System 1 look; `"bayer-4"` and `"bayer-8"` produce a deterministic ordered crosshatch.
 
 #### Parameters
 
@@ -876,7 +846,7 @@ Applies a warm sepia tone effect.
 
 Defined in: [Effects/Sharpen.tsx:101](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sharpen.tsx#L101)
 
-Sharpens the image using a 3x3 unsharp mask convolution.
+Sharpens the image by enhancing edges against their immediate neighbors.
 
 - `amount` — Sharpening strength. Higher values produce more aggressive edge enhancement.
 
@@ -896,18 +866,15 @@ Sharpens the image using a 3x3 unsharp mask convolution.
 
 > **ShockFilter**(`props`): `Element`
 
-Defined in: [Effects/ShockFilter.tsx:152](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/ShockFilter.tsx#L152)
+Defined in: [Effects/ShockFilter.tsx:149](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/ShockFilter.tsx#L149)
 
-Regularized iterative shock filter — sharpens an image into a clean
-cartoon / line-drawing.
+Iterative edge-aware sharpening — flattens regions and crispens edges into a
+clean cartoon / line-drawing look without the ringing of a single-pass
+`<Sharpen>`. More iterations push regions further toward flat colour and
+harden the edges further; cost scales with `iterations`.
 
-Each iteration presmooths the image, then takes one Osher–Rudin shock step
-(dilate toward the bright side of each edge, erode toward the dark side).
-Iterating converges to piecewise-flat regions separated by crisp edges, with
-no ringing — unlike a single-pass `Sharpen`. Cost is `O(W*H*iterations)`.
-
-- `iterations` — Number of blur-then-sharpen passes. Default 8.
-- `strength` — Shock step size per iteration (clamped to ≤ 1). Default 1.
+- `iterations` — Number of passes. Default 8.
+- `strength` — Per-iteration step size, clamped to ≤ 1. Default 1.
 - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
 
 #### Parameters

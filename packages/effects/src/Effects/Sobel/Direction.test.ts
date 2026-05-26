@@ -27,7 +27,7 @@ function uniform(width: number, height: number, value: number, alpha = 255): Ima
 }
 
 function verticalEdge(size: number, alpha = 255): ImageData {
-	// Left half black, right half white -- gradient points horizontally (+x).
+	// Gradient points +x.
 	const data = new Uint8ClampedArray(size * size * 4)
 	const mid = size / 2
 	for (let y = 0; y < size; y++) {
@@ -44,7 +44,7 @@ function verticalEdge(size: number, alpha = 255): ImageData {
 }
 
 function horizontalEdge(size: number, alpha = 255): ImageData {
-	// Top half black, bottom half white -- gradient points vertically (+y).
+	// Gradient points +y.
 	const data = new Uint8ClampedArray(size * size * 4)
 	const mid = size / 2
 	for (let y = 0; y < size; y++) {
@@ -65,9 +65,9 @@ describe("applyDirection", () => {
 		const input = uniform(8, 8, 120)
 		const result = applyDirection(input, "sobel")
 		for (let i = 0; i < result.data.length; i += 4) {
-			expect(result.data[i]).toBe(128) // R = cos(0) packed = 0 packed = 128
-			expect(result.data[i + 1]).toBe(128) // G = sin(0) packed = 0 packed = 128
-			expect(result.data[i + 2]).toBe(0) // B = magnitude = 0
+			expect(result.data[i]).toBe(128)
+			expect(result.data[i + 1]).toBe(128)
+			expect(result.data[i + 2]).toBe(0)
 		}
 	})
 
@@ -76,18 +76,14 @@ describe("applyDirection", () => {
 		const input = verticalEdge(size)
 		const result = applyDirection(input, "sobel")
 
-		// Sample the boundary column at an interior row.
 		const px = (8 * size + 7) * 4
 		const r = result.data[px]!
 		const g = result.data[px + 1]!
 		const b = result.data[px + 2]!
 
-		// cos near +1 -> R near 255
 		expect(r).toBeGreaterThan(250)
-		// sin near 0 -> G near 128
 		expect(g).toBeGreaterThanOrEqual(126)
 		expect(g).toBeLessThanOrEqual(130)
-		// magnitude > 0
 		expect(b).toBeGreaterThan(0)
 	})
 
@@ -101,12 +97,9 @@ describe("applyDirection", () => {
 		const g = result.data[px + 1]!
 		const b = result.data[px + 2]!
 
-		// cos near 0 -> R near 128
 		expect(r).toBeGreaterThanOrEqual(126)
 		expect(r).toBeLessThanOrEqual(130)
-		// sin near +1 -> G near 255
 		expect(g).toBeGreaterThan(250)
-		// magnitude > 0
 		expect(b).toBeGreaterThan(0)
 	})
 
@@ -122,7 +115,6 @@ describe("applyDirection", () => {
 		const sin = g / 127.5 - 1
 		const length = Math.sqrt(cos * cos + sin * sin)
 
-		// Allow small slack for byte quantization.
 		expect(length).toBeGreaterThan(0.99)
 		expect(length).toBeLessThan(1.01)
 	})
@@ -142,13 +134,12 @@ describe("applyStructureField", () => {
 		const input = uniform(size, size, 120)
 		const result = applyStructureField(input, "sobel")
 
-		// Interior pixels (away from the 1px gradient border) have no structure.
 		for (let y = 2; y < size - 2; y++) {
 			for (let x = 2; x < size - 2; x++) {
 				const px = (y * size + x) * 4
-				expect(result.data[px]).toBe(128) // R = neutral cos
-				expect(result.data[px + 1]).toBe(128) // G = neutral sin
-				expect(result.data[px + 2]).toBe(0) // B = zero coherence
+				expect(result.data[px]).toBe(128)
+				expect(result.data[px + 1]).toBe(128)
+				expect(result.data[px + 2]).toBe(0)
 			}
 		}
 	})
@@ -158,13 +149,10 @@ describe("applyStructureField", () => {
 		const input = verticalEdge(size)
 		const result = applyStructureField(input, "sobel")
 
-		// Sample a pixel right on the edge column at an interior row.
 		const px = (12 * size + 12) * 4
 		const r = result.data[px]!
 		const g = result.data[px + 1]!
 
-		// The gradient is horizontal, so the contour-flow direction is vertical:
-		// cos ~ 0 (R ~ 128), sin ~ +/-1 (G near 0 or 255).
 		expect(r).toBeGreaterThanOrEqual(123)
 		expect(r).toBeLessThanOrEqual(133)
 		expect(g < 8 || g > 247).toBe(true)
@@ -175,11 +163,9 @@ describe("applyStructureField", () => {
 		const input = verticalEdge(size)
 		const result = applyStructureField(input, "sobel")
 
-		// On the edge column: strongly anisotropic -> high coherence.
 		const edgePx = (12 * size + 12) * 4
 		expect(result.data[edgePx + 2]).toBeGreaterThan(180)
 
-		// Deep in a flat region: isotropic / no structure -> low coherence.
 		const flatPx = (12 * size + 3) * 4
 		expect(result.data[flatPx + 2]).toBeLessThan(40)
 	})

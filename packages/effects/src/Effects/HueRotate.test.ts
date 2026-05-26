@@ -36,7 +36,6 @@ describe("applyHueRotate", () => {
 
 	it("180 degrees produces complementary color", () => {
 		const result = applyHueRotate(pixel(255, 0, 0, 255), 180)
-		// Pure red → pure cyan (0, 255, 255)
 		expect(result.data[0]).toBe(0)
 		expect(result.data[1]).toBe(255)
 		expect(result.data[2]).toBe(255)

@@ -8,13 +8,7 @@ import { readRasterEffectOutput, readPixel } from "../utils/read-raster-effect-o
 import { solidImage } from "../utils/test-images";
 import { waitForRasterEffect } from "../utils/wait-for-raster-effect";
 
-// --- Helpers ---
-
-// A RasterEffect renders `<div>{children}</div><canvas data-pictel-raster>`. In
-// a chain of any depth, the outermost effect's canvas is the LAST raster canvas
-// in document order — the parent renders its canvas after its children subtree.
-// The previous `find(prev-sibling-contains-raster)` approach short-circuited at
-// the second-outermost level for chains of depth ≥ 3.
+// The outermost effect's canvas is the LAST raster canvas in document order — the parent renders its canvas after its children subtree.
 function getOuterCanvas(container: HTMLElement): HTMLCanvasElement {
 	const all = Array.from(
 		container.querySelectorAll<HTMLCanvasElement>("canvas[data-pictel-raster]"),
@@ -25,18 +19,12 @@ function getOuterCanvas(container: HTMLElement): HTMLCanvasElement {
 	return all[all.length - 1]!;
 }
 
-// --- Identity effect for testing ---
-
 function identityEffect(pixels: ImageData): { pixels: ImageData } {
 	return { pixels };
 }
 
-// --- Integration tests ---
-
 describe.sequential("RasterEffect integration", () => {
 	test("children-only: effect receives target pixels and draws result", async () => {
-		// Invert a solid red image through RasterEffectdirectly to verify the full
-		// children-only lifecycle: capture → callback → drawToCanvas → reveal.
 		function InvertRasterEffect({ children }: { children: React.ReactNode }) {
 			const effect = useCallback<RasterEffectCallback>((target) => {
 				return { pixels: applyInvert(target, 1) };
@@ -70,15 +58,12 @@ describe.sequential("RasterEffect integration", () => {
 	});
 
 	test("with apply: outer waits for inner pipeline in apply, captures via fast path", async () => {
-		// Outer RasterEffect's `apply` contains an inner RasterEffect(Invert).
-		// The outer effect receives target (red) and apply (inverted red = cyan).
-		// We assert the outer received non-trivial apply pixels.
 		let capturedApply: ImageData | undefined;
 
 		function BlendWithApply({ apply, children }: { apply: React.ReactNode; children: React.ReactNode }) {
 			const effect = useCallback<RasterEffectCallback>((target, applyPixels) => {
 				capturedApply = applyPixels;
-				// Return target unchanged for simplicity.
+
 				return { pixels: target };
 			}, []);
 
@@ -102,11 +87,9 @@ describe.sequential("RasterEffect integration", () => {
 		try {
 			await waitForRasterEffect(handle.container);
 
-			// Outer pipeline resolved — it captured the inner apply pipeline.
 			expect(capturedApply).toBeDefined();
 
-			// The apply pixels should be the inverted red (cyan): red≈0, green≈255, blue≈255.
-			// Test a center pixel (32, 32).
+			// Inverted red (#ff0000) → cyan: r≈0, g≈255, b≈255.
 			if (capturedApply) {
 				const index = (32 * capturedApply.width + 32) * 4;
 				const r = capturedApply.data[index] ?? 0;
@@ -122,8 +105,6 @@ describe.sequential("RasterEffect integration", () => {
 	});
 
 	test("with map: outer waits for inner pipeline in map, receives map pixels", async () => {
-		// Outer RasterEffect's `map` contains an inner RasterEffect(Invert on white = black).
-		// We assert the outer received map pixels.
 		let capturedMap: ImageData | undefined;
 
 		function EffectWithMap({ map, children }: { map: React.ReactNode; children: React.ReactNode }) {
@@ -155,7 +136,7 @@ describe.sequential("RasterEffect integration", () => {
 
 			expect(capturedMap).toBeDefined();
 
-			// The map pixels should be inverted white = black: all channels ≈ 0.
+			// Inverted white → black: all channels ≈ 0.
 			if (capturedMap) {
 				const index = (32 * capturedMap.width + 32) * 4;
 				const r = capturedMap.data[index] ?? 255;
@@ -171,9 +152,6 @@ describe.sequential("RasterEffect integration", () => {
 	});
 
 	test("two-pipeline chain via apply: pending gate waits for inner before capturing", async () => {
-		// Verifies that the outer pipeline's gate correctly waits for the inner
-		// pipeline's pending flag to clear before proceeding with capture.
-		// We track call order: inner effect must complete before outer.
 		const callOrder: Array<string> = [];
 
 		function Inner({ children }: { children: React.ReactNode }) {
@@ -213,7 +191,6 @@ describe.sequential("RasterEffect integration", () => {
 		try {
 			await waitForRasterEffect(handle.container);
 
-			// Inner must have resolved before outer ran.
 			const innerIndex = callOrder.indexOf("inner");
 			const outerIndex = callOrder.indexOf("outer");
 			expect(innerIndex).toBeGreaterThanOrEqual(0);
@@ -225,8 +202,6 @@ describe.sequential("RasterEffect integration", () => {
 	});
 
 	test("StrictMode double-mount: resolves correctly after setup→cleanup→setup", async () => {
-		// Mirrors the level 8 pattern from Canvas.integration.test.tsx.
-		// Uses a simple children-only RasterEffectin StrictMode.
 		function InvertRasterEffect({ children }: { children: React.ReactNode }) {
 			const effect = useCallback<RasterEffectCallback>((target) => {
 				return { pixels: applyInvert(target, 1) };
@@ -262,8 +237,6 @@ describe.sequential("RasterEffect integration", () => {
 	});
 
 	test("pipeline layout stable after resolve — canvas at children-measured dims", async () => {
-		// After resolve, children are visibility:hidden but still in flow.
-		// The pipeline div must keep the same size as before resolve.
 		const handle = renderCanvas(
 			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
 				<RasterEffect effect={identityEffect}>
@@ -277,19 +250,14 @@ describe.sequential("RasterEffect integration", () => {
 
 			const canvas = getOuterCanvas(handle.container);
 
-			// Canvas has non-zero CSS dimensions driven by the children's measured
-			// box at capture time.
 			const rect = canvas.getBoundingClientRect();
 			expect(rect.width).toBeGreaterThan(0);
 			expect(rect.height).toBeGreaterThan(0);
 
-			// Children wrapper is the canvas's previous sibling, with display:none
-			// once snapshot is set so children stay mounted but un-laid-out.
 			const childrenWrapper = canvas.previousElementSibling as HTMLElement | null;
 			expect(childrenWrapper).not.toBeNull();
 			expect(childrenWrapper?.style.display).toBe("none");
 
-			// Canvas is in-flow at display: block (carries the pipeline's layout).
 			expect(canvas.style.display).toBe("block");
 		} finally {
 			handle.cleanup();
@@ -297,14 +265,7 @@ describe.sequential("RasterEffect integration", () => {
 	});
 
 	test("apply with chained effects: pending propagates through apply subtree", async () => {
-		// The apply prop contains a two-effect chain: Outline > Threshold (Outline
-		// is the inner pipeline; Threshold wraps it). The outer gate must wait for
-		// both inner pipelines to resolve before capturing the apply subtree.
-		//
-		// Bug this catches: if the gate only checks direct [data-pictel-pending]
-		// children of applyRef rather than all descendants, it fires while Outline
-		// is still pending — the outer captures a transparent/zero-pixel apply
-		// image and the chain produces incorrect output.
+		// Regression: if gate only checks direct [data-pictel-pending] children of applyRef (not all descendants), outer captures a transparent apply image while inner is still pending.
 		let capturedApply: ImageData | undefined;
 
 		function OuterWithChainedApply({
@@ -327,12 +288,6 @@ describe.sequential("RasterEffect integration", () => {
 			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
 				<OuterWithChainedApply
 					apply={
-						// Outline a solid white image, then threshold it.
-						// Threshold(Outline(white)) → solid white (white has uniform
-						// luminance, so Outline produces white, Threshold above 0.5
-						// keeps it white). The key assertion is that the apply image
-						// has non-zero alpha (non-transparent), proving the chain
-						// resolved before the outer captured it.
 						<Threshold threshold={128}>
 							<Outline>
 								<img src={solidImage("#ffffff", 64, 64)} style={{ display: "block" }} />
@@ -351,9 +306,7 @@ describe.sequential("RasterEffect integration", () => {
 			expect(capturedApply).toBeDefined();
 
 			if (capturedApply) {
-				// If the chain resolved correctly, at least one pixel must be
-				// non-transparent. A premature capture would have zero alpha everywhere
-				// because snapdom captures a visibility:hidden subtree as transparent.
+				// A premature capture would have zero alpha everywhere — snapdom captures visibility:hidden as transparent.
 				const anyNonTransparent = Array.from(capturedApply.data).some(
 					(_, i) => i % 4 === 3 && capturedApply!.data[i]! > 0,
 				);
@@ -365,14 +318,7 @@ describe.sequential("RasterEffect integration", () => {
 	});
 
 	test("error in effect callback: pending releases and error is reported via context", async () => {
-		// When the effect callback throws, the pipeline must still release
-		// data-pictel-pending (so waitForRasterEffect doesn't hang) and report the
-		// error to the Canvas's reportError handler. The raster canvas must NOT
-		// be revealed (no output drawn on error).
-		//
-		// Bug this catches: if the error path in execute() doesn't clear the
-		// registry pending flag and notify, the pipeline stalls with pending
-		// forever and the Canvas loading overlay never clears.
+		// Regression: if the execute() error path doesn't clear pending + notify, pipeline stalls forever.
 		const reportedErrors: Array<{ message: string }> = [];
 
 		function ThrowingRasterEffect({ children }: { children: React.ReactNode }) {
@@ -392,19 +338,12 @@ describe.sequential("RasterEffect integration", () => {
 		);
 
 		try {
-			// waitForRasterEffect resolves when the Canvas root's [data-pictel-pending]
-			// is cleared. If the error path doesn't reset pending, this times out.
 			await waitForRasterEffect(handle.container);
 
-			// On error, no snapshot is set — so no [data-pictel-raster] canvas
-			// renders. The effect threw before setSnapshot ran.
 			const canvas = handle.container.querySelector<HTMLElement>("canvas[data-pictel-raster]");
 			expect(canvas).toBeNull();
 
-			// ErrorChip is rendered inside Canvas when errors accumulate.
-			// It returns null when there are no errors, so its presence proves
-			// the error was reported via reportError → Canvas state → ErrorChip render.
-			// The ErrorChip only renders a DOM element when errors.length > 0.
+			// ErrorChip renders only when errors.length > 0, so its DOM presence proves reportError fired.
 			const errorChip = handle.container.querySelector("[data-pictel-canvas] svg");
 			expect(errorChip).not.toBeNull();
 
@@ -415,16 +354,7 @@ describe.sequential("RasterEffect integration", () => {
 	});
 
 	test("StrictMode with apply and map both populated: resolves correctly after double-mount", async () => {
-		// Verifies that StrictMode's setup→cleanup→setup cycle (which fires
-		// useLayoutEffect twice) doesn't strand observers or corrupt state when
-		// both apply AND map offscreen subtrees are active simultaneously.
-		//
-		// Bug this catches: cleanup in the first mount's return() must disconnect
-		// ALL three observers (content, apply, map, size). If applyObserver or
-		// mapObserver is not disconnected on first cleanup, they fire gate() on
-		// the second mount's DOM mutations and race against the second mount's
-		// fresh gate, potentially double-running execute and corrupting pending
-		// refcounts.
+		// Regression: first-mount cleanup must disconnect ALL observers (content + apply + map + size) — a stranded apply/mapObserver races the second mount's gate and double-runs execute.
 		let capturedApply: ImageData | undefined;
 		let capturedMap: ImageData | undefined;
 
@@ -467,21 +397,16 @@ describe.sequential("RasterEffect integration", () => {
 		try {
 			await waitForRasterEffect(handle.container);
 
-			// Both apply and map must have been captured (non-undefined) and
-			// have at least one non-transparent pixel — proving neither offscreen
-			// subtree was captured as a zero-area or aborted result.
 			expect(capturedApply).toBeDefined();
 			expect(capturedMap).toBeDefined();
 
 			if (capturedApply) {
 				const idx = (32 * capturedApply.width + 32) * 4;
-				// Apply is solid green (#00ff00): green channel should be high.
 				expect(capturedApply.data[idx + 1]).toBeGreaterThanOrEqual(200);
 			}
 
 			if (capturedMap) {
 				const idx = (32 * capturedMap.width + 32) * 4;
-				// Map is solid white: all channels should be high.
 				expect(capturedMap.data[idx]).toBeGreaterThanOrEqual(200);
 			}
 		} finally {
@@ -490,11 +415,6 @@ describe.sequential("RasterEffect integration", () => {
 	});
 
 	test("apply/map subtrees do not inherit CSS from JSX-location ancestors", async () => {
-		// After Phase 2, apply/map portal into the Canvas-level offscreen host
-		// instead of rendering inside the pipeline div. A composition that places
-		// a RasterEffectinside a `color: red` wrapper must not leak that color into
-		// the apply/map subtree — those subtrees inherit only from the offscreen
-		// host (a sibling of the canvas root under the Canvas component).
 		const observedColors: { apply: string | null; map: string | null } = {
 			apply: null,
 			map: null,
@@ -547,10 +467,6 @@ describe.sequential("RasterEffect integration", () => {
 		try {
 			await waitForRasterEffect(handle.container);
 
-			// The wrapping div sets color: red. If apply/map inherited from their
-			// JSX location they'd see "rgb(255, 0, 0)". The offscreen host is a
-			// sibling of the canvas root, outside the colored wrapper, so neither
-			// probe should see red.
 			expect(observedColors.apply).not.toBeNull();
 			expect(observedColors.map).not.toBeNull();
 			expect(observedColors.apply).not.toBe("rgb(255, 0, 0)");
@@ -561,12 +477,7 @@ describe.sequential("RasterEffect integration", () => {
 	});
 
 	test("outer RasterEffectwith map waits for nested RasterSource cascade at non-square dims", async () => {
-		// Regression: an outer RasterEffectwith apply/map deferred its own parent
-		// registration until its slot state populated. The cascade let parents
-		// gate-proceed before descendants registered, capturing zero pixels.
-		// Surface: a nested RasterEffectusing <LinearGradient> (a RasterSource
-		// generator) as both children leaf and as the map subtree, at non-square
-		// non-64 dimensions to expose any width-fill / preW assumptions.
+		// Regression: outer RasterEffect deferred parent registration until slot state populated — parents gate-proceeded before descendants registered, capturing zero pixels.
 		function MultiplyByMap({ children, map }: { children: React.ReactNode; map: React.ReactNode }) {
 			const effect = useCallback<RasterEffectCallback>((target, _apply, mapPixels) => {
 				if (!mapPixels) return { pixels: target };
@@ -629,8 +540,6 @@ describe.sequential("RasterEffect integration", () => {
 			const pixels = readRasterEffectOutput(canvas);
 
 			// Left edge: map=black → product=0. Right edge: map=white → product=red.
-			// If outer captured before inner registered, target would be zero
-			// everywhere → output zero everywhere → right edge red=0.
 			const [leftRed] = readPixel(pixels, 2, H / 2);
 			const [rightRed] = readPixel(pixels, W - 3, H / 2);
 

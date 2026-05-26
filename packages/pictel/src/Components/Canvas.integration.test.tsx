@@ -38,8 +38,6 @@ function getOuterCanvas(container: HTMLElement): HTMLCanvasElement {
 	if (all.length === 0) throw new Error("no canvas[data-pictel-raster] found in container");
 	if (all.length === 1) return all[0]!;
 
-	// Outer RasterEffect's canvas is the one whose previous-sibling wrapper contains
-	// another raster canvas in its subtree.
 	for (const candidate of all) {
 		const prev = candidate.previousElementSibling;
 		if (prev instanceof HTMLElement && prev.querySelector("canvas[data-pictel-raster]") !== null) {
@@ -62,7 +60,6 @@ describe.sequential("pipeline integration ladder", () => {
 				await waitForRasterEffect(handle.container);
 				const img = handle.container.querySelector("img");
 				expect(img).not.toBeNull();
-				// No raster canvas expected for plain Canvas + img.
 				const raster = handle.container.querySelector("canvas[data-pictel-raster]");
 				expect(raster).toBeNull();
 			} finally {
@@ -111,15 +108,7 @@ describe.sequential("pipeline integration ladder", () => {
 				await waitForRasterEffect(handle.container);
 				const canvas = getCanvas(handle.container);
 				const pixels = readRasterEffectOutput(canvas);
-				// Sample further from the gradient edges (x=20 instead of x=8,
-				// x=108 instead of x=100): the IMG is rendered inside a
-				// childrenEl whose layout height (36px due to inline baseline)
-				// differs from the requested capture height (32px); snapdom's
-				// exact-dim output can apply a slight content offset at
-				// gradient extremes that nudges the boundary by 5–8 px in
-				// horizontal sampling. Sampling away from the edges removes
-				// the boundary sensitivity while still validating "invert"
-				// produces the inverted gradient direction.
+				// Sample away from gradient edges — inline-baseline (36px vs 32px capture) shifts boundaries by 5–8px at extremes.
 				const [nearBlackInverted] = readPixel(pixels, 20, 16);
 				// Original at x=20 is dark (~40), inverted → ~215.
 				expect(nearBlackInverted).toBeGreaterThanOrEqual(195);
@@ -195,13 +184,8 @@ describe.sequential("pipeline integration ladder", () => {
 		});
 	});
 
-	// Level 5 intentionally skipped per plan.
-	// Level 6 (grayscale backdrop / behind-capture) deleted — behind-capture model removed.
-
 	test("level 7: multiply red over green", async () => {
 		await ladder(7)(async () => {
-			// New apply-prop API: red is the base (children), green is the overlay
-			// (apply). Multiply blends: red * green = 0 in all channels.
 			const handle = renderCanvas(
 				<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
 					<Multiply apply={<img src={solidImage("#00ff00", 100, 100)} style={{ display: "block" }} />}>
@@ -232,7 +216,6 @@ describe.sequential("pipeline integration ladder", () => {
 
 	test("level 8: strict mode double-mount safety", async () => {
 		await ladder(8)(async () => {
-			// Level 1 in StrictMode.
 			const handle1 = renderCanvas(
 				<StrictMode>
 					<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
@@ -253,7 +236,6 @@ describe.sequential("pipeline integration ladder", () => {
 				handle1.cleanup();
 			}
 
-			// Level 4 in StrictMode — map prop API.
 			const handle4 = renderCanvas(
 				<StrictMode>
 					<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
@@ -349,12 +331,6 @@ describe.sequential("pipeline integration ladder", () => {
 });
 
 describe.sequential("resize behavior", () => {
-	// As of Phase 2.y, capture buffer is decoupled from container size: the
-	// pipeline rasterizes at the fixed `dimensions` for its whole lifetime,
-	// regardless of how the host container resizes. Visual scale is a CSS
-	// concern. This test asserts the new invariant: container resize does
-	// NOT re-set data-pictel-pending and does NOT change the canvas's pixel
-	// dimensions.
 	test("container resize does not re-trigger capture; buffer dims stay fixed", async () => {
 		const handle = renderCanvas(
 			<Canvas mode="display" dimensions={{ width: 64, height: 64 }}>
@@ -399,7 +375,6 @@ describe.sequential("resize behavior", () => {
 
 			observer.disconnect();
 
-			// Capture must NOT have re-triggered: the buffer is fixed.
 			expect(pendingSetCount).toBe(0);
 			expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(false);
 			expect(canvas.width).toBe(initialW);
@@ -410,7 +385,6 @@ describe.sequential("resize behavior", () => {
 	});
 });
 
-// Poll for an element matching a selector to appear inside a container.
 function waitForElement(
 	container: HTMLElement,
 	selector: string,
@@ -438,9 +412,7 @@ function waitForElement(
 	});
 }
 
-// Poll for an attribute to appear on an element, using requestAnimationFrame.
-// reportError fires from a mount effect, so the attribute lands a frame after
-// the initial commit.
+// reportError fires from a mount effect — the attribute lands a frame after the initial commit.
 function waitForAttribute(
 	element: HTMLElement,
 	name: string,
@@ -467,8 +439,6 @@ function waitForAttribute(
 	});
 }
 
-// A test-only child that reports a pipeline error into CanvasContext on mount.
-// Used to exercise the render-mode `data-pictel-error` surface.
 function ErrorReporter() {
 	const { reportError } = useCanvasContext();
 	useEffect(() => {
@@ -491,7 +461,6 @@ describe.sequential("render-mode query contract", () => {
 		try {
 			await waitForRasterEffect(handle.container);
 			const canvas = getCanvas(handle.container);
-			// captureDimensions reflects the query values, not the prop.
 			expect(canvas.width).toBe(96);
 			expect(canvas.height).toBe(48);
 		} finally {

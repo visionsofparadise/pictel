@@ -17,8 +17,6 @@ export async function segFormerSegment(pixels: ImageData, pipe: Pipeline): Promi
 		return new ImageData(pixels.width, pixels.height)
 	}
 
-	// Combine all segment masks into a color-coded output
-	// Each segment gets a deterministic color based on its index
 	const width = pixels.width
 	const height = pixels.height
 	const output = new ImageData(width, height)
@@ -29,7 +27,6 @@ export async function segFormerSegment(pixels: ImageData, pipe: Pipeline): Promi
 		const color = segmentColor(segIdx)
 
 		for (let px = 0; px < pixelCount; px++) {
-			// Mask pixel is white (255) where the segment exists
 			if (maskImage.data[px * 4]! > 0) {
 				output.data[px * 4] = color[0]!
 				output.data[px * 4 + 1] = color[1]!
@@ -39,7 +36,6 @@ export async function segFormerSegment(pixels: ImageData, pipe: Pipeline): Promi
 		}
 	}
 
-	// Fill any unassigned pixels with black (alpha 255)
 	for (let px = 0; px < pixelCount; px++) {
 		if (output.data[px * 4 + 3] === 0) {
 			output.data[px * 4 + 3] = 255
@@ -72,10 +68,10 @@ interface SegFormerProps {
 }
 
 /**
- * Automatic semantic segmentation via the `image-segmentation` pipeline. Outputs a color-coded segment map. Uses `Xenova/segformer-b0-finetuned-ade-512-512` by default.
+ * Automatic semantic segmentation — labels every region of the child content and outputs a color-coded segment map (each detected class gets a deterministic palette color). Reach for this when you want every object segmented without prompting; use `Sam2` instead when you need to target a specific region by clicking points. Pass through a downstream effect's `map` prop to drive per-segment effects. Requires WebGPU.
  *
  * - `model` — Hugging Face model ID for semantic segmentation. Defaults to `Xenova/segformer-b0-finetuned-ade-512-512`.
- * - `revision` — Model revision. Overridable alongside `model`.
+ * - `revision` — Pinned model revision. Defaults to `main`. Override alongside `model` when swapping models.
  *
  * @param props
  * @category Segmentation

@@ -10,7 +10,6 @@ describe("hardMix", () => {
 	})
 
 	it("returns 1 when vividLight >= 0.5", () => {
-		// s=0.75, d=0.4 → vividLight = 0.8 >= 0.5 → 1
 		const [r, g, b] = hardMix(0.75, 0.75, 0.75, 0.4, 0.4, 0.4)
 		expect(r).toBe(1)
 		expect(g).toBe(1)
@@ -18,7 +17,6 @@ describe("hardMix", () => {
 	})
 
 	it("returns 0 when vividLight < 0.5", () => {
-		// s=0.25, d=0.6 → vividLight = 0.2 < 0.5 → 0
 		const [r, g, b] = hardMix(0.25, 0.25, 0.25, 0.6, 0.6, 0.6)
 		expect(r).toBe(0)
 		expect(g).toBe(0)
@@ -26,7 +24,6 @@ describe("hardMix", () => {
 	})
 
 	it("handles s=0.5 boundary", () => {
-		// s=0.5, d=0.6 → vividLight = 0.6 >= 0.5 → 1
 		const [r, g, b] = hardMix(0.5, 0.5, 0.5, 0.6, 0.6, 0.6)
 		expect(r).toBe(1)
 		expect(g).toBe(1)

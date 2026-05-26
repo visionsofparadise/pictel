@@ -91,7 +91,7 @@ interface SharpenProps {
 }
 
 /**
- * Sharpens the image using a 3x3 unsharp mask convolution.
+ * Sharpens the image by enhancing edges against their immediate neighbors.
  *
  * - `amount` — Sharpening strength. Higher values produce more aggressive edge enhancement.
  *

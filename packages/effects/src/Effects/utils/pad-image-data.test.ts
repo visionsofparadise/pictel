@@ -48,14 +48,12 @@ describe("padImageData", () => {
 		expect(result.width).toBe(3)
 		expect(result.height).toBe(3)
 
-		// Center pixel (1,1) should match input
 		const centerIndex = (1 * 3 + 1) * 4
 		expect(result.data[centerIndex]).toBe(255)
 		expect(result.data[centerIndex + 1]).toBe(128)
 		expect(result.data[centerIndex + 2]).toBe(64)
 		expect(result.data[centerIndex + 3]).toBe(255)
 
-		// Border pixels should be transparent black
 		const topLeftIndex = 0
 		expect(result.data[topLeftIndex]).toBe(0)
 		expect(result.data[topLeftIndex + 1]).toBe(0)
@@ -71,17 +69,15 @@ describe("padImageData", () => {
 		const input = makeImage(1, 1, [10, 20, 30, 40])
 		const result = padImageData(input, 2, 3, 1, 4)
 
-		expect(result.width).toBe(1 + 4 + 3) // 8
-		expect(result.height).toBe(1 + 2 + 1) // 4
+		expect(result.width).toBe(1 + 4 + 3)
+		expect(result.height).toBe(1 + 2 + 1)
 
-		// Source pixel should be at (left=4, top=2)
 		const pixelIndex = (2 * 8 + 4) * 4
 		expect(result.data[pixelIndex]).toBe(10)
 		expect(result.data[pixelIndex + 1]).toBe(20)
 		expect(result.data[pixelIndex + 2]).toBe(30)
 		expect(result.data[pixelIndex + 3]).toBe(40)
 
-		// Pixel before the source (same row, one column left) should be transparent black
 		const beforeIndex = (2 * 8 + 3) * 4
 		expect(result.data[beforeIndex]).toBe(0)
 		expect(result.data[beforeIndex + 3]).toBe(0)

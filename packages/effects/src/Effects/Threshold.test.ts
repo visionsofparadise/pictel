@@ -35,13 +35,11 @@ describe("applyThreshold", () => {
 	})
 
 	it("mid-gray 129 with threshold=128 becomes white (>=)", () => {
-		// BT.601 luminance of (129,129,129) ≈ 129, which is >= 128
 		const result = applyThreshold(pixel(129, 129, 129, 255), 128)
 		expect(result.data[0]).toBe(255)
 	})
 
 	it("mid-gray 127 with threshold=128 becomes black", () => {
-		// BT.601 luminance of (127,127,127) ≈ 127
 		const result = applyThreshold(pixel(127, 127, 127, 255), 128)
 		expect(result.data[0]).toBe(0)
 	})
@@ -67,8 +65,6 @@ describe("applyMappedThreshold", () => {
 		const input = pixel(10, 10, 10, 255)
 		const map = pixel(0, 0, 0, 255)
 		const result = applyMappedThreshold(input, map, 128)
-		// Black map → luminance 0 → perPixelThreshold = 0 * 128 = 0
-		// Source luminance ≈ 10, which is >= 0 → white
 		expect(result.data[0]).toBe(255)
 		expect(result.data[1]).toBe(255)
 		expect(result.data[2]).toBe(255)
@@ -78,20 +74,15 @@ describe("applyMappedThreshold", () => {
 		const input = pixel(100, 100, 100, 255)
 		const map = pixel(255, 255, 255, 255)
 		const result = applyMappedThreshold(input, map, 128)
-		// White map → luminance 1 → perPixelThreshold = 1 * 128 = 128
-		// Source luminance = 100, which is < 128 → black
 		expect(result.data[0]).toBe(0)
 		expect(result.data[1]).toBe(0)
 		expect(result.data[2]).toBe(0)
 	})
 
 	it("gradient map produces varying thresholds", () => {
-		// 2-pixel image: both mid-gray source
 		const input = new ImageData(new Uint8ClampedArray([100, 100, 100, 255, 100, 100, 100, 255]), 2, 1)
 		const map = new ImageData(new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255]), 2, 1)
 		const result = applyMappedThreshold(input, map, 200)
-		// Black map pixel → threshold = 0 → source lum 100 >= 0 → white
-		// White map pixel → threshold = 200 → source lum 100 < 200 → black
 		expect(result.data[0]).toBe(255)
 		expect(result.data[4]).toBe(0)
 	})

@@ -73,7 +73,6 @@ export async function sam2Segment(
 		imageProcessed.reshaped_input_sizes,
 	)
 
-	// Select the mask with the highest IoU score
 	const iouData = outputs.iou_scores.data as Float32Array
 	let bestIdx = 0
 	let bestScore = -Infinity
@@ -87,7 +86,6 @@ export async function sam2Segment(
 		}
 	}
 
-	// masks[0] has dims [1, numMasks, height, width] — extract the best mask
 	const mask = masks[0]
 
 	if (!mask) throw new Error("SAM2 returned no masks")
@@ -101,13 +99,9 @@ export async function sam2Segment(
 	const width = pixels.width
 	const height = pixels.height
 	const output = new ImageData(width, height)
-
-	// The post-processed mask is at original image dimensions
-	// maskData is bool (0 or 1) — convert to white-on-black
 	const pixelCount = width * height
 
 	for (let px = 0; px < pixelCount; px++) {
-		// Scale coordinates if mask dimensions differ from input (shouldn't after post_process_masks, but be safe)
 		const mx = Math.min(Math.floor((px % width) * maskWidth / width), maskWidth - 1)
 		const my = Math.min(Math.floor(Math.floor(px / width) * maskHeight / height), maskHeight - 1)
 		const maskIdx = bestMaskOffset + my * maskWidth + mx
@@ -138,12 +132,12 @@ interface Sam2Props {
 }
 
 /**
- * Point-prompted segmentation using SAM2. Outputs a white-on-black mask for the region matching the given prompts. Uses `onnx-community/sam2-hiera-tiny-ONNX` by default.
+ * Point-prompted segmentation — drop one or more `points` on what you want segmented and SAM2 returns a white-on-black mask of that region. Use `negativePoints` to carve regions out of the result. Reach for this over `SegFormer` when you want to target a specific subject rather than label everything. Pass through a downstream effect's `map` prop to confine that effect to the masked region. Requires WebGPU.
  *
- * - `points` — Positive point prompts indicating the target region.
- * - `negativePoints` — Negative point prompts indicating regions to exclude.
+ * - `points` — Positive point prompts in pixel coordinates indicating the target region. Defaults to `[]` (no mask).
+ * - `negativePoints` — Negative point prompts in pixel coordinates indicating regions to exclude from the result. Defaults to `[]`.
  * - `model` — Hugging Face model ID for SAM2. Defaults to `onnx-community/sam2-hiera-tiny-ONNX`.
- * - `revision` — Model revision. Overridable alongside `model`.
+ * - `revision` — Pinned model revision. Defaults to `main`. Override alongside `model` when swapping models.
  *
  * @param props
  * @category Segmentation

@@ -63,7 +63,6 @@ export function applyLIC(
 			let accumB = 0
 			let weightSum = 0
 
-			// Forward integration
 			let fx = x
 			let fy = y
 
@@ -85,7 +84,6 @@ export function applyLIC(
 				weightSum += weight
 			}
 
-			// Backward integration
 			let bx = x
 			let by = y
 
@@ -141,21 +139,17 @@ interface LICProps {
 }
 
 /**
- * Line Integral Convolution. Smears the seed children along a vector field
- * supplied by the `map` prop, producing streamline-aligned output. The map
- * is expected to be a Direction-style three-channel encoding: red = cos(θ)
- * packed into [0,255], green = sin(θ) packed into [0,255], blue = magnitude
- * in [0,255].
+ * Smears the children along a direction field, producing streamline-aligned
+ * output — the look you'd use to visualize a vector field or to drive
+ * field-following stylization. Pair with `Direction` passed via `map` to
+ * derive the field from an image.
  *
- * Requires a `map` prop providing the vector field. Without a map the
- * effect throws — LIC has no meaning without a field.
+ * Requires the `map` prop. Without one the effect throws.
  *
- * Reference: Cabral & Leedom 1993, "Imaging Vector Fields Using Line Integral
- * Convolution".
- *
- * - `length` — Number of integration steps in each direction (forward and backward). Default 20.
- * - `stepSize` — Base step size in pixels per integration step. Default 1.0.
- * - `uniformStep` — Integrate at a constant step length, ignoring the field's magnitude channel. Default false. Set true to follow a smooth field (e.g. a depth gradient) at full integration distance.
+ * - `length` — Streamline length in steps per direction (forward and backward). Higher values produce longer smears. Default 20.
+ * - `stepSize` — Step size in pixels per integration step. Default 1.
+ * - `uniformStep` — Walk at a constant step length, ignoring the field's magnitude channel. Default false — step length scales with magnitude, which suits visualizing the field but can stall on smooth fields. Set true to follow a smooth field (e.g. a depth gradient) at full distance.
+ * - `map` — Required. Vector field as JSX (typically a `Direction`-style encoding).
  *
  * @param props
  * @category Effects

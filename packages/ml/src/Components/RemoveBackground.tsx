@@ -1,9 +1,11 @@
-import { useCallback, useMemo, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, type ReactNode } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
 import type { Pipeline } from "@huggingface/transformers"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
-import { getOrLoadPipeline } from "../registry"
+import { runPipeline, subscribePipeline } from "../registry"
 import { requireWebGPU } from "../webgpu"
+
+const TASK = "background-removal"
 
 const DEFAULT_MODEL = "onnx-community/BEN2-ONNX"
 const DEFAULT_REVISION = "c552aa82688edce09f0ac9d2e31ad53d9d629010"
@@ -38,19 +40,26 @@ export function RemoveBackground({
 	revision = DEFAULT_REVISION,
 	children,
 }: RemoveBackgroundProps) {
-	const pipelinePromise = useMemo(
-		() => requireWebGPU().then(() => getOrLoadPipeline("background-removal", model, revision)),
+	const subscription = useMemo(
+		() => {
+			const sub = subscribePipeline(TASK, model, revision)
+			const promise = requireWebGPU().then(() => sub.promise)
+
+			return { promise, unsubscribe: sub.unsubscribe }
+		},
 		[model, revision],
 	)
+	useEffect(() => subscription.unsubscribe, [subscription])
 
 	const effect = useCallback<RasterEffectCallback>(
 		async (target) => {
-			const pipe = await pipelinePromise
-			const pixels = await removeBackground(target, pipe)
+			await subscription.promise
 
-			return { pixels }
+			return {
+				pixels: await runPipeline(TASK, model, revision, (pipe) => removeBackground(target, pipe)),
+			}
 		},
-		[pipelinePromise],
+		[subscription, model, revision],
 	)
 
 	return (

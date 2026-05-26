@@ -60,7 +60,7 @@ ML components are `RasterEffect`s — they process their children and output pix
 
 > **RemoveBackground**(`props`): `Element`
 
-Defined in: [Components/RemoveBackground.tsx:36](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/RemoveBackground.tsx#L36)
+Defined in: [Components/RemoveBackground.tsx:38](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/RemoveBackground.tsx#L38)
 
 Removes the background from the child content — the subject keeps its color, everything else becomes transparent. Stack over any background (gradient, image, solid color) for cutout compositions. Requires WebGPU.
 
@@ -83,7 +83,7 @@ Removes the background from the child content — the subject keeps its color, e
 
 > **Sam2**(`props`): `Element`
 
-Defined in: [Components/Sam2.tsx:141](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Sam2.tsx#L141)
+Defined in: [Components/Sam2.tsx:152](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Sam2.tsx#L152)
 
 Point-prompted segmentation — drop one or more `points` on what you want segmented and SAM2 returns a white-on-black mask of that region. Use `negativePoints` to carve regions out of the result. Reach for this over `SegFormer` when you want to target a specific subject rather than label everything. Pass through a downstream effect's `map` prop to confine that effect to the masked region. Requires WebGPU.
 
@@ -108,7 +108,7 @@ Point-prompted segmentation — drop one or more `points` on what you want segme
 
 > **SegFormer**(`props`): `Element`
 
-Defined in: [Components/SegFormer.tsx:76](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/SegFormer.tsx#L76)
+Defined in: [Components/SegFormer.tsx:78](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/SegFormer.tsx#L78)
 
 Automatic semantic segmentation — labels every region of the child content and outputs a color-coded segment map (each detected class gets a deterministic palette color). Reach for this when you want every object segmented without prompting; use `Sam2` instead when you need to target a specific region by clicking points. Pass through a downstream effect's `map` prop to drive per-segment effects. Requires WebGPU.
 
@@ -151,7 +151,7 @@ Discriminated union component that delegates to [Sam2](#sam2) or [SegFormer](#se
 
 > **Upscale**(`props`): `Element`
 
-Defined in: [Components/Upscale.tsx:34](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Upscale.tsx#L34)
+Defined in: [Components/Upscale.tsx:36](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Upscale.tsx#L36)
 
 Upscales child content to higher resolution — the default model doubles each dimension. The canvas backing buffer grows; the rendered surface keeps the original layout footprint so upscaled pixels read as added detail rather than added size. Requires WebGPU.
 
@@ -174,7 +174,7 @@ Upscales child content to higher resolution — the default model doubles each d
 
 > **DepthMap**(`props`): `Element`
 
-Defined in: [Components/DepthMap.tsx:35](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/DepthMap.tsx#L35)
+Defined in: [Components/DepthMap.tsx:37](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/DepthMap.tsx#L37)
 
 Produces a grayscale depth map of the child content — nearer surfaces brighter, farther surfaces darker. Pass through a downstream effect's `map` prop to drive depth-based effects (variable-radius blur, depth-cued color grading, parallax displacement). Requires WebGPU.
 
@@ -190,3 +190,98 @@ Produces a grayscale depth map of the child content — nearer surfaces brighter
 #### Returns
 
 `Element`
+
+## Other
+
+### getOrLoadPipeline()
+
+> **getOrLoadPipeline**(`task`, `model`, `revision`): `Promise`\<`Pipeline`\>
+
+Defined in: [registry.ts:26](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/registry.ts#L26)
+
+Resolve a Transformers.js pipeline, deduplicated by `(task, model, revision)`.
+
+The returned promise is not subscriber-tracked — it is for one-off callers (tests,
+direct API users). Mounted React components must use `subscribePipeline` so the
+pipeline is disposed when no component is using it.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `task` | `PipelineType` |
+| `model` | `string` |
+| `revision` | `string` |
+
+#### Returns
+
+`Promise`\<`Pipeline`\>
+
+***
+
+### runPipeline()
+
+> **runPipeline**\<`R`\>(`task`, `model`, `revision`, `runner`): `Promise`\<`R`\>
+
+Defined in: [registry.ts:55](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/registry.ts#L55)
+
+Bracket an inference call so the pipeline is not disposed mid-flight. Increments
+an in-flight count for the cache entry; if `unsubscribe` is called during the
+inference, disposal is deferred until this call settles.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `R` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `task` | `PipelineType` |
+| `model` | `string` |
+| `revision` | `string` |
+| `runner` | (`pipe`) => `Promise`\<`R`\> |
+
+#### Returns
+
+`Promise`\<`R`\>
+
+***
+
+### subscribePipeline()
+
+> **subscribePipeline**(`task`, `model`, `revision`): `object`
+
+Defined in: [registry.ts:43](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/registry.ts#L43)
+
+Subscribe a mounted component to a Transformers.js pipeline. Returns a promise
+for the pipeline and an `unsubscribe` callback for the component's cleanup. When
+the subscriber count for the `(task, model, revision)` key reaches zero and no
+`runPipeline` call is in flight, the pipeline is disposed and the cache entry is
+removed.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `task` | `PipelineType` |
+| `model` | `string` |
+| `revision` | `string` |
+
+#### Returns
+
+`object`
+
+##### promise
+
+> **promise**: `Promise`\<`Pipeline`\>
+
+##### unsubscribe
+
+> **unsubscribe**: () => `void`
+
+###### Returns
+
+`void`

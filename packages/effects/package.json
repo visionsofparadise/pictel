@@ -33,13 +33,14 @@
     "simplex-noise": "latest"
   },
   "peerDependencies": {
+    "pictel": "*",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "pictel": "*"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "@webgpu/types": "^0.1.70",
     "concurrently": "latest",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

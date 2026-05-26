@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
-import { boxBlurChannel } from "./utils/box-blur-channel"
+import { boxBlurChannels } from "./utils/box-blur-channel"
 import { luminance } from "./utils/luminance"
 import { mixBlend } from "./utils/mix-blend"
 
@@ -37,10 +37,24 @@ export function applyShockFilter(
 	const passes = Math.max(0, Math.floor(iterations))
 	const dt = Math.min(1, strength)
 
+	let nextChannels: Array<Float32Array> = [
+		new Float32Array(count),
+		new Float32Array(count),
+		new Float32Array(count),
+	]
+
+	// Pre-allocated outputs for the per-pass smoothing blur. Phase 14.2's
+	// `boxBlurChannels` writes into these on every iteration so the iteration
+	// loop allocates only the helper's shared horizontal scratch (1 Float32Array)
+	// instead of 2N (= 6) per pass.
+	const smoothed: Array<Float32Array> = [
+		new Float32Array(count),
+		new Float32Array(count),
+		new Float32Array(count),
+	]
+
 	for (let pass = 0; pass < passes; pass++) {
-		const smoothed = channels.map((channel) =>
-			boxBlurChannel(channel, width, height, SMOOTH_RADIUS),
-		)
+		boxBlurChannels(channels, width, height, SMOOTH_RADIUS, smoothed)
 
 		const lum = new Float32Array(count)
 
@@ -51,12 +65,6 @@ export function applyShockFilter(
 				smoothed[2]![pixelIdx]!,
 			)
 		}
-
-		const nextChannels = [
-			new Float32Array(count),
-			new Float32Array(count),
-			new Float32Array(count),
-		]
 
 		for (let y = 0; y < height; y++) {
 			const yUp = y > 0 ? y - 1 : 0
@@ -95,9 +103,15 @@ export function applyShockFilter(
 			}
 		}
 
+		const prevChannels: Array<Float32Array> = [
+			channels[0]!,
+			channels[1]!,
+			channels[2]!,
+		]
 		channels[0] = nextChannels[0]!
 		channels[1] = nextChannels[1]!
 		channels[2] = nextChannels[2]!
+		nextChannels = prevChannels
 	}
 
 	for (let channel = 0; channel < 3; channel++) {

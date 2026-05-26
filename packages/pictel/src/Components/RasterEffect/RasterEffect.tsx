@@ -5,7 +5,62 @@ import { RasterEffectContext, createRegistry, useRasterEffectContext } from "../
 import { normalizeResult, type EffectResult } from "../utils/raster";
 import { createRasterEffectError } from "./Error";
 import { captureWrapper } from "./utils/capture";
-import { getOwnUnloadedImages } from "./utils/scope";
+import { getOwnImages } from "./utils/scope";
+
+type ImageLoadState = "loaded" | "loading";
+
+/**
+ * Per-slot cache: every directly-owned `<img>` in the slot mapped to its
+ * current load state. `null` means the cache is invalid and must be rebuilt
+ * on the next read (lazy population). Populated by `readUnloaded` on first
+ * use; maintained incrementally by the slot's MutationObserver.
+ */
+type ImageCache = Map<HTMLImageElement, ImageLoadState> | null;
+
+function readUnloaded(slot: Element, cacheRef: { current: ImageCache }): Array<HTMLImageElement> {
+	let cache = cacheRef.current;
+
+	if (cache === null) {
+		cache = new Map();
+
+		for (const img of getOwnImages(slot)) {
+			cache.set(img, img.complete ? "loaded" : "loading");
+		}
+
+		cacheRef.current = cache;
+	}
+
+	const unloaded: Array<HTMLImageElement> = [];
+
+	for (const [img, state] of cache) {
+		if (state === "loading") unloaded.push(img);
+	}
+
+	return unloaded;
+}
+
+/**
+ * Walk a MutationRecord's added/removed node lists for any `<img>` (the node
+ * itself or any descendant). A childList mutation that touches an `<img>` in
+ * either list invalidates the slot's image cache.
+ */
+function recordTouchesImage(record: MutationRecord): boolean {
+	if (record.type !== "childList") return false;
+
+	for (const node of record.addedNodes) {
+		if (node instanceof HTMLImageElement) return true;
+
+		if (node instanceof Element && node.querySelector("img") !== null) return true;
+	}
+
+	for (const node of record.removedNodes) {
+		if (node instanceof HTMLImageElement) return true;
+
+		if (node instanceof Element && node.querySelector("img") !== null) return true;
+	}
+
+	return false;
+}
 
 export type RasterEffectCallback = (target: ImageData, apply?: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 
@@ -110,6 +165,7 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 	const captureDimensions = canvasContext.captureDimensions;
 	const reportError = canvasContext.reportError;
 	const offscreenHost = canvasContext.offscreenHost;
+	const imageDataPool = canvasContext.imageDataPool;
 
 	const parent = useRasterEffectContext();
 	const selfRegistry = useMemo(() => createRegistry(), []);
@@ -162,6 +218,45 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 			gate();
 		});
 
+		const contentImageCache: { current: ImageCache } = { current: null };
+		const applyImageCache: { current: ImageCache } = { current: null };
+		const mapImageCache: { current: ImageCache } = { current: null };
+
+		function markImageLoaded(img: HTMLImageElement): void {
+			for (const cacheRef of [contentImageCache, applyImageCache, mapImageCache]) {
+				const cache = cacheRef.current;
+
+				if (cache?.has(img) === true) cache.set(img, "loaded");
+			}
+		}
+
+		/**
+		 * Apply the slot's batch of MutationRecords to its image cache.
+		 * - childList records that add/remove `<img>` invalidate (null) the
+		 *   cache; the next `readUnloaded` rebuilds it.
+		 * - attribute records on an `<img>` already in the cache update its
+		 *   load state (src changes flip `complete` to false).
+		 * - Other records leave the cache untouched.
+		 *
+		 * Nested-boundary records are filtered upstream by the observer
+		 * callback before reaching here.
+		 */
+		function applyRecordsToCache(records: ReadonlyArray<MutationRecord>, cacheRef: { current: ImageCache }): void {
+			const cache = cacheRef.current;
+
+			for (const record of records) {
+				if (recordTouchesImage(record)) {
+					cacheRef.current = null;
+
+					return;
+				}
+
+				if (cache !== null && record.type === "attributes" && record.target instanceof HTMLImageElement && cache.has(record.target)) {
+					cache.set(record.target, record.target.complete ? "loaded" : "loading");
+				}
+			}
+		}
+
 		let snapshotWasNullForInvalidate = false;
 
 		function invalidate(): void {
@@ -179,12 +274,26 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 
 			if (selfRegistry.anyPending()) return;
 
-			const unloaded = [...getOwnUnloadedImages(childrenSlot), ...(applyEl !== null ? getOwnUnloadedImages(applyEl) : []), ...(mapEl !== null ? getOwnUnloadedImages(mapEl) : [])];
+			const unloaded = [...readUnloaded(childrenSlot, contentImageCache), ...(applyEl !== null ? readUnloaded(applyEl, applyImageCache) : []), ...(mapEl !== null ? readUnloaded(mapEl, mapImageCache) : [])];
 
 			if (unloaded.length > 0) {
 				for (const img of unloaded) {
-					img.addEventListener("load", () => gate(), { once: true, signal });
-					img.addEventListener("error", () => gate(), { once: true, signal });
+					img.addEventListener(
+						"load",
+						() => {
+							markImageLoaded(img);
+							gate();
+						},
+						{ once: true, signal },
+					);
+					img.addEventListener(
+						"error",
+						() => {
+							markImageLoaded(img);
+							gate();
+						},
+						{ once: true, signal },
+					);
 				}
 
 				return;
@@ -206,13 +315,17 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 		}
 
 		async function execute(contentW: number, contentH: number): Promise<void> {
+			let targetPixels: ImageData | undefined;
+			let applyPixels: ImageData | undefined;
+			let mapPixels: ImageData | undefined;
+
 			try {
 				if (signal.aborted || !childrenSlot) return;
 
-				const [targetPixels, applyPixels, mapPixels] = await Promise.all([
-					captureWrapper(childrenSlot, captureDimensions),
-					applyEl !== null ? captureWrapper(applyEl, captureDimensions) : Promise.resolve(undefined),
-					mapEl !== null ? captureWrapper(mapEl, captureDimensions) : Promise.resolve(undefined),
+				[targetPixels, applyPixels, mapPixels] = await Promise.all([
+					captureWrapper(childrenSlot, captureDimensions, imageDataPool),
+					applyEl !== null ? captureWrapper(applyEl, captureDimensions, imageDataPool) : Promise.resolve(undefined),
+					mapEl !== null ? captureWrapper(mapEl, captureDimensions, imageDataPool) : Promise.resolve(undefined),
 				]);
 
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -224,6 +337,17 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 				if (signal.aborted) return;
 
 				const { pixels, overflow } = normalizeResult(rawResult);
+
+				// Release captured framework-owned buffers back to the pool. Skip
+				// any buffer the effect returned as its result — that one is now
+				// the snapshot's `pixels` and remains live. User-allocated
+				// ImageData returned from effect callbacks is user-owned by
+				// contract and is not released by the framework.
+				if (targetPixels !== pixels) imageDataPool.release(targetPixels);
+
+				if (applyPixels !== undefined && applyPixels !== pixels) imageDataPool.release(applyPixels);
+
+				if (mapPixels !== undefined && mapPixels !== pixels) imageDataPool.release(mapPixels);
 
 				snapshotWasNullForInvalidate = false;
 
@@ -238,6 +362,13 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 			} catch (error: unknown) {
 				if (signal.aborted) return;
 
+				// Release any captured buffers we acquired before the error.
+				if (targetPixels !== undefined) imageDataPool.release(targetPixels);
+
+				if (applyPixels !== undefined) imageDataPool.release(applyPixels);
+
+				if (mapPixels !== undefined) imageDataPool.release(mapPixels);
+
 				reportError(createRasterEffectError(id, error));
 				pendingRef.current = false;
 				parent.notify(id);
@@ -245,13 +376,20 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 		}
 
 		const contentObserver = new MutationObserver((records) => {
+			const ownRecords: Array<MutationRecord> = [];
+			let hasOwnRecord = false;
+
 			for (const record of records) {
 				if (!originatedInNestedBoundary(record, childrenSlot)) {
-					invalidate();
-
-					return;
+					ownRecords.push(record);
+					hasOwnRecord = true;
 				}
 			}
+
+			if (!hasOwnRecord) return;
+
+			applyRecordsToCache(ownRecords, contentImageCache);
+			invalidate();
 		});
 
 		contentObserver.observe(childrenSlot, SLOT_OBSERVER_OPTIONS);
@@ -259,13 +397,20 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 		const applyObserver: MutationObserver | null =
 			applyEl !== null
 				? new MutationObserver((records) => {
+						const ownRecords: Array<MutationRecord> = [];
+						let hasOwnRecord = false;
+
 						for (const record of records) {
 							if (!originatedInNestedBoundary(record, applyEl)) {
-								invalidate();
-
-								return;
+								ownRecords.push(record);
+								hasOwnRecord = true;
 							}
 						}
+
+						if (!hasOwnRecord) return;
+
+						applyRecordsToCache(ownRecords, applyImageCache);
+						invalidate();
 					})
 				: null;
 
@@ -276,13 +421,20 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 		const mapObserver: MutationObserver | null =
 			mapEl !== null
 				? new MutationObserver((records) => {
+						const ownRecords: Array<MutationRecord> = [];
+						let hasOwnRecord = false;
+
 						for (const record of records) {
 							if (!originatedInNestedBoundary(record, mapEl)) {
-								invalidate();
-
-								return;
+								ownRecords.push(record);
+								hasOwnRecord = true;
 							}
 						}
+
+						if (!hasOwnRecord) return;
+
+						applyRecordsToCache(ownRecords, mapImageCache);
+						invalidate();
 					})
 				: null;
 
@@ -321,7 +473,7 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 			lifecycleRef.current?.dispose();
 			lifecycleRef.current = null;
 		};
-	}, [id, effect, hasApply, hasMap, applySlot, mapSlot, captureDimensions, reportError, parent, selfRegistry]);
+	}, [id, effect, hasApply, hasMap, applySlot, mapSlot, captureDimensions, reportError, parent, selfRegistry, imageDataPool]);
 
 	const lastSeenSnapshotRef = useRef<Snapshot | null>(null);
 

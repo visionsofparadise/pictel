@@ -9,7 +9,9 @@ export interface Registry {
 
 export function createRegistry(): Registry {
 	const registrants = new Map<string, () => boolean>();
+	const pendingState = new Map<string, boolean>();
 	const subscribers = new Set<() => void>();
+	let pendingCount = 0;
 
 	function fanout(): void {
 		for (const callback of subscribers) callback();
@@ -17,23 +19,51 @@ export function createRegistry(): Registry {
 
 	return {
 		register(id, getPending) {
+			// Re-register with the same id replaces silently (matches the
+			// prior `Map.set` behavior). Reconcile the cached pending count
+			// against any previously stored state for this id.
+			const previous = pendingState.get(id);
+
+			if (previous === true) pendingCount--;
+
+			const current = getPending();
+
 			registrants.set(id, getPending);
+			pendingState.set(id, current);
+
+			if (current) pendingCount++;
+
 			fanout();
 
 			return () => {
+				const last = pendingState.get(id);
+
+				if (last === true) pendingCount--;
+
 				registrants.delete(id);
+				pendingState.delete(id);
 				fanout();
 			};
 		},
-		notify() {
+		notify(id) {
+			const getPending = registrants.get(id);
+
+			if (getPending !== undefined) {
+				const previous = pendingState.get(id) ?? false;
+				const current = getPending();
+
+				if (current !== previous) {
+					pendingState.set(id, current);
+
+					if (current) pendingCount++;
+					else pendingCount--;
+				}
+			}
+
 			fanout();
 		},
 		anyPending() {
-			for (const getPending of registrants.values()) {
-				if (getPending()) return true;
-			}
-
-			return false;
+			return pendingCount > 0;
 		},
 		subscribe(callback) {
 			subscribers.add(callback);

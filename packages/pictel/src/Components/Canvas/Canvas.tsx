@@ -12,6 +12,7 @@ import { useSearchParam } from "../../hooks/useSearchParam";
 import type { Mode } from "../../hooks/useMode";
 import { Frame } from "../Frame";
 import type { RasterEffectError } from "../RasterEffect/Error";
+import { createImageDataPool } from "../../utils/image-data-pool";
 
 interface CanvasProps extends ComponentProps<"div"> {
 	name?: string;
@@ -97,6 +98,7 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 	const effectiveDimensions = useMemo<CanvasDimensions>(() => ({ width: effectiveWidth, height: effectiveHeight }), [effectiveWidth, effectiveHeight]);
 	const registry = useMemo(() => createRegistry(), []);
 	const pending = useSyncExternalStore(registry.subscribe, registry.anyPending, getPendingServerSnapshot);
+	const imageDataPool = useMemo(() => createImageDataPool(), []);
 
 	const [offscreenHost, setOffscreenHost] = useState<HTMLDivElement | null>(null);
 
@@ -110,6 +112,7 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 					captureDimensions,
 					reportError,
 					offscreenHost,
+					imageDataPool,
 				};
 
 	function provideCanvasContext(content: ReactNode): ReactNode {

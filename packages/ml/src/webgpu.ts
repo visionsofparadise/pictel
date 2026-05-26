@@ -7,18 +7,24 @@ declare global {
 		requestAdapter(): Promise<GPUAdapter | null>
 	}
 
-	 
+
 	interface GPUAdapter {}
 }
 
-export async function requireWebGPU(): Promise<void> {
+let cachedAdapter: Promise<GPUAdapter | null> | null = null
+
+export async function requireWebGPU(): Promise<GPUAdapter> {
 	if (!navigator.gpu) {
 		throw new Error("ML effects require WebGPU. Your browser or hardware does not support WebGPU.")
 	}
 
-	const adapter = await navigator.gpu.requestAdapter()
+	cachedAdapter ??= navigator.gpu.requestAdapter()
+
+	const adapter = await cachedAdapter
 
 	if (!adapter) {
 		throw new Error("ML effects require WebGPU. Your browser or hardware does not support WebGPU.")
 	}
+
+	return adapter
 }

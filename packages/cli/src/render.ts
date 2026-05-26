@@ -1,4 +1,4 @@
-import puppeteer, { type Browser } from "puppeteer";
+import puppeteer, { type Browser, type ConsoleMessage, type Page } from "puppeteer";
 
 const PENDING_TIMEOUT_MS = 30_000;
 
@@ -14,7 +14,7 @@ export function launchBrowser(): Promise<Browser> {
 }
 
 interface RenderEntryOptions {
-  browser: Browser;
+  page: Page;
   baseUrl: string;
   canvas?: string;
   canvasWidth?: number;
@@ -24,7 +24,7 @@ interface RenderEntryOptions {
 }
 
 export async function renderEntry({
-  browser,
+  page,
   baseUrl,
   canvas,
   canvasWidth,
@@ -32,17 +32,18 @@ export async function renderEntry({
   params,
   scale,
 }: RenderEntryOptions): Promise<Buffer> {
-  const page = await browser.newPage();
-
   const pageErrors: Array<string> = [];
   const consoleMessages: Array<string> = [];
 
-  page.on("pageerror", (error) => {
+  const onPageError = (error: unknown): void => {
     pageErrors.push(String(error));
-  });
-  page.on("console", (message) => {
+  };
+  const onConsole = (message: ConsoleMessage): void => {
     consoleMessages.push(`[${message.type()}] ${message.text()}`);
-  });
+  };
+
+  page.on("pageerror", onPageError);
+  page.on("console", onConsole);
 
   try {
     const url = new URL(baseUrl);
@@ -100,7 +101,8 @@ export async function renderEntry({
 
     return Buffer.from(screenshot);
   } finally {
-    await page.close();
+    page.off("pageerror", onPageError);
+    page.off("console", onConsole);
   }
 }
 

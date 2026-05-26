@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
-import { boxBlurChannel } from "../utils/box-blur-channel"
+import { boxBlurChannels } from "../utils/box-blur-channel"
 import { mixBlend } from "../utils/mix-blend"
 import { applyKernels, SCHARR_X, SCHARR_Y, SOBEL_X, SOBEL_Y } from "./kernel"
 
@@ -67,9 +67,20 @@ export function applyStructureField(
 		tensorG[pixelIdx] = dy * dy
 	}
 
-	const eSmooth = boxBlurChannel(tensorE, width, height, INTEGRATION_RADIUS)
-	const fSmooth = boxBlurChannel(tensorF, width, height, INTEGRATION_RADIUS)
-	const gSmooth = boxBlurChannel(tensorG, width, height, INTEGRATION_RADIUS)
+	// Pre-allocated per Phase 14.3: single boxBlurChannels call with caller-
+	// supplied output buffers shares one horizontal scratch across the three
+	// tensor channels (4 allocations total vs. 6 with three separate calls).
+	const eSmooth = new Float32Array(count)
+	const fSmooth = new Float32Array(count)
+	const gSmooth = new Float32Array(count)
+
+	boxBlurChannels(
+		[tensorE, tensorF, tensorG],
+		width,
+		height,
+		INTEGRATION_RADIUS,
+		[eSmooth, fSmooth, gSmooth],
+	)
 
 	const output = new Uint8ClampedArray(src.length)
 	const epsilon = 1e-6

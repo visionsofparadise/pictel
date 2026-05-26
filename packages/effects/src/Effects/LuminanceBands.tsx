@@ -1,10 +1,23 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
-import { luminance } from "./utils/luminance"
 import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+
+const RGB_TO_Y_R = 0.299
+const RGB_TO_Y_G = 0.587
+const RGB_TO_Y_B = 0.114
+const RGB_TO_CB_R = -0.168736
+const RGB_TO_CB_G = -0.331264
+const RGB_TO_CB_B = 0.5
+const RGB_TO_CR_R = 0.5
+const RGB_TO_CR_G = -0.418688
+const RGB_TO_CR_B = -0.081312
+const YCBCR_TO_R_CR = 1.402
+const YCBCR_TO_G_CB = -0.344136
+const YCBCR_TO_G_CR = -0.714136
+const YCBCR_TO_B_CB = 1.772
 
 function quantizeLuminance(yValue: number, bands: number, thresholds?: Array<number>): number {
 	const clamped = Math.max(2, bands)
@@ -33,20 +46,26 @@ export function applyLuminanceBands(pixels: ImageData, bands: number, thresholds
 	const src = pixels.data
 	const output = new Uint8ClampedArray(src.length)
 
+	const lutY = new Float32Array(256)
+
+	for (let index = 0; index < 256; index++) {
+		lutY[index] = quantizeLuminance(index, bands, thresholds)
+	}
+
 	for (let px = 0; px < src.length; px += 4) {
 		const red = src[px]!
 		const green = src[px + 1]!
 		const blue = src[px + 2]!
 
-		const y = 0.299 * red + 0.587 * green + 0.114 * blue
-		const chromaB = -0.168736 * red - 0.331264 * green + 0.5 * blue + 128
-		const chromaR = 0.5 * red - 0.418688 * green - 0.081312 * blue + 128
+		const y = RGB_TO_Y_R * red + RGB_TO_Y_G * green + RGB_TO_Y_B * blue
+		const chromaB = RGB_TO_CB_R * red + RGB_TO_CB_G * green + RGB_TO_CB_B * blue + 128
+		const chromaR = RGB_TO_CR_R * red + RGB_TO_CR_G * green + RGB_TO_CR_B * blue + 128
 
-		const yQ = quantizeLuminance(y, bands, thresholds)
+		const yQ = lutY[y | 0]!
 
-		const redOut = yQ + 1.402 * (chromaR - 128)
-		const greenOut = yQ - 0.344136 * (chromaB - 128) - 0.714136 * (chromaR - 128)
-		const blueOut = yQ + 1.772 * (chromaB - 128)
+		const redOut = yQ + YCBCR_TO_R_CR * (chromaR - 128)
+		const greenOut = yQ + YCBCR_TO_G_CB * (chromaB - 128) + YCBCR_TO_G_CR * (chromaR - 128)
+		const blueOut = yQ + YCBCR_TO_B_CB * (chromaB - 128)
 
 		output[px] = Math.round(Math.max(0, Math.min(255, redOut)))
 		output[px + 1] = Math.round(Math.max(0, Math.min(255, greenOut)))
@@ -67,18 +86,18 @@ export function applyMappedLuminanceBands(pixels: ImageData, map: ImageData, ban
 		const green = src[px + 1]!
 		const blue = src[px + 2]!
 
-		const y = 0.299 * red + 0.587 * green + 0.114 * blue
-		const chromaB = -0.168736 * red - 0.331264 * green + 0.5 * blue + 128
-		const chromaR = 0.5 * red - 0.418688 * green - 0.081312 * blue + 128
+		const y = RGB_TO_Y_R * red + RGB_TO_Y_G * green + RGB_TO_Y_B * blue
+		const chromaB = RGB_TO_CB_R * red + RGB_TO_CB_G * green + RGB_TO_CB_B * blue + 128
+		const chromaR = RGB_TO_CR_R * red + RGB_TO_CR_G * green + RGB_TO_CR_B * blue + 128
 
 		const yQ = quantizeLuminance(y, bands, thresholds)
 
-		const mapLum = luminance(mapData[px]!, mapData[px + 1]!, mapData[px + 2]!) / 255
+		const mapLum = (RGB_TO_Y_R * mapData[px]! + RGB_TO_Y_G * mapData[px + 1]! + RGB_TO_Y_B * mapData[px + 2]!) / 255
 		const yMixed = y + (yQ - y) * mapLum
 
-		const redOut = yMixed + 1.402 * (chromaR - 128)
-		const greenOut = yMixed - 0.344136 * (chromaB - 128) - 0.714136 * (chromaR - 128)
-		const blueOut = yMixed + 1.772 * (chromaB - 128)
+		const redOut = yMixed + YCBCR_TO_R_CR * (chromaR - 128)
+		const greenOut = yMixed + YCBCR_TO_G_CB * (chromaB - 128) + YCBCR_TO_G_CR * (chromaR - 128)
+		const blueOut = yMixed + YCBCR_TO_B_CB * (chromaB - 128)
 
 		output[px] = Math.round(Math.max(0, Math.min(255, redOut)))
 		output[px + 1] = Math.round(Math.max(0, Math.min(255, greenOut)))

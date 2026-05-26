@@ -1,7 +1,6 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
-import { luminance } from "./utils/luminance"
 import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -14,7 +13,7 @@ export function applyDuotone(
 	const output = new Uint8ClampedArray(src.length)
 
 	for (let px = 0; px < src.length; px += 4) {
-		const lum = luminance(src[px]!, src[px + 1]!, src[px + 2]!)
+		const lum = 0.299 * src[px]! + 0.587 * src[px + 1]! + 0.114 * src[px + 2]!
 		const ratio = lum / 255
 
 		output[px] = dark[0] + ratio * (light[0] - dark[0])

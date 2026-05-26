@@ -11,7 +11,8 @@
     "collect:baselines": "tsx scripts/collect-baselines.ts < .last-baseline-run.log",
     "render:readme": "tsx scripts/render-readme.ts",
     "start": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "bench": "vite --open /src/benchmark/index.html"
   },
   "dependencies": {
     "@pictel/effects": "*",

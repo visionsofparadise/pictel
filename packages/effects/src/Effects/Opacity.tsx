@@ -11,11 +11,17 @@ export function applyOpacity(pixels: ImageData, amount: number): ImageData {
 	const src = pixels.data
 	const output = new Uint8ClampedArray(src.length)
 
+	const lut = new Uint8ClampedArray(256)
+
+	for (let index = 0; index < 256; index++) {
+		lut[index] = index * amount
+	}
+
 	for (let px = 0; px < src.length; px += 4) {
 		output[px] = src[px]!
 		output[px + 1] = src[px + 1]!
 		output[px + 2] = src[px + 2]!
-		output[px + 3] = Math.min(255, Math.max(0, src[px + 3]! * amount))
+		output[px + 3] = lut[src[px + 3]!]!
 	}
 
 	return new ImageData(output, pixels.width, pixels.height)

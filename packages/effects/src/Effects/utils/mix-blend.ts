@@ -1,6 +1,3 @@
-import { lerp } from "./lerp"
-import { luminance } from "./luminance"
-
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 export function mixBlend(
 	original: ImageData,
@@ -26,12 +23,17 @@ export function mixBlend(
 
 	for (let px = 0; px < orig.length; px += 4) {
 		const factor =
-			luminance(mapData[px]!, mapData[px + 1]!, mapData[px + 2]!) / 255
+			(0.299 * mapData[px]! + 0.587 * mapData[px + 1]! + 0.114 * mapData[px + 2]!) / 255
 
-		dest[px] = lerp(orig[px]!, resultData[px]!, factor)
-		dest[px + 1] = lerp(orig[px + 1]!, resultData[px + 1]!, factor)
-		dest[px + 2] = lerp(orig[px + 2]!, resultData[px + 2]!, factor)
-		dest[px + 3] = lerp(orig[px + 3]!, resultData[px + 3]!, factor)
+		const o0 = orig[px]!
+		const o1 = orig[px + 1]!
+		const o2 = orig[px + 2]!
+		const o3 = orig[px + 3]!
+
+		dest[px] = o0 + factor * (resultData[px]! - o0)
+		dest[px + 1] = o1 + factor * (resultData[px + 1]! - o1)
+		dest[px + 2] = o2 + factor * (resultData[px + 2]! - o2)
+		dest[px + 3] = o3 + factor * (resultData[px + 3]! - o3)
 	}
 
 	return output

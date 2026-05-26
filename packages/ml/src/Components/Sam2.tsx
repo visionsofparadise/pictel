@@ -1,8 +1,9 @@
-import { useCallback, useMemo, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, type ReactNode } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
 import { Sam2Model, AutoProcessor, Tensor, RawImage } from "@huggingface/transformers"
 import type { Processor } from "@huggingface/transformers"
 import { requireWebGPU } from "../webgpu"
+import { createSubscriberCache } from "../subscriber-cache"
 
 const DEFAULT_MODEL = "onnx-community/sam2-hiera-tiny-ONNX"
 const DEFAULT_REVISION = "main"
@@ -12,26 +13,36 @@ interface Sam2Resources {
 	processor: Processor
 }
 
-const loading = new Map<string, Promise<Sam2Resources>>()
+type Sam2Key = readonly [model: string, revision: string]
 
-function getOrLoadSam2(modelId: string, revision: string): Promise<Sam2Resources> {
-	const key = `${modelId}:${revision}`
-	const existing = loading.get(key)
+const sam2Cache = createSubscriberCache<Sam2Resources, Sam2Key>({
+	cacheKey: (modelId, revision) => `${modelId}:${revision}`,
+	load: (modelId, revision) =>
+		Promise.all([
+			Sam2Model.from_pretrained(modelId, {
+				dtype: { vision_encoder: "q4", prompt_encoder_mask_decoder: "fp32" } as unknown as "auto",
+				device: "webgpu",
+				revision,
+			}) as Promise<Sam2Model>,
+			AutoProcessor.from_pretrained(modelId, { revision } as Record<string, string>),
+		]).then(([sam2, proc]) => ({ model: sam2, processor: proc })),
+	dispose: async (resources) => {
+		// Transformers.js Sam2Model exposes an async `dispose()` for releasing
+		// the underlying ONNX session. The Processor has no lifecycle to release.
+		await (resources.model as unknown as { dispose?: () => Promise<void> }).dispose?.()
+	},
+})
 
-	if (existing) return existing
+function subscribeSam2(modelId: string, revision: string): { promise: Promise<Sam2Resources>; unsubscribe: () => void } {
+	return sam2Cache.subscribe(modelId, revision)
+}
 
-	const promise = Promise.all([
-		Sam2Model.from_pretrained(modelId, {
-			dtype: { vision_encoder: "q4", prompt_encoder_mask_decoder: "fp32" } as unknown as "auto",
-			device: "webgpu",
-			revision,
-		}) as Promise<Sam2Model>,
-		AutoProcessor.from_pretrained(modelId, { revision } as Record<string, string>),
-	]).then(([sam2, proc]) => ({ model: sam2, processor: proc }))
-
-	loading.set(key, promise)
-
-	return promise
+async function runSam2<R>(
+	modelId: string,
+	revision: string,
+	runner: (resources: Sam2Resources) => Promise<R>,
+): Promise<R> {
+	return sam2Cache.track([modelId, revision], runner)
 }
 
 export interface Point {
@@ -145,19 +156,27 @@ export function Sam2({
 	negativePoints = [],
 	children,
 }: Sam2Props) {
-	const resourcesPromise = useMemo(
-		() => requireWebGPU().then(() => getOrLoadSam2(model, revision)),
+	const subscription = useMemo(
+		() => {
+			const sub = subscribeSam2(model, revision)
+			const promise = requireWebGPU().then(() => sub.promise)
+
+			return { promise, unsubscribe: sub.unsubscribe }
+		},
 		[model, revision],
 	)
+	useEffect(() => subscription.unsubscribe, [subscription])
 
 	const effect = useCallback<RasterEffectCallback>(
 		async (target) => {
-			const { model: sam2Model, processor } = await resourcesPromise
-			const pixels = await sam2Segment(target, sam2Model, processor, points, negativePoints)
+			await subscription.promise
+			const pixels = await runSam2(model, revision, async ({ model: sam2Model, processor }) =>
+				sam2Segment(target, sam2Model, processor, points, negativePoints),
+			)
 
 			return { pixels }
 		},
-		[resourcesPromise, points, negativePoints],
+		[subscription, model, revision, points, negativePoints],
 	)
 
 	return (

@@ -5,6 +5,15 @@ import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+// Color-weight LUT geometry.
+// sumOfSquares = dR² + dG² + dB² ranges over [0, 3 · 255²] = [0, 195075].
+// COLOR_LUT_SHIFT = 8 buckets the range with bucket width 256 in sumSq units
+// (≈ 16 in per-channel-diff units). 195075 >>> 8 = 762, so a 1024-entry LUT
+// covers the full range with headroom. Float32Array is well above the
+// precision required at the eventual Uint8 output.
+const COLOR_LUT_SHIFT = 8
+const COLOR_LUT_SIZE = 1024
+
 export function applyBilateral(
 	pixels: ImageData,
 	spatialSigma: number,
@@ -16,6 +25,33 @@ export function applyBilateral(
 	const radius = Math.max(0, Math.ceil(spatialSigma * 2))
 	const spatialDenom = 2 * spatialSigma * spatialSigma
 	const colorDenom = 2 * colorSigma * colorSigma
+
+	// Spatial-weight LUT: (2·radius+1)² Float32 entries, indexed by
+	// (dy+radius)·span + (dx+radius). Built once per call.
+	const span = 2 * radius + 1
+	const spatialLut = new Float32Array(span * span)
+
+	for (let dy = -radius; dy <= radius; dy++) {
+		const rowOffset = (dy + radius) * span
+
+		for (let dx = -radius; dx <= radius; dx++) {
+			spatialLut[rowOffset + (dx + radius)] =
+				spatialDenom === 0 ? (dx === 0 && dy === 0 ? 1 : 0) : Math.exp(-(dx * dx + dy * dy) / spatialDenom)
+		}
+	}
+
+	// Color-weight LUT: 1024 Float32 entries indexed by (sumSq >>> 8).
+	// Bucket centroid is (bucketIdx · 256 + 128); using the centroid keeps
+	// the LUT's value within ±half-bucket of the true exp at any sumSq.
+	const colorLut = new Float32Array(COLOR_LUT_SIZE)
+	const bucketWidth = 1 << COLOR_LUT_SHIFT
+
+	for (let bucket = 0; bucket < COLOR_LUT_SIZE; bucket++) {
+		const sumSqMid = bucket * bucketWidth + bucketWidth / 2
+		colorLut[bucket] = colorDenom === 0 ? (sumSqMid === 0 ? 1 : 0) : Math.exp(-sumSqMid / colorDenom)
+	}
+
+	const colorLutMaxIdx = COLOR_LUT_SIZE - 1
 
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
@@ -36,6 +72,7 @@ export function applyBilateral(
 
 			for (let ny = yMin; ny <= yMax; ny++) {
 				const dy = ny - y
+				const spatialRow = (dy + radius) * span
 
 				for (let nx = xMin; nx <= xMax; nx++) {
 					const dx = nx - x
@@ -44,11 +81,18 @@ export function applyBilateral(
 					const nG = src[nIdx + 1]!
 					const nB = src[nIdx + 2]!
 
-					const spatialWeight = Math.exp(-(dx * dx + dy * dy) / spatialDenom)
+					const spatialWeight = spatialLut[spatialRow + (dx + radius)]!
 					const dR = nR - cR
 					const dG = nG - cG
 					const dB = nB - cB
-					const colorWeight = Math.exp(-(dR * dR + dG * dG + dB * dB) / colorDenom)
+					const sumSq = dR * dR + dG * dG + dB * dB
+					let colorBucket = sumSq >>> COLOR_LUT_SHIFT
+
+					if (colorBucket > colorLutMaxIdx) {
+						colorBucket = colorLutMaxIdx
+					}
+
+					const colorWeight = colorLut[colorBucket]!
 					const weight = spatialWeight * colorWeight
 
 					weightSum += weight

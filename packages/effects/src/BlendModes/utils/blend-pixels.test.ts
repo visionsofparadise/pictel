@@ -83,4 +83,40 @@ describe("blendPixels", () => {
     expect(d[2]).toBe(0)
     expect(d[3]).toBe(0)
   })
+
+  it("opacity defaults to 1 and is byte-identical to omitting the argument", () => {
+    const a = blendPixels(pixel(200, 100, 50, 255), pixel(50, 150, 200, 255), identity)
+    const b = blendPixels(pixel(200, 100, 50, 255), pixel(50, 150, 200, 255), identity, 1)
+
+    expect(b.data[0]).toBe(a.data[0])
+    expect(b.data[1]).toBe(a.data[1])
+    expect(b.data[2]).toBe(a.data[2])
+    expect(b.data[3]).toBe(a.data[3])
+  })
+
+  it("opacity=0 leaves dest unchanged on opaque buffers", () => {
+    const result = blendPixels(pixel(255, 0, 0, 255), pixel(50, 150, 200, 255), identity, 0)
+    const d = result.data
+
+    expect(d[0]).toBe(50)
+    expect(d[1]).toBe(150)
+    expect(d[2]).toBe(200)
+    expect(d[3]).toBe(255)
+  })
+
+  it("opacity=0.5 lerps halfway between dest and the fully-blended Porter-Duff output", () => {
+    // identity blend on opaque buffers: full-opacity result is the source.
+    // With opacity=0.5, expect ~midpoint of dst and src per channel.
+    const result = blendPixels(pixel(255, 0, 0, 255), pixel(0, 0, 255, 255), identity, 0.5)
+    const d = result.data
+
+    // dst=0, src=255 → midpoint 127.5 → 127 or 128
+    expect(d[0]).toBeGreaterThanOrEqual(127)
+    expect(d[0]).toBeLessThanOrEqual(128)
+    expect(d[1]).toBe(0)
+    // dst=255, src=0 → midpoint 127.5 → 127 or 128
+    expect(d[2]).toBeGreaterThanOrEqual(127)
+    expect(d[2]).toBeLessThanOrEqual(128)
+    expect(d[3]).toBe(255)
+  })
 })

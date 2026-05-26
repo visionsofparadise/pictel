@@ -1,8 +1,6 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
-import { lerp } from "./utils/lerp"
-import { luminance } from "./utils/luminance"
 import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -12,11 +10,14 @@ export function applySaturate(pixels: ImageData, amount: number): ImageData {
 	const output = new Uint8ClampedArray(src.length)
 
 	for (let px = 0; px < src.length; px += 4) {
-		const lum = luminance(src[px]!, src[px + 1]!, src[px + 2]!)
+		const red = src[px]!
+		const green = src[px + 1]!
+		const blue = src[px + 2]!
+		const lum = 0.299 * red + 0.587 * green + 0.114 * blue
 
-		output[px] = Math.min(255, Math.max(0, lerp(lum, src[px]!, amount)))
-		output[px + 1] = Math.min(255, Math.max(0, lerp(lum, src[px + 1]!, amount)))
-		output[px + 2] = Math.min(255, Math.max(0, lerp(lum, src[px + 2]!, amount)))
+		output[px] = Math.min(255, Math.max(0, lum + amount * (red - lum)))
+		output[px + 1] = Math.min(255, Math.max(0, lum + amount * (green - lum)))
+		output[px + 2] = Math.min(255, Math.max(0, lum + amount * (blue - lum)))
 		output[px + 3] = src[px + 3]!
 	}
 
@@ -29,13 +30,16 @@ export function applyMappedSaturate(pixels: ImageData, map: ImageData, amount: n
 	const output = new Uint8ClampedArray(src.length)
 
 	for (let px = 0; px < src.length; px += 4) {
-		const mapLum = luminance(mapData[px]!, mapData[px + 1]!, mapData[px + 2]!) / 255
-		const effective = lerp(1, amount, mapLum)
-		const lum = luminance(src[px]!, src[px + 1]!, src[px + 2]!)
+		const mapLum = (0.299 * mapData[px]! + 0.587 * mapData[px + 1]! + 0.114 * mapData[px + 2]!) / 255
+		const effective = 1 + mapLum * (amount - 1)
+		const red = src[px]!
+		const green = src[px + 1]!
+		const blue = src[px + 2]!
+		const lum = 0.299 * red + 0.587 * green + 0.114 * blue
 
-		output[px] = Math.min(255, Math.max(0, lerp(lum, src[px]!, effective)))
-		output[px + 1] = Math.min(255, Math.max(0, lerp(lum, src[px + 1]!, effective)))
-		output[px + 2] = Math.min(255, Math.max(0, lerp(lum, src[px + 2]!, effective)))
+		output[px] = Math.min(255, Math.max(0, lum + effective * (red - lum)))
+		output[px + 1] = Math.min(255, Math.max(0, lum + effective * (green - lum)))
+		output[px + 2] = Math.min(255, Math.max(0, lum + effective * (blue - lum)))
 		output[px + 3] = src[px + 3]!
 	}
 

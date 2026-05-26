@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import type { RasterEffectError } from "../Components/RasterEffect/Error";
+import type { ImageDataPool } from "../utils/image-data-pool";
 
 export interface CanvasDimensions {
 	width: number;
@@ -18,6 +19,7 @@ export interface CanvasContextValue {
 	captureDimensions: CanvasDimensions;
 	reportError: (error: RasterEffectError) => void;
 	offscreenHost: HTMLDivElement;
+	imageDataPool: ImageDataPool;
 }
 
 export const CanvasContext = createContext<CanvasContextValue | null>(null);

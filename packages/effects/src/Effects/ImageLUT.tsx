@@ -1,15 +1,9 @@
 import type { ReactNode } from "react"
 import { useCallback, useEffect, useState } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
-import { lerp } from "./utils/lerp"
 import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-function sampleLut(lutData: Uint8ClampedArray, lutWidth: number, x: number, y: number): [number, number, number] {
-	const offset = (y * lutWidth + x) * 4
-
-	return [lutData[offset]!, lutData[offset + 1]!, lutData[offset + 2]!]
-}
 
 export function applyImageLut(pixels: ImageData, lutImage: ImageData, size: number): ImageData {
 	const src = pixels.data
@@ -27,40 +21,78 @@ export function applyImageLut(pixels: ImageData, lutImage: ImageData, size: numb
 		const b1 = b0 + 1
 		const bFrac = bl - b0
 
-		const rCoord = rd
-		const gCoord = gn
-
-		const r0 = Math.min(Math.floor(rCoord), scale - 1)
+		const r0 = Math.min(Math.floor(rd), scale - 1)
 		const r1 = r0 + 1
-		const rFrac = rCoord - r0
+		const rFrac = rd - r0
 
-		const g0 = Math.min(Math.floor(gCoord), scale - 1)
+		const g0 = Math.min(Math.floor(gn), scale - 1)
 		const g1 = g0 + 1
-		const gFrac = gCoord - g0
+		const gFrac = gn - g0
 
 		const x0Base = b0 * size
-		const s000 = sampleLut(lutData, lutWidth, x0Base + r0, g0)
-		const s100 = sampleLut(lutData, lutWidth, x0Base + r1, g0)
-		const s010 = sampleLut(lutData, lutWidth, x0Base + r0, g1)
-		const s110 = sampleLut(lutData, lutWidth, x0Base + r1, g1)
-
 		const x1Base = b1 * size
-		const s001 = sampleLut(lutData, lutWidth, x1Base + r0, g0)
-		const s101 = sampleLut(lutData, lutWidth, x1Base + r1, g0)
-		const s011 = sampleLut(lutData, lutWidth, x1Base + r0, g1)
-		const s111 = sampleLut(lutData, lutWidth, x1Base + r1, g1)
 
-		for (let ch = 0; ch < 3; ch++) {
-			const c00 = lerp(s000[ch]!, s100[ch]!, rFrac)
-			const c10 = lerp(s010[ch]!, s110[ch]!, rFrac)
-			const val0 = lerp(c00, c10, gFrac)
+		const off000 = (g0 * lutWidth + x0Base + r0) * 4
+		const off100 = (g0 * lutWidth + x0Base + r1) * 4
+		const off010 = (g1 * lutWidth + x0Base + r0) * 4
+		const off110 = (g1 * lutWidth + x0Base + r1) * 4
+		const off001 = (g0 * lutWidth + x1Base + r0) * 4
+		const off101 = (g0 * lutWidth + x1Base + r1) * 4
+		const off011 = (g1 * lutWidth + x1Base + r0) * 4
+		const off111 = (g1 * lutWidth + x1Base + r1) * 4
 
-			const c01 = lerp(s001[ch]!, s101[ch]!, rFrac)
-			const c11 = lerp(s011[ch]!, s111[ch]!, rFrac)
-			const val1 = lerp(c01, c11, gFrac)
+		// 24 scalar corner values
+		const r000 = lutData[off000]!
+		const g000 = lutData[off000 + 1]!
+		const b000 = lutData[off000 + 2]!
+		const r100 = lutData[off100]!
+		const g100 = lutData[off100 + 1]!
+		const b100 = lutData[off100 + 2]!
+		const r010 = lutData[off010]!
+		const g010 = lutData[off010 + 1]!
+		const b010 = lutData[off010 + 2]!
+		const r110 = lutData[off110]!
+		const g110 = lutData[off110 + 1]!
+		const b110 = lutData[off110 + 2]!
+		const r001 = lutData[off001]!
+		const g001 = lutData[off001 + 1]!
+		const b001 = lutData[off001 + 2]!
+		const r101 = lutData[off101]!
+		const g101 = lutData[off101 + 1]!
+		const b101 = lutData[off101 + 2]!
+		const r011 = lutData[off011]!
+		const g011 = lutData[off011 + 1]!
+		const b011 = lutData[off011 + 2]!
+		const r111 = lutData[off111]!
+		const g111 = lutData[off111 + 1]!
+		const b111 = lutData[off111 + 2]!
 
-			output[px + ch] = lerp(val0, val1, bFrac)
-		}
+		// R channel trilinear
+		const redC00 = r000 + rFrac * (r100 - r000)
+		const redC10 = r010 + rFrac * (r110 - r010)
+		const redC01 = r001 + rFrac * (r101 - r001)
+		const redC11 = r011 + rFrac * (r111 - r011)
+		const redV0 = redC00 + gFrac * (redC10 - redC00)
+		const redV1 = redC01 + gFrac * (redC11 - redC01)
+		output[px] = redV0 + bFrac * (redV1 - redV0)
+
+		// G channel trilinear
+		const greenC00 = g000 + rFrac * (g100 - g000)
+		const greenC10 = g010 + rFrac * (g110 - g010)
+		const greenC01 = g001 + rFrac * (g101 - g001)
+		const greenC11 = g011 + rFrac * (g111 - g011)
+		const greenV0 = greenC00 + gFrac * (greenC10 - greenC00)
+		const greenV1 = greenC01 + gFrac * (greenC11 - greenC01)
+		output[px + 1] = greenV0 + bFrac * (greenV1 - greenV0)
+
+		// B channel trilinear
+		const blueC00 = b000 + rFrac * (b100 - b000)
+		const blueC10 = b010 + rFrac * (b110 - b010)
+		const blueC01 = b001 + rFrac * (b101 - b001)
+		const blueC11 = b011 + rFrac * (b111 - b011)
+		const blueV0 = blueC00 + gFrac * (blueC10 - blueC00)
+		const blueV1 = blueC01 + gFrac * (blueC11 - blueC01)
+		output[px + 2] = blueV0 + bFrac * (blueV1 - blueV0)
 
 		output[px + 3] = src[px + 3]!
 	}

@@ -10,10 +10,16 @@ export function applyPosterize(pixels: ImageData, levels: number): ImageData {
 	const clamped = Math.max(2, levels)
 	const steps = clamped - 1
 
+	const lut = new Uint8ClampedArray(256)
+
+	for (let index = 0; index < 256; index++) {
+		lut[index] = Math.round((index / 255) * steps) / steps * 255
+	}
+
 	for (let px = 0; px < src.length; px += 4) {
-		output[px] = Math.round((src[px]! / 255) * steps) / steps * 255
-		output[px + 1] = Math.round((src[px + 1]! / 255) * steps) / steps * 255
-		output[px + 2] = Math.round((src[px + 2]! / 255) * steps) / steps * 255
+		output[px] = lut[src[px]!]!
+		output[px + 1] = lut[src[px + 1]!]!
+		output[px + 2] = lut[src[px + 2]!]!
 		output[px + 3] = src[px + 3]!
 	}
 

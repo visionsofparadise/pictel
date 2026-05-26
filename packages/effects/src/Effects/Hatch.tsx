@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
-import { applyLIC } from "./LIC"
+import { applyLicWithStreamlines, computeStreamlines } from "./LIC"
 import { computeTierBuffer } from "./utils/compute-tier-buffer"
 import { mulberry32 } from "./utils/mulberry32"
 
@@ -82,8 +82,9 @@ function buildNoiseSeed(
 	height: number,
 	blackProbability: number,
 	bandIdx: number,
+	into?: Uint8ClampedArray<ArrayBuffer>,
 ): ImageData {
-	const data = new Uint8ClampedArray(width * height * 4)
+	const data: Uint8ClampedArray<ArrayBuffer> = into ?? new Uint8ClampedArray(width * height * 4)
 	const rng = mulberry32(NOISE_SEED_BASE + bandIdx * 0x85ebca6b)
 	const probability = Math.min(1, Math.max(0, blackProbability))
 
@@ -155,14 +156,17 @@ export function applyHatchFieldAligned(
 		output[pixelIdx + 3] = src[pixelIdx + 3]!
 	}
 
+	const streamlines = computeStreamlines(field, length, stepSize, uniformStep)
+	const seedBuffer: Uint8ClampedArray<ArrayBuffer> = new Uint8ClampedArray(width * height * 4)
+
 	for (let bandIdx = 0; bandIdx < bands - 1; bandIdx++) {
 		const tierValue = tierValues[bandIdx]!
 		const bandSpacing = Math.max(1, spacing[bandIdx]!)
 
 		const blackProbability = Math.min(0.5, 2 / bandSpacing)
-		const seed = buildNoiseSeed(width, height, blackProbability, bandIdx)
-		const streamlines = applyLIC(seed, field, length, stepSize, uniformStep)
-		const lineLayer = sharpenLineLayer(streamlines, LINE_CONTRAST_MIDPOINT, LINE_CONTRAST_GAIN)
+		const seed = buildNoiseSeed(width, height, blackProbability, bandIdx, seedBuffer)
+		const licOutput = applyLicWithStreamlines(seed, streamlines)
+		const lineLayer = sharpenLineLayer(licOutput, LINE_CONTRAST_MIDPOINT, LINE_CONTRAST_GAIN)
 		const lineData = lineLayer.data
 
 		for (let y = 0; y < height; y++) {

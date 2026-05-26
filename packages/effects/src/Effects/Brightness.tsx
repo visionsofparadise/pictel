@@ -11,10 +11,16 @@ export function applyBrightness(pixels: ImageData, amount: number): ImageData {
 	const src = pixels.data
 	const output = new Uint8ClampedArray(src.length)
 
+	const lut = new Uint8ClampedArray(256)
+
+	for (let index = 0; index < 256; index++) {
+		lut[index] = index * amount
+	}
+
 	for (let px = 0; px < src.length; px += 4) {
-		output[px] = Math.min(255, Math.max(0, src[px]! * amount))
-		output[px + 1] = Math.min(255, Math.max(0, src[px + 1]! * amount))
-		output[px + 2] = Math.min(255, Math.max(0, src[px + 2]! * amount))
+		output[px] = lut[src[px]!]!
+		output[px + 1] = lut[src[px + 1]!]!
+		output[px + 2] = lut[src[px + 2]!]!
 		output[px + 3] = src[px + 3]!
 	}
 

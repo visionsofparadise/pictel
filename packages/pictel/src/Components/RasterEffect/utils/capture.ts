@@ -1,8 +1,36 @@
 import { snapdom } from "@zumer/snapdom";
+import type { ImageDataPool } from "../../../utils/image-data-pool";
 
 const baseOptions = { dpr: 1, fast: true };
 
-function tryFastPath(element: HTMLElement, dimensions: { width: number; height: number }): ImageData | null {
+/**
+ * Read pixels into a pool-owned `ImageData`. The pool may hand back a buffer
+ * recycled from a prior capture; we overwrite it via `data.set()` so the
+ * returned bytes are identical to what `getImageData` produced. The fresh
+ * `ImageData` allocated by `getImageData` is GC'd after the copy — short-lived
+ * nursery garbage rather than long-lived heap pressure.
+ */
+function readIntoPool(canvas: HTMLCanvasElement, width: number, height: number, pool: ImageDataPool): ImageData | null {
+	const context = canvas.getContext("2d", { willReadFrequently: true });
+
+	if (!context) return null;
+
+	const fresh = context.getImageData(0, 0, width, height);
+	const pooled = pool.acquire(width, height);
+
+	if (pooled.data.length !== fresh.data.length) {
+		// Pool returned a buffer with mismatched length (defensive — shouldn't
+		// happen since acquire matches on width+height). Fall back to the
+		// fresh allocation.
+		return fresh;
+	}
+
+	pooled.data.set(fresh.data);
+
+	return pooled;
+}
+
+function tryFastPath(element: HTMLElement, dimensions: { width: number; height: number }, pool: ImageDataPool): ImageData | null {
 	let canvas: HTMLCanvasElement | null = null;
 
 	for (const child of Array.from(element.children)) {
@@ -27,23 +55,19 @@ function tryFastPath(element: HTMLElement, dimensions: { width: number; height: 
 		return null;
 	}
 
-	const innerContext = canvas.getContext("2d", { willReadFrequently: true });
-
-	if (!innerContext) return null;
-
-	return innerContext.getImageData(0, 0, canvas.width, canvas.height);
+	return readIntoPool(canvas, canvas.width, canvas.height, pool);
 }
 
-export async function captureWrapper(element: HTMLElement, dimensions: { width: number; height: number }): Promise<ImageData> {
-	const fast = tryFastPath(element, dimensions);
+export async function captureWrapper(element: HTMLElement, dimensions: { width: number; height: number }, pool: ImageDataPool): Promise<ImageData> {
+	const fast = tryFastPath(element, dimensions, pool);
 
 	if (fast) return fast;
 
 	const options = { ...baseOptions, width: dimensions.width, height: dimensions.height };
 	const canvas = await snapdom.toCanvas(element, options);
-	const context = canvas.getContext("2d", { willReadFrequently: true });
+	const captured = readIntoPool(canvas, canvas.width, canvas.height, pool);
 
-	if (!context) throw new Error("Failed to get 2d context from canvas");
+	if (captured === null) throw new Error("Failed to get 2d context from canvas");
 
-	return context.getImageData(0, 0, canvas.width, canvas.height);
+	return captured;
 }

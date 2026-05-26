@@ -1,8 +1,6 @@
 import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
-import { lerp } from "./utils/lerp"
-import { luminance } from "./utils/luminance"
 import { mixBlend } from "./utils/mix-blend"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -12,11 +10,14 @@ export function applyGrayscale(pixels: ImageData, amount: number): ImageData {
 	const output = new Uint8ClampedArray(src.length)
 
 	for (let px = 0; px < src.length; px += 4) {
-		const lum = luminance(src[px]!, src[px + 1]!, src[px + 2]!)
+		const red = src[px]!
+		const green = src[px + 1]!
+		const blue = src[px + 2]!
+		const lum = 0.299 * red + 0.587 * green + 0.114 * blue
 
-		output[px] = lerp(src[px]!, lum, amount)
-		output[px + 1] = lerp(src[px + 1]!, lum, amount)
-		output[px + 2] = lerp(src[px + 2]!, lum, amount)
+		output[px] = red + amount * (lum - red)
+		output[px + 1] = green + amount * (lum - green)
+		output[px + 2] = blue + amount * (lum - blue)
 		output[px + 3] = src[px + 3]!
 	}
 

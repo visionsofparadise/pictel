@@ -6,13 +6,15 @@ import { RasterEffect, type RasterEffectCallback } from "pictel"
 function sampleBilinear(image: ImageData, x: number, y: number): [number, number, number, number] {
 	const { width, height, data } = image
 
-	const cx = x < 0 ? 0 : x > width - 1 ? width - 1 : x
-	const cy = y < 0 ? 0 : y > height - 1 ? height - 1 : y
+	const maxX = width - 1
+	const maxY = height - 1
+	const cx = x < 0 ? 0 : x > maxX ? maxX : x
+	const cy = y < 0 ? 0 : y > maxY ? maxY : y
 
 	const x0 = Math.floor(cx)
 	const y0 = Math.floor(cy)
-	const x1 = x0 + 1 > width - 1 ? width - 1 : x0 + 1
-	const y1 = y0 + 1 > height - 1 ? height - 1 : y0 + 1
+	const x1 = x0 + 1 < maxX ? x0 + 1 : maxX
+	const y1 = y0 + 1 < maxY ? y0 + 1 : maxY
 
 	const fx = cx - x0
 	const fy = cy - y0
@@ -35,28 +37,55 @@ function sampleBilinear(image: ImageData, x: number, y: number): [number, number
 	return [red, green, blue, alpha]
 }
 
-export function applyLIC(
-	seed: ImageData,
+/**
+ * Cached streamline geometry. `forwardX/forwardY/backwardX/backwardY` are
+ * `width * height * length` Float64Arrays indexed as `(y * width + x) * length + step`
+ * holding the sample coordinates traced through the field for each pixel. Float64
+ * preserves the original JS-number precision of the integration step, keeping
+ * the seed-convolution output byte-identical to the single-pass implementation.
+ * `weights` is the per-step weight `1 - step / length`, shared between forward
+ * and backward traversals.
+ */
+export interface StreamlineMap {
+	readonly width: number
+	readonly height: number
+	readonly length: number
+	readonly forwardX: Float64Array
+	readonly forwardY: Float64Array
+	readonly backwardX: Float64Array
+	readonly backwardY: Float64Array
+	readonly weights: Float32Array
+}
+
+/**
+ * Trace the per-pixel forward and backward streamlines of a Direction-style
+ * cos/sin/magnitude field once, so multiple seed convolutions (e.g. per-band
+ * in field-aligned `Hatch`) can reuse the cached geometry.
+ */
+export function computeStreamlines(
 	field: ImageData,
 	length: number,
 	stepSize: number,
 	uniformStep = false,
-): ImageData {
-	if (seed.width !== field.width || seed.height !== field.height) {
-		throw new Error(
-			`applyLIC: seed and field dimensions must match (seed=${String(seed.width)}x${String(seed.height)}, field=${String(field.width)}x${String(field.height)})`,
-		)
-	}
+): StreamlineMap {
+	const { width, height } = field
+	const pixelCount = width * height
+	const sampleCount = pixelCount * length
 
-	const { width, height, data: seedData } = seed
-	const output = new Uint8ClampedArray(seedData.length)
+	const forwardX = new Float64Array(sampleCount)
+	const forwardY = new Float64Array(sampleCount)
+	const backwardX = new Float64Array(sampleCount)
+	const backwardY = new Float64Array(sampleCount)
+
+	const weights = new Float32Array(length)
+
+	for (let step = 0; step < length; step++) {
+		weights[step] = 1 - step / length
+	}
 
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
-			let accumR = 0
-			let accumG = 0
-			let accumB = 0
-			let weightSum = 0
+			const baseIdx = (y * width + x) * length
 
 			let fx = x
 			let fy = y
@@ -71,12 +100,8 @@ export function applyLIC(
 				fx += cos * stepLength
 				fy += sin * stepLength
 
-				const seedSample = sampleBilinear(seed, fx, fy)
-				const weight = 1 - step / length
-				accumR += seedSample[0] * weight
-				accumG += seedSample[1] * weight
-				accumB += seedSample[2] * weight
-				weightSum += weight
+				forwardX[baseIdx + step] = fx
+				forwardY[baseIdx + step] = fy
 			}
 
 			let bx = x
@@ -92,8 +117,57 @@ export function applyLIC(
 				bx -= cos * stepLength
 				by -= sin * stepLength
 
-				const seedSample = sampleBilinear(seed, bx, by)
-				const weight = 1 - step / length
+				backwardX[baseIdx + step] = bx
+				backwardY[baseIdx + step] = by
+			}
+		}
+	}
+
+	return { width, height, length, forwardX, forwardY, backwardX, backwardY, weights }
+}
+
+/**
+ * Convolve a seed image along precomputed streamlines. The per-step weight is
+ * shared between forward and backward halves (precomputed in the StreamlineMap),
+ * so total `weightSum` per pixel is `2 * sum(weights)`.
+ */
+export function applyLicWithStreamlines(seed: ImageData, streamlines: StreamlineMap): ImageData {
+	const { width, height, length, forwardX, forwardY, backwardX, backwardY, weights } = streamlines
+
+	if (seed.width !== width || seed.height !== height) {
+		throw new Error(
+			`applyLicWithStreamlines: seed and streamlines dimensions must match (seed=${String(seed.width)}x${String(seed.height)}, streamlines=${String(width)}x${String(height)})`,
+		)
+	}
+
+	const seedData = seed.data
+	const output = new Uint8ClampedArray(seedData.length)
+
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			let accumR = 0
+			let accumG = 0
+			let accumB = 0
+			let weightSum = 0
+
+			const baseIdx = (y * width + x) * length
+
+			for (let step = 0; step < length; step++) {
+				const sx = forwardX[baseIdx + step]!
+				const sy = forwardY[baseIdx + step]!
+				const seedSample = sampleBilinear(seed, sx, sy)
+				const weight = weights[step]!
+				accumR += seedSample[0] * weight
+				accumG += seedSample[1] * weight
+				accumB += seedSample[2] * weight
+				weightSum += weight
+			}
+
+			for (let step = 0; step < length; step++) {
+				const sx = backwardX[baseIdx + step]!
+				const sy = backwardY[baseIdx + step]!
+				const seedSample = sampleBilinear(seed, sx, sy)
+				const weight = weights[step]!
 				accumR += seedSample[0] * weight
 				accumG += seedSample[1] * weight
 				accumB += seedSample[2] * weight
@@ -107,10 +181,9 @@ export function applyLIC(
 				output[outIdx + 1] = accumG / weightSum
 				output[outIdx + 2] = accumB / weightSum
 			} else {
-				const seedIdx = outIdx
-				output[outIdx] = seedData[seedIdx]!
-				output[outIdx + 1] = seedData[seedIdx + 1]!
-				output[outIdx + 2] = seedData[seedIdx + 2]!
+				output[outIdx] = seedData[outIdx]!
+				output[outIdx + 1] = seedData[outIdx + 1]!
+				output[outIdx + 2] = seedData[outIdx + 2]!
 			}
 
 			output[outIdx + 3] = seedData[outIdx + 3]!
@@ -118,6 +191,24 @@ export function applyLIC(
 	}
 
 	return new ImageData(output, width, height)
+}
+
+export function applyLIC(
+	seed: ImageData,
+	field: ImageData,
+	length: number,
+	stepSize: number,
+	uniformStep = false,
+): ImageData {
+	if (seed.width !== field.width || seed.height !== field.height) {
+		throw new Error(
+			`applyLIC: seed and field dimensions must match (seed=${String(seed.width)}x${String(seed.height)}, field=${String(field.width)}x${String(field.height)})`,
+		)
+	}
+
+	const streamlines = computeStreamlines(field, length, stepSize, uniformStep)
+
+	return applyLicWithStreamlines(seed, streamlines)
 }
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 

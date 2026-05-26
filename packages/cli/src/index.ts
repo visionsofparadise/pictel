@@ -101,16 +101,19 @@ async function runRender(options: RenderOptions): Promise<Array<EntryResult>> {
   const { outDir } = await buildShell({ entryAbsPath, projectDir });
   const server = await serveShell(outDir);
   const browser = await launchBrowser();
+  const page = await browser.newPage();
 
-  const results: Array<EntryResult> = [];
+  const pendingTail: Array<Promise<EntryResult>> = [];
 
   try {
     for (const entry of entries) {
       const format = entry.format ?? DEFAULT_FORMAT;
 
+      let screenshot: Buffer;
+
       try {
-        const screenshot = await renderEntry({
-          browser,
+        screenshot = await renderEntry({
+          page,
           baseUrl: server.url,
           canvas: entry.canvas,
           canvasWidth: entry.canvasWidth,
@@ -118,26 +121,40 @@ async function runRender(options: RenderOptions): Promise<Array<EntryResult>> {
           params: entry.params,
           scale: entry.scale,
         });
+      } catch (error) {
+        pendingTail.push(
+          Promise.resolve({ name: entry.name, ok: false, error: String(error) }),
+        );
+        continue;
+      }
 
-        const encoded = await encode(screenshot, {
+      const outPath = resolveOutputPath(entry, format, useOutFlag ? options.out : undefined);
+
+      pendingTail.push(
+        encode(screenshot, {
           format,
           quality: entry.quality,
           width: entry.width,
           height: entry.height,
-        });
-        const outPath = resolveOutputPath(entry, format, useOutFlag ? options.out : undefined);
-        await writeOutput(encoded, outPath);
+        })
+          .then(async (encoded) => {
+            await writeOutput(encoded, outPath);
+            const result: EntryResult = { name: entry.name, outPath, ok: true };
 
-        results.push({ name: entry.name, outPath, ok: true });
-      } catch (error) {
-        results.push({ name: entry.name, ok: false, error: String(error) });
-      }
+            return result;
+          })
+          .catch((error: unknown) => {
+            const result: EntryResult = { name: entry.name, ok: false, error: String(error) };
+
+            return result;
+          }),
+      );
     }
-  } finally {
-    await Promise.allSettled([browser.close(), server.close()]);
-  }
 
-  return results;
+    return await Promise.all(pendingTail);
+  } finally {
+    await Promise.allSettled([page.close(), browser.close(), server.close()]);
+  }
 }
 
 function printSummary(results: ReadonlyArray<EntryResult>): void {

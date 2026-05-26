@@ -73,11 +73,40 @@ Compose with map-producing effects:
 
 ## Effects
 
+### applyMappedBilateralGpu()
+
+> **applyMappedBilateralGpu**(`pixels`, `map`, `spatialSigma`, `colorSigma`): `Promise`\<`ImageData`\>
+
+Defined in: Effects/BilateralGpu.tsx:19
+
+GPU-accelerated counterpart to `Bilateral`. Same prop interface; runs the
+filter as a WebGPU compute dispatch. Throws via the standard `RasterEffect`
+error path when WebGPU is unavailable — no CPU fallback (use `Bilateral`
+directly when WebGPU support isn't guaranteed).
+
+Recommended over `Bilateral` for `spatialSigma >= 4` and large images where
+the CPU implementation's O(W·H·r²) gather is interactive-blocking.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `pixels` | `ImageData` |
+| `map` | `ImageData` |
+| `spatialSigma` | `number` |
+| `colorSigma` | `number` |
+
+#### Returns
+
+`Promise`\<`ImageData`\>
+
+***
+
 ### Bilateral()
 
 > **Bilateral**(`props`): `Element`
 
-Defined in: [Effects/Bilateral.tsx:104](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Bilateral.tsx#L104)
+Defined in: [Effects/Bilateral.tsx:148](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Bilateral.tsx#L148)
 
 Edge-preserving smoothing. Blurs flat regions while keeping edges crisp — useful
 as a cel-shading or skin-smoothing primitive. Large `spatialSigma` values are
@@ -125,6 +154,27 @@ glow is clipped to the frame — output dimensions match the input.
 
 ***
 
+### BloomGpu()
+
+> **BloomGpu**(`props`): `Element`
+
+Defined in: Effects/BloomGpu.tsx:23
+
+GPU-accelerated counterpart to `Bloom`. Same prop interface. Throws via the
+standard `RasterEffect` error path when WebGPU is unavailable.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `BloomGpuProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
 ### Blur()
 
 > **Blur**(`props`): `Element`
@@ -148,11 +198,40 @@ Applies a Gaussian-approximation blur or a map-driven variable-radius blur.
 
 ***
 
+### BlurGpu()
+
+> **BlurGpu**(`props`): `Element`
+
+Defined in: Effects/BlurGpu.tsx:26
+
+GPU-accelerated counterpart to `Blur` (parameter mode only — the variable
+(mapped) blur stays CPU). Runs the Gaussian-approximation box-blur cascade
+as WebGPU compute dispatches. Throws via the standard `RasterEffect` error
+path when WebGPU is unavailable — no CPU fallback (use `Blur` directly when
+WebGPU support isn't guaranteed).
+
+Output dimensions and overflow match `Blur` exactly; per-pixel values match
+within float-precision tolerance.
+
+- `radius` — Blur radius in pixels.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `BlurGpuProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
 ### Brightness()
 
 > **Brightness**(`props`): `Element`
 
-Defined in: [Effects/Brightness.tsx:59](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Brightness.tsx#L59)
+Defined in: [Effects/Brightness.tsx:65](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Brightness.tsx#L65)
 
 Adjusts pixel brightness by multiplying RGB channels.
 
@@ -223,7 +302,7 @@ Combined color grading with brightness, contrast, saturation, temperature, and t
 
 > **Contrast**(`props`): `Element`
 
-Defined in: [Effects/Contrast.tsx:59](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Contrast.tsx#L59)
+Defined in: [Effects/Contrast.tsx:65](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Contrast.tsx#L65)
 
 Adjusts pixel contrast by scaling deviation from mid-gray.
 
@@ -245,7 +324,7 @@ Adjusts pixel contrast by scaling deviation from mid-gray.
 
 > **CubeLUT**(`props`): `Element`
 
-Defined in: [Effects/CubeLUT.tsx:119](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/CubeLUT.tsx#L119)
+Defined in: [Effects/CubeLUT.tsx:156](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/CubeLUT.tsx#L156)
 
 Applies a .cube 3D LUT file for color grading. Fetches and parses the cube file, then
 applies trilinear-interpolated color transformation.
@@ -268,7 +347,7 @@ applies trilinear-interpolated color transformation.
 
 > **Direction**(`props`): `Element`
 
-Defined in: [Effects/Sobel/Direction.tsx:142](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sobel/Direction.tsx#L142)
+Defined in: [Effects/Sobel/Direction.tsx:153](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sobel/Direction.tsx#L153)
 
 Produces a direction field describing how the image flows at every pixel.
 Feed this through the `map` prop on `LIC` or the field-aligned mode of
@@ -346,11 +425,32 @@ Adds a drop shadow behind the content at a specified offset with blur and color.
 
 ***
 
+### DropShadowGpu()
+
+> **DropShadowGpu**(`props`): `Element`
+
+Defined in: Effects/DropShadowGpu.tsx:24
+
+GPU-accelerated counterpart to `DropShadow`. Same prop interface. Throws
+via the standard `RasterEffect` error path when WebGPU is unavailable.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `DropShadowGpuProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
 ### Duotone()
 
 > **Duotone**(`props`): `Element`
 
-Defined in: [Effects/Duotone.tsx:47](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Duotone.tsx#L47)
+Defined in: [Effects/Duotone.tsx:46](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Duotone.tsx#L46)
 
 Maps pixel luminance to a two-color gradient. Shadows map to `dark`, highlights to `light`.
 
@@ -454,7 +554,7 @@ Adds deterministic monochromatic film grain noise to the image.
 
 > **Grayscale**(`props`): `Element`
 
-Defined in: [Effects/Grayscale.tsx:42](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Grayscale.tsx#L42)
+Defined in: [Effects/Grayscale.tsx:43](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Grayscale.tsx#L43)
 
 Desaturates pixels toward perceptual grayscale.
 
@@ -512,7 +612,7 @@ Converts the image to a dot-screen halftone. Three flavors:
 
 > **Hatch**(`props`): `Element`
 
-Defined in: [Effects/Hatch.tsx:218](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Hatch.tsx#L218)
+Defined in: [Effects/Hatch.tsx:222](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Hatch.tsx#L222)
 
 Renders the source as tonal bands of ink hatching on white. Two modes:
 
@@ -569,7 +669,7 @@ Rotates the hue of each pixel in HSL color space.
 
 > **ImageLUT**(`props`): `Element`
 
-Defined in: [Effects/ImageLUT.tsx:88](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/ImageLUT.tsx#L88)
+Defined in: [Effects/ImageLUT.tsx:120](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/ImageLUT.tsx#L120)
 
 Applies a 3D LUT from an image file (PNG strip of horizontal slices) for color grading.
 
@@ -592,7 +692,7 @@ Applies a 3D LUT from an image file (PNG strip of horizontal slices) for color g
 
 > **Invert**(`props`): `Element`
 
-Defined in: [Effects/Invert.tsx:39](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Invert.tsx#L39)
+Defined in: [Effects/Invert.tsx:45](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Invert.tsx#L45)
 
 Inverts pixel colors.
 
@@ -614,7 +714,7 @@ Inverts pixel colors.
 
 > **LIC**(`props`): `Element`
 
-Defined in: [Effects/LIC.tsx:148](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/LIC.tsx#L148)
+Defined in: [Effects/LIC.tsx:239](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/LIC.tsx#L239)
 
 Smears the children along a direction field, producing streamline-aligned
 output — the look you'd use to visualize a vector field or to drive
@@ -640,11 +740,41 @@ Requires the `map` prop. Without one the effect throws.
 
 ***
 
+### LICGpu()
+
+> **LICGpu**(`props`): `Element`
+
+Defined in: Effects/LICGpu.tsx:29
+
+WebGPU-backed `LIC` — line integral convolution accelerated by hardware
+bilinear texture sampling. Public API matches `LIC` exactly. Throws (via
+`RasterEffect`'s `reportError`) when WebGPU is unavailable; use `LIC` as
+the universal-support fallback.
+
+Requires the `map` prop. Without one the effect throws.
+
+- `length` — Streamline length in steps per direction (forward and backward). Higher values produce longer smears. Default 20.
+- `stepSize` — Step size in pixels per integration step. Default 1.
+- `uniformStep` — Walk at a constant step length, ignoring the field's magnitude channel. Default false.
+- `map` — Required. Vector field as JSX (typically a `Direction`-style encoding).
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `LICGpuProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
 ### LuminanceBands()
 
 > **LuminanceBands**(`props`): `Element`
 
-Defined in: [Effects/LuminanceBands.tsx:114](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/LuminanceBands.tsx#L114)
+Defined in: [Effects/LuminanceBands.tsx:133](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/LuminanceBands.tsx#L133)
 
 Quantizes brightness into discrete tiers while leaving color alone — the
 cel-shading primitive. Output keeps the original color of each pixel and
@@ -701,7 +831,7 @@ Requires a `map`; without one the effect throws.
 
 > **Opacity**(`props`): `Element`
 
-Defined in: [Effects/Opacity.tsx:59](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Opacity.tsx#L59)
+Defined in: [Effects/Opacity.tsx:65](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Opacity.tsx#L65)
 
 Adjusts pixel opacity by scaling the alpha channel.
 
@@ -747,11 +877,32 @@ hard binary outlines.
 
 ***
 
+### OutlineGpu()
+
+> **OutlineGpu**(`props`): `Element`
+
+Defined in: Effects/OutlineGpu.tsx:24
+
+GPU-accelerated counterpart to `Outline`. Same prop interface. Throws via
+the standard `RasterEffect` error path when WebGPU is unavailable.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `OutlineGpuProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
 ### Posterize()
 
 > **Posterize**(`props`): `Element`
 
-Defined in: [Effects/Posterize.tsx:58](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Posterize.tsx#L58)
+Defined in: [Effects/Posterize.tsx:64](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Posterize.tsx#L64)
 
 Reduces color depth to a fixed number of levels per channel, creating a poster-like flat color effect.
 
@@ -773,7 +924,7 @@ Reduces color depth to a fixed number of levels per channel, creating a poster-l
 
 > **Quantize**(`props`): `Element`
 
-Defined in: [Effects/Quantize.tsx:319](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Quantize.tsx#L319)
+Defined in: [Effects/Quantize.tsx:401](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Quantize.tsx#L401)
 
 Maps the image to a restricted color palette — the GIF / pixel-art / retro
 look. Either a fixed `palette` (an array of `[r, g, b]` triples) or an
@@ -800,7 +951,7 @@ exclusive.
 
 > **Saturate**(`props`): `Element`
 
-Defined in: [Effects/Saturate.tsx:62](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Saturate.tsx#L62)
+Defined in: [Effects/Saturate.tsx:66](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Saturate.tsx#L66)
 
 Adjusts color saturation by interpolating between grayscale and the original color.
 
@@ -866,7 +1017,7 @@ Sharpens the image by enhancing edges against their immediate neighbors.
 
 > **ShockFilter**(`props`): `Element`
 
-Defined in: [Effects/ShockFilter.tsx:146](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/ShockFilter.tsx#L146)
+Defined in: [Effects/ShockFilter.tsx:160](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/ShockFilter.tsx#L160)
 
 Iterative edge-aware sharpening — flattens regions and crispens edges into a
 clean cartoon / line-drawing look without the ringing of a single-pass
@@ -889,11 +1040,35 @@ harden the edges further; cost scales with `iterations`.
 
 ***
 
+### ShockFilterGpu()
+
+> **ShockFilterGpu**(`props`): `Element`
+
+Defined in: Effects/ShockFilterGpu.tsx:25
+
+GPU-accelerated counterpart to `ShockFilter`. The iteration loop stays
+entirely on GPU — only the initial upload and final readback cross the
+CPU/GPU boundary. Same prop interface as `ShockFilter`.
+
+Throws via the standard `RasterEffect` error path when WebGPU is unavailable.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `ShockFilterGpuProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
 ### Threshold()
 
 > **Threshold**(`props`): `Element`
 
-Defined in: [Effects/Threshold.tsx:58](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Threshold.tsx#L58)
+Defined in: [Effects/Threshold.tsx:63](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Threshold.tsx#L63)
 
 Converts each pixel to pure black or white based on a luminance threshold.
 
@@ -1655,3 +1830,179 @@ Dark blend values increase contrast via burn; light values decrease via dodge.
 #### Returns
 
 `Element`
+
+## Other
+
+### applyBilateralGpu()
+
+> **applyBilateralGpu**(`pixels`, `spatialSigma`, `colorSigma`): `Promise`\<`ImageData`\>
+
+Defined in: Effects/applyBilateralGpu.ts:26
+
+GPU-accelerated bilateral filter. Matches the math of `applyBilateral` (the
+CPU peer) within float-precision tolerance — at the eventual Uint8 output a
+handful of pixels can differ by ±1 unit vs. the CPU implementation, which
+is well below visible threshold.
+
+Throws if WebGPU is unavailable; the caller is responsible for surfacing the
+error (typically via `RasterEffect`'s `reportError` path).
+
+Device creation happens per call. The adapter is cached at the
+`requireWebGPU` module level; device creation itself is a few-ms operation
+that's dominated by the actual filter dispatch + readback for the image
+sizes pictel cares about.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `pixels` | `ImageData` |
+| `spatialSigma` | `number` |
+| `colorSigma` | `number` |
+
+#### Returns
+
+`Promise`\<`ImageData`\>
+
+***
+
+### applyBloomGpu()
+
+> **applyBloomGpu**(`pixels`, `threshold`, `radius`, `intensity`): `Promise`\<`ImageData`\>
+
+Defined in: Effects/applyBloomGpu.ts:15
+
+GPU-accelerated counterpart to `applyBloom`. Highlight extraction and final
+screen-blend composite stay on CPU; the blur-of-highlights step (the
+dominant cost at large radius) runs on GPU via `applyBlurGpu`.
+
+Throws if WebGPU is unavailable.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `pixels` | `ImageData` |
+| `threshold` | `number` |
+| `radius` | `number` |
+| `intensity` | `number` |
+
+#### Returns
+
+`Promise`\<`ImageData`\>
+
+***
+
+### applyBlurGpu()
+
+> **applyBlurGpu**(`pixels`, `radius`): `Promise`\<`EffectResult`\>
+
+Defined in: Effects/applyBlurGpu.ts:22
+
+GPU-accelerated counterpart to `applyUniformBlur`. Mirrors the CPU peer's
+three-pass box-blur approximation of a Gaussian (using `boxRadiiForGaussian`)
+so output dimensions and overflow match exactly; per-pixel values match
+within float-precision tolerance.
+
+Throws if WebGPU is unavailable. No CPU fallback — use `applyUniformBlur`
+when WebGPU support isn't guaranteed.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `pixels` | `ImageData` |
+| `radius` | `number` |
+
+#### Returns
+
+`Promise`\<`EffectResult`\>
+
+***
+
+### applyDropShadowGpu()
+
+> **applyDropShadowGpu**(`pixels`, `offsetX`, `offsetY`, `blurRadius`, `color`): `Promise`\<`EffectResult`\>
+
+Defined in: Effects/applyDropShadowGpu.ts:17
+
+GPU-accelerated counterpart to `applyDropShadow`. Same math, same output:
+the only difference is the mask-blur step runs as a WebGPU separable box
+cascade (`applyBlurGpu`) instead of the CPU `applyUniformBlur`. The
+surrounding mask-build and color-composite passes stay on CPU — they're
+a tiny fraction of total cost and porting them to GPU would only add
+upload/readback overhead.
+
+Throws if WebGPU is unavailable.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `pixels` | `ImageData` |
+| `offsetX` | `number` |
+| `offsetY` | `number` |
+| `blurRadius` | `number` |
+| `color` | `string` |
+
+#### Returns
+
+`Promise`\<`EffectResult`\>
+
+***
+
+### applyOutlineGpu()
+
+> **applyOutlineGpu**(`pixels`, `sigma`, `kappa`, `epsilon`, `phi`): `Promise`\<`ImageData`\>
+
+Defined in: Effects/applyOutlineGpu.ts:17
+
+GPU-accelerated counterpart to `applyOutline` (XDoG). The two Gaussian
+blurs at σ and k·σ — the dominant cost — run on GPU via `applyBlurGpu`.
+Luminance pack and the XDoG sigmoid combine stay on CPU.
+
+Throws if WebGPU is unavailable.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `pixels` | `ImageData` |
+| `sigma` | `number` |
+| `kappa` | `number` |
+| `epsilon` | `number` |
+| `phi` | `number` |
+
+#### Returns
+
+`Promise`\<`ImageData`\>
+
+***
+
+### applyShockFilterGpu()
+
+> **applyShockFilterGpu**(`pixels`, `iterations`, `strength`): `Promise`\<`ImageData`\>
+
+Defined in: Effects/applyShockFilterGpu.ts:19
+
+GPU-accelerated counterpart to `applyShockFilter`. The iteration loop stays
+entirely on GPU: each iteration runs (a) one separable-blur pass via the
+shared helper (radius 1, "smoothing") and (b) one shock-step compute that
+reads the smoothed lum field + the pre-smoothing state and writes the
+post-shock state into a ping-pong texture. No CPU readback between
+iterations — only one upload at start and one readback at end. This is
+Phase 22.4's headline ShockFilter win.
+
+Throws if WebGPU is unavailable.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `pixels` | `ImageData` |
+| `iterations` | `number` |
+| `strength` | `number` |
+
+#### Returns
+
+`Promise`\<`ImageData`\>

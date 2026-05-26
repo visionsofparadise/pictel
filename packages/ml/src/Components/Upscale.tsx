@@ -1,10 +1,12 @@
-import { useCallback, useMemo, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, type ReactNode } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
 import type { Pipeline } from "@huggingface/transformers"
 import type { RawImage } from "@huggingface/transformers"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
-import { getOrLoadPipeline } from "../registry"
+import { runPipeline, subscribePipeline } from "../registry"
 import { requireWebGPU } from "../webgpu"
+
+const TASK = "image-to-image"
 
 const DEFAULT_MODEL = "Xenova/swin2SR-classical-sr-x2-64"
 const DEFAULT_REVISION = "93dfc9089abda257351d3a58d5771e2c1ff69442"
@@ -36,19 +38,26 @@ export function Upscale({
 	revision = DEFAULT_REVISION,
 	children,
 }: UpscaleProps) {
-	const pipelinePromise = useMemo(
-		() => requireWebGPU().then(() => getOrLoadPipeline("image-to-image", model, revision)),
+	const subscription = useMemo(
+		() => {
+			const sub = subscribePipeline(TASK, model, revision)
+			const promise = requireWebGPU().then(() => sub.promise)
+
+			return { promise, unsubscribe: sub.unsubscribe }
+		},
 		[model, revision],
 	)
+	useEffect(() => subscription.unsubscribe, [subscription])
 
 	const effect = useCallback<RasterEffectCallback>(
 		async (target) => {
-			const pipe = await pipelinePromise
-			const pixels = await upscale(target, pipe)
+			await subscription.promise
 
-			return { pixels }
+			return {
+				pixels: await runPipeline(TASK, model, revision, (pipe) => upscale(target, pipe)),
+			}
 		},
-		[pipelinePromise],
+		[subscription, model, revision],
 	)
 
 	return (

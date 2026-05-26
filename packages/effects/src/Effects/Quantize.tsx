@@ -7,7 +7,75 @@ import { mixBlend } from "./utils/mix-blend"
 
 type Rgb = readonly [number, number, number]
 
-function nearestColor(red: number, green: number, blue: number, palette: ReadonlyArray<Rgb>): number {
+// 32³ color-bucket LUT — see buildPaletteLut. The LUT is indexed by the
+// top 5 bits of each channel (`>>> 3`), so each bucket spans an 8×8×8 cube
+// of RGB space and the LUT itself is 32 KB (fits in L1/L2 cache).
+const LUT_BUCKETS_PER_AXIS = 32
+const LUT_GREEN_STRIDE = LUT_BUCKETS_PER_AXIS
+const LUT_RED_STRIDE = LUT_BUCKETS_PER_AXIS * LUT_BUCKETS_PER_AXIS
+const LUT_SIZE = LUT_BUCKETS_PER_AXIS * LUT_BUCKETS_PER_AXIS * LUT_BUCKETS_PER_AXIS
+
+/**
+ * Builds a 32³ color-to-palette-index lookup table. Each entry is the index
+ * of the palette color nearest to that bucket's centroid (Euclidean RGB
+ * distance — same metric the linear-search `nearestColor` uses). The bucket
+ * centroid for bucket `(br, bg, bb)` is `((br << 3) + 4, (bg << 3) + 4, (bb << 3) + 4)`
+ * — the 5-bit-quantized bucket plus a half-step (4) to land in the centre
+ * of the 8×8×8 cube.
+ *
+ * Because `palette.length` may exceed 256 the LUT type is widened to
+ * `Uint16Array`; for palettes that fit in a byte the consumer can downcast
+ * but the perf delta is negligible and the type is uniform.
+ */
+function buildPaletteLut(palette: ReadonlyArray<Rgb>): Uint16Array {
+	const lut = new Uint16Array(LUT_SIZE)
+
+	for (let bucketR = 0; bucketR < LUT_BUCKETS_PER_AXIS; bucketR++) {
+		const centroidR = (bucketR << 3) + 4
+
+		for (let bucketG = 0; bucketG < LUT_BUCKETS_PER_AXIS; bucketG++) {
+			const centroidG = (bucketG << 3) + 4
+
+			for (let bucketB = 0; bucketB < LUT_BUCKETS_PER_AXIS; bucketB++) {
+				const centroidB = (bucketB << 3) + 4
+
+				let bestIndex = 0
+				let bestDistance = Infinity
+
+				for (let index = 0; index < palette.length; index++) {
+					const entry = palette[index]!
+					const dr = centroidR - entry[0]
+					const dg = centroidG - entry[1]
+					const db = centroidB - entry[2]
+					const distance = dr * dr + dg * dg + db * db
+
+					if (distance < bestDistance) {
+						bestDistance = distance
+						bestIndex = index
+					}
+				}
+
+				lut[bucketR * LUT_RED_STRIDE + bucketG * LUT_GREEN_STRIDE + bucketB] = bestIndex
+			}
+		}
+	}
+
+	return lut
+}
+
+function nearestColor(
+	red: number,
+	green: number,
+	blue: number,
+	palette: ReadonlyArray<Rgb>,
+	lut?: Uint16Array,
+): number {
+	if (lut !== undefined) {
+		// Channels passed in are always already clamped to [0,255] by the
+		// caller, so `>>> 3` is safe and produces a bucket index in [0,31].
+		return lut[(red >>> 3) * LUT_RED_STRIDE + (green >>> 3) * LUT_GREEN_STRIDE + (blue >>> 3)]!
+	}
+
 	let bestIndex = 0
 	let bestDistance = Infinity
 
@@ -175,9 +243,17 @@ export function applyQuantize(
 	const { width, height, data: src } = pixels
 	const output = new Uint8ClampedArray(src.length)
 
+	// Build the 32³ palette LUT once per call. For Bayer/Atkinson/none, the
+	// LUT is the only path. For Floyd–Steinberg, the LUT may shift quantized
+	// outputs at bucket boundaries (FS amplifies per-pixel rounding error
+	// into the error-diffusion buffer); we therefore retain the linear search
+	// for FS mode and skip the LUT build entirely. See Phase 10 plan entry
+	// for the rationale.
+	const lut = dither === "floyd-steinberg" ? undefined : buildPaletteLut(palette)
+
 	if (dither === "none") {
 		for (let px = 0; px < src.length; px += 4) {
-			const paletteIndex = nearestColor(src[px]!, src[px + 1]!, src[px + 2]!, palette)
+			const paletteIndex = nearestColor(src[px]!, src[px + 1]!, src[px + 2]!, palette, lut)
 			const entry = palette[paletteIndex]!
 			output[px] = entry[0]
 			output[px + 1] = entry[1]
@@ -199,7 +275,7 @@ export function applyQuantize(
 				const red = clamp255(src[px]! + threshold)
 				const green = clamp255(src[px + 1]! + threshold)
 				const blue = clamp255(src[px + 2]! + threshold)
-				const paletteIndex = nearestColor(red, green, blue, palette)
+				const paletteIndex = nearestColor(red, green, blue, palette, lut)
 				const entry = palette[paletteIndex]!
 				output[px] = entry[0]
 				output[px + 1] = entry[1]
@@ -219,6 +295,12 @@ export function applyQuantize(
 		buffer[bufIndex + 2] = src[srcIndex + 2]!
 	}
 
+	// `lut` is undefined for FS (see declaration above) — FS retains the
+	// linear search. Atkinson reuses the same `lut`: its error term is
+	// 1/8-scaled per neighbor with a 6-tap kernel and the residual diffusion
+	// is small enough that bucket rounding doesn't accumulate into a visible
+	// artifact, unlike FS where the dominant 7/16 forward weight propagates
+	// the LUT error along the scanline.
 	const distribute =
 		dither === "floyd-steinberg"
 			? (xx: number, yy: number, errR: number, errG: number, errB: number) => {
@@ -243,7 +325,7 @@ export function applyQuantize(
 			const red = clamp255(buffer[bufIndex]!)
 			const green = clamp255(buffer[bufIndex + 1]!)
 			const blue = clamp255(buffer[bufIndex + 2]!)
-			const paletteIndex = nearestColor(red, green, blue, palette)
+			const paletteIndex = nearestColor(red, green, blue, palette, lut)
 			const entry = palette[paletteIndex]!
 
 			const px = (yy * width + xx) * 4

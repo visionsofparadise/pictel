@@ -69,7 +69,7 @@ npx pictel render --entry src/Cover.tsx --out cover.png --width 1200 --height 12
 
 > **Canvas**(`props`): `Element`
 
-Defined in: [Components/Canvas.tsx:76](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/pictel/src/Components/Canvas.tsx#L76)
+Defined in: [Components/Canvas.tsx:76](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Canvas.tsx#L76)
 
 Root compositing surface. Contains layers, effects, and blend modes as children.
 Each Canvas is an independent composition with its own pixel pipeline.
@@ -94,7 +94,7 @@ Each Canvas is an independent composition with its own pixel pipeline.
 
 > **Viewer**(`props`): `Element`
 
-Defined in: [Components/Viewer.tsx:44](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/pictel/src/Components/Viewer.tsx#L44)
+Defined in: [Components/Viewer.tsx:44](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Viewer.tsx#L44)
 
 Development preview shell that renders one or more Canvas components.
 Provides a sidebar for selecting between canvases when multiple are present.
@@ -115,7 +115,7 @@ Provides a sidebar for selecting between canvases when multiple are present.
 
 > **Clip**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/Clip.tsx:19](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/pictel/src/Components/RasterEffect/Clip.tsx#L19)
+Defined in: [Components/RasterEffect/Clip.tsx:19](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/Clip.tsx#L19)
 
 Clips a wrapped pipeline's bleed back to its content footprint.
 
@@ -140,7 +140,7 @@ content edges by the outer.
 
 > **Overflow**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/Overflow.tsx:32](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/pictel/src/Components/RasterEffect/Overflow.tsx#L32)
+Defined in: [Components/RasterEffect/Overflow.tsx:32](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/Overflow.tsx#L32)
 
 Reveals a wrapped raster effect's bleed at natural pixel ratio.
 
@@ -179,7 +179,7 @@ changes.
 
 > **RasterEffect**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/RasterEffect.tsx:82](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L82)
+Defined in: [Components/RasterEffect/RasterEffect.tsx:82](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L82)
 
 Unified raster-effect primitive. Handles all effect and blend cases through
 prop-carried secondary inputs.
@@ -216,7 +216,7 @@ in parallel via snapdom or the fast path when eligible.
 
 > **RasterSource**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/RasterSource.tsx:47](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/pictel/src/Components/RasterEffect/RasterSource.tsx#L47)
+Defined in: [Components/RasterEffect/RasterSource.tsx:47](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterSource.tsx#L47)
 
 Shared leaf primitive for raster-producing components (Image, generatives).
 Emits a bare `<canvas data-pictel-raster>` — the same tag the resolved
@@ -252,7 +252,7 @@ needed. Matches the closed effect-component API (2026-04-09).
 
 > **Image**(`props`): `Element`
 
-Defined in: [Components/Image/Image.tsx:51](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/pictel/src/Components/Image/Image.tsx#L51)
+Defined in: [Components/Image/Image.tsx:51](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Image/Image.tsx#L51)
 
 Loads a raster image source once on mount, decodes it via the browser's
 native image loader, and draws the decoded pixels into the leaf canvas at

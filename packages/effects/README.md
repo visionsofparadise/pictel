@@ -77,7 +77,7 @@ Compose with map-producing effects:
 
 > **Bilateral**(`props`): `Element`
 
-Defined in: [Effects/Bilateral.tsx:109](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Bilateral.tsx#L109)
+Defined in: [Effects/Bilateral.tsx:109](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Bilateral.tsx#L109)
 
 Edge-preserving smoothing via the bilateral filter — Gaussian-weighted average
 where the weight depends on both spatial distance and color distance, so pixels
@@ -105,7 +105,7 @@ values are perceptibly slow on large images.
 
 > **Bloom**(`props`): `Element`
 
-Defined in: [Effects/Bloom.tsx:108](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Bloom.tsx#L108)
+Defined in: [Effects/Bloom.tsx:108](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Bloom.tsx#L108)
 
 Bloom — a soft glow bleeding out of an image's bright regions.
 
@@ -134,7 +134,7 @@ clipped to the frame (output matches input dimensions).
 
 > **Blur**(`props`): `Element`
 
-Defined in: [Effects/Blur.tsx:294](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Blur.tsx#L294)
+Defined in: [Effects/Blur.tsx:294](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Blur.tsx#L294)
 
 Applies a Gaussian-approximation blur or a map-driven variable-radius blur.
 
@@ -157,7 +157,7 @@ Applies a Gaussian-approximation blur or a map-driven variable-radius blur.
 
 > **Brightness**(`props`): `Element`
 
-Defined in: [Effects/Brightness.tsx:60](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Brightness.tsx#L60)
+Defined in: [Effects/Brightness.tsx:60](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Brightness.tsx#L60)
 
 Adjusts pixel brightness by multiplying RGB channels.
 
@@ -179,7 +179,7 @@ Adjusts pixel brightness by multiplying RGB channels.
 
 > **ChannelMixer**(`props`): `Element`
 
-Defined in: [Effects/ChannelMixer.tsx:44](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/ChannelMixer.tsx#L44)
+Defined in: [Effects/ChannelMixer.tsx:44](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/ChannelMixer.tsx#L44)
 
 Remaps RGB channels through a 3x3 mixing matrix. Each output channel is a
 weighted sum of the input channels.
@@ -202,7 +202,7 @@ weighted sum of the input channels.
 
 > **ColorGrade**(`props`): `Element`
 
-Defined in: [Effects/ColorGrade.tsx:78](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/ColorGrade.tsx#L78)
+Defined in: [Effects/ColorGrade.tsx:78](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/ColorGrade.tsx#L78)
 
 Combined color grading with brightness, contrast, saturation, temperature, and tint controls.
 
@@ -228,7 +228,7 @@ Combined color grading with brightness, contrast, saturation, temperature, and t
 
 > **Contrast**(`props`): `Element`
 
-Defined in: [Effects/Contrast.tsx:60](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Contrast.tsx#L60)
+Defined in: [Effects/Contrast.tsx:60](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Contrast.tsx#L60)
 
 Adjusts pixel contrast by scaling deviation from mid-gray.
 
@@ -250,7 +250,7 @@ Adjusts pixel contrast by scaling deviation from mid-gray.
 
 > **CubeLUT**(`props`): `Element`
 
-Defined in: [Effects/CubeLUT.tsx:120](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/CubeLUT.tsx#L120)
+Defined in: [Effects/CubeLUT.tsx:120](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/CubeLUT.tsx#L120)
 
 Applies a .cube 3D LUT file for color grading. Fetches and parses the cube file, then
 applies trilinear-interpolated color transformation.
@@ -273,7 +273,7 @@ applies trilinear-interpolated color transformation.
 
 > **Direction**(`props`): `Element`
 
-Defined in: [Effects/Sobel/Direction.tsx:162](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Sobel/Direction.tsx#L162)
+Defined in: [Effects/Sobel/Direction.tsx:162](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sobel/Direction.tsx#L162)
 
 Outputs the gradient field of the input as a packed three-channel encoding
 suitable for sampling-correct downstream consumption (e.g. `LIC`, mapped
@@ -318,7 +318,7 @@ readability). To visually inspect direction, decode in a custom effect.
 
 > **DisplacementMap**(`props`): `Element`
 
-Defined in: [Effects/DisplacementMap.tsx:62](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/DisplacementMap.tsx#L62)
+Defined in: [Effects/DisplacementMap.tsx:62](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/DisplacementMap.tsx#L62)
 
 Displaces pixels using the `map` prop's red and green channels for X and Y offset.
 Supply a `map` prop providing the displacement source.
@@ -342,7 +342,7 @@ Supply a `map` prop providing the displacement source.
 
 > **DropShadow**(`props`): `Element`
 
-Defined in: [Effects/DropShadow.tsx:138](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/DropShadow.tsx#L138)
+Defined in: [Effects/DropShadow.tsx:138](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/DropShadow.tsx#L138)
 
 Adds a drop shadow behind the content at a specified offset with blur and color.
 
@@ -367,7 +367,7 @@ Adds a drop shadow behind the content at a specified offset with blur and color.
 
 > **Duotone**(`props`): `Element`
 
-Defined in: [Effects/Duotone.tsx:49](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Duotone.tsx#L49)
+Defined in: [Effects/Duotone.tsx:49](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Duotone.tsx#L49)
 
 Maps pixel luminance to a two-color gradient. Shadows map to `dark`, highlights to `light`.
 
@@ -390,7 +390,7 @@ Maps pixel luminance to a two-color gradient. Shadows map to `dark`, highlights 
 
 > **EdgeDetect**(`props`): `Element`
 
-Defined in: [Effects/Sobel/EdgeDetect.tsx:56](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Sobel/EdgeDetect.tsx#L56)
+Defined in: [Effects/Sobel/EdgeDetect.tsx:56](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sobel/EdgeDetect.tsx#L56)
 
 Outputs the gradient magnitude of the input as a continuous grayscale field.
 
@@ -416,7 +416,7 @@ Pre-blur the input (chain `<Blur>`) for cleaner, less noise-driven edges.
 
 > **Engrave**(`props`): `Element`
 
-Defined in: [Effects/Engrave.tsx:99](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Engrave.tsx#L99)
+Defined in: [Effects/Engrave.tsx:99](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Engrave.tsx#L99)
 
 Line-engraving (intaglio) effect. Renders the source as warped parallel
 lines whose thickness is modulated by tone, with optional cross-hatched
@@ -448,7 +448,7 @@ white.
 
 > **Grain**(`props`): `Element`
 
-Defined in: [Effects/Grain.tsx:47](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Grain.tsx#L47)
+Defined in: [Effects/Grain.tsx:47](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Grain.tsx#L47)
 
 Adds deterministic monochromatic film grain noise to the image.
 
@@ -471,7 +471,7 @@ Adds deterministic monochromatic film grain noise to the image.
 
 > **Grayscale**(`props`): `Element`
 
-Defined in: [Effects/Grayscale.tsx:43](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Grayscale.tsx#L43)
+Defined in: [Effects/Grayscale.tsx:43](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Grayscale.tsx#L43)
 
 Converts pixels to grayscale using BT.601 luminance weighting.
 
@@ -493,7 +493,7 @@ Converts pixels to grayscale using BT.601 luminance weighting.
 
 > **Halftone**(`props`): `Element`
 
-Defined in: [Effects/Halftone.tsx:207](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Halftone.tsx#L207)
+Defined in: [Effects/Halftone.tsx:207](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Halftone.tsx#L207)
 
 Converts the image to a halftone pattern.
 
@@ -533,7 +533,7 @@ look, and the mode to reach for in a pop-art treatment.
 
 > **Hatch**(`props`): `Element`
 
-Defined in: [Effects/Hatch.tsx:226](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Hatch.tsx#L226)
+Defined in: [Effects/Hatch.tsx:226](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Hatch.tsx#L226)
 
 Hatching effect. Bands the source into tonal tiers (Grayscale → Posterize)
 and renders per-band line layers, multiplied onto a white background. Two
@@ -570,7 +570,7 @@ the source alpha.
 
 > **HueRotate**(`props`): `Element`
 
-Defined in: [Effects/HueRotate.tsx:66](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/HueRotate.tsx#L66)
+Defined in: [Effects/HueRotate.tsx:66](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/HueRotate.tsx#L66)
 
 Rotates the hue of each pixel in HSL color space.
 
@@ -592,7 +592,7 @@ Rotates the hue of each pixel in HSL color space.
 
 > **ImageLUT**(`props`): `Element`
 
-Defined in: [Effects/ImageLUT.tsx:90](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/ImageLUT.tsx#L90)
+Defined in: [Effects/ImageLUT.tsx:90](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/ImageLUT.tsx#L90)
 
 Applies a 3D LUT from an image file (PNG strip of horizontal slices) for color grading.
 
@@ -615,7 +615,7 @@ Applies a 3D LUT from an image file (PNG strip of horizontal slices) for color g
 
 > **Invert**(`props`): `Element`
 
-Defined in: [Effects/Invert.tsx:40](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Invert.tsx#L40)
+Defined in: [Effects/Invert.tsx:40](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Invert.tsx#L40)
 
 Inverts pixel colors.
 
@@ -637,7 +637,7 @@ Inverts pixel colors.
 
 > **LIC**(`props`): `Element`
 
-Defined in: [Effects/LIC.tsx:163](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/LIC.tsx#L163)
+Defined in: [Effects/LIC.tsx:163](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/LIC.tsx#L163)
 
 Line Integral Convolution. Smears the seed children along a vector field
 supplied by the `map` prop, producing streamline-aligned output. The map
@@ -671,7 +671,7 @@ Convolution".
 
 > **LuminanceBands**(`props`): `Element`
 
-Defined in: [Effects/LuminanceBands.tsx:119](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/LuminanceBands.tsx#L119)
+Defined in: [Effects/LuminanceBands.tsx:119](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/LuminanceBands.tsx#L119)
 
 Quantizes luminance into discrete tiers while preserving chrominance, the cel-shading primitive.
 
@@ -697,7 +697,7 @@ with the original Cb/Cr. Output keeps original color, discretizes shading.
 
 > **Mask**(`props`): `Element`
 
-Defined in: [Effects/Mask.tsx:62](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Mask.tsx#L62)
+Defined in: [Effects/Mask.tsx:62](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Mask.tsx#L62)
 
 Clips its children to a mask supplied via the `map` prop. The mask's alpha
 channel — or its luminance, with `source="luminance"` — is multiplied into
@@ -728,7 +728,7 @@ Requires a `map`; without one the effect throws.
 
 > **Opacity**(`props`): `Element`
 
-Defined in: [Effects/Opacity.tsx:60](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Opacity.tsx#L60)
+Defined in: [Effects/Opacity.tsx:60](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Opacity.tsx#L60)
 
 Adjusts pixel opacity by scaling the alpha channel.
 
@@ -750,7 +750,7 @@ Adjusts pixel opacity by scaling the alpha channel.
 
 > **Outline**(`props`): `Element`
 
-Defined in: [Effects/Outline.tsx:128](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Outline.tsx#L128)
+Defined in: [Effects/Outline.tsx:128](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Outline.tsx#L128)
 
 XDoG (Extended Difference of Gaussians) — stylized illustrative line art.
 
@@ -780,7 +780,7 @@ tonal; chain `Threshold` if you want hard binary outlines.
 
 > **Posterize**(`props`): `Element`
 
-Defined in: [Effects/Posterize.tsx:59](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Posterize.tsx#L59)
+Defined in: [Effects/Posterize.tsx:59](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Posterize.tsx#L59)
 
 Reduces color depth to a fixed number of levels per channel, creating a poster-like flat color effect.
 
@@ -802,7 +802,7 @@ Reduces color depth to a fixed number of levels per channel, creating a poster-l
 
 > **Quantize**(`props`): `Element`
 
-Defined in: [Effects/Quantize.tsx:323](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Quantize.tsx#L323)
+Defined in: [Effects/Quantize.tsx:323](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Quantize.tsx#L323)
 
 Maps the image to a restricted color palette. Either a fixed `palette` (an
 array of `[r, g, b]` triples) or an auto-derived palette of `count` colors
@@ -830,7 +830,7 @@ Dither modes:
 
 > **Saturate**(`props`): `Element`
 
-Defined in: [Effects/Saturate.tsx:63](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Saturate.tsx#L63)
+Defined in: [Effects/Saturate.tsx:63](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Saturate.tsx#L63)
 
 Adjusts color saturation by interpolating between grayscale and the original color.
 
@@ -852,7 +852,7 @@ Adjusts color saturation by interpolating between grayscale and the original col
 
 > **Sepia**(`props`): `Element`
 
-Defined in: [Effects/Sepia.tsx:48](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Sepia.tsx#L48)
+Defined in: [Effects/Sepia.tsx:48](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sepia.tsx#L48)
 
 Applies a warm sepia tone effect.
 
@@ -874,7 +874,7 @@ Applies a warm sepia tone effect.
 
 > **Sharpen**(`props`): `Element`
 
-Defined in: [Effects/Sharpen.tsx:101](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Sharpen.tsx#L101)
+Defined in: [Effects/Sharpen.tsx:101](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sharpen.tsx#L101)
 
 Sharpens the image using a 3x3 unsharp mask convolution.
 
@@ -896,7 +896,7 @@ Sharpens the image using a 3x3 unsharp mask convolution.
 
 > **ShockFilter**(`props`): `Element`
 
-Defined in: [Effects/ShockFilter.tsx:152](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/ShockFilter.tsx#L152)
+Defined in: [Effects/ShockFilter.tsx:152](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/ShockFilter.tsx#L152)
 
 Regularized iterative shock filter — sharpens an image into a clean
 cartoon / line-drawing.
@@ -926,7 +926,7 @@ no ringing — unlike a single-pass `Sharpen`. Cost is `O(W*H*iterations)`.
 
 > **Threshold**(`props`): `Element`
 
-Defined in: [Effects/Threshold.tsx:59](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Effects/Threshold.tsx#L59)
+Defined in: [Effects/Threshold.tsx:59](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Threshold.tsx#L59)
 
 Converts each pixel to pure black or white based on a luminance threshold.
 
@@ -948,7 +948,7 @@ Converts each pixel to pure black or white based on a luminance threshold.
 
 > **ConicGradient**(`props`): `Element`
 
-Defined in: [Generative/ConicGradient.tsx:69](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Generative/ConicGradient.tsx#L69)
+Defined in: [Generative/ConicGradient.tsx:69](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/ConicGradient.tsx#L69)
 
 Renders a conic (angular) gradient sweep around a center point at intrinsic dimensions.
 
@@ -979,7 +979,7 @@ size. Wrap in a styled div if positioning is needed.
 
 > **DotPattern**(`props`): `Element`
 
-Defined in: [Generative/DotPattern.tsx:61](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Generative/DotPattern.tsx#L61)
+Defined in: [Generative/DotPattern.tsx:61](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/DotPattern.tsx#L61)
 
 Renders a repeating dot pattern on a regular grid, at intrinsic dimensions.
 
@@ -1011,7 +1011,7 @@ size. Wrap in a styled div if positioning is needed.
 
 > **GridPattern**(`props`): `Element`
 
-Defined in: [Generative/GridPattern.tsx:73](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Generative/GridPattern.tsx#L73)
+Defined in: [Generative/GridPattern.tsx:73](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/GridPattern.tsx#L73)
 
 Renders a repeating grid of horizontal and vertical lines, at intrinsic dimensions.
 
@@ -1044,7 +1044,7 @@ size. Wrap in a styled div if positioning is needed.
 
 > **LinearGradient**(`props`): `Element`
 
-Defined in: [Generative/LinearGradient.tsx:71](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Generative/LinearGradient.tsx#L71)
+Defined in: [Generative/LinearGradient.tsx:71](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/LinearGradient.tsx#L71)
 
 Renders a linear gradient at intrinsic dimensions.
 
@@ -1073,7 +1073,7 @@ size. Wrap in a styled div if positioning is needed.
 
 > **LinePattern**(`props`): `Element`
 
-Defined in: [Generative/LinePattern.tsx:80](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Generative/LinePattern.tsx#L80)
+Defined in: [Generative/LinePattern.tsx:80](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/LinePattern.tsx#L80)
 
 Renders a repeating pattern of parallel lines at a configurable angle, at intrinsic dimensions.
 
@@ -1106,7 +1106,7 @@ size. Wrap in a styled div if positioning is needed.
 
 > **ProceduralNoise**(`props`): `Element`
 
-Defined in: [Generative/ProceduralNoise.tsx:72](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Generative/ProceduralNoise.tsx#L72)
+Defined in: [Generative/ProceduralNoise.tsx:72](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/ProceduralNoise.tsx#L72)
 
 Generates procedural noise textures using simplex noise with fractal Brownian motion.
 
@@ -1139,7 +1139,7 @@ size. Wrap in a styled div if positioning is needed.
 
 > **RadialGradient**(`props`): `Element`
 
-Defined in: [Generative/RadialGradient.tsx:72](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/Generative/RadialGradient.tsx#L72)
+Defined in: [Generative/RadialGradient.tsx:72](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/RadialGradient.tsx#L72)
 
 Renders a radial gradient radiating from a center point at intrinsic dimensions.
 
@@ -1170,7 +1170,7 @@ size. Wrap in a styled div if positioning is needed.
 
 > **Color**(`props`): `Element`
 
-Defined in: [BlendModes/Color.tsx:28](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Color.tsx#L28)
+Defined in: [BlendModes/Color.tsx:28](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Color.tsx#L28)
 
 Applies the hue and saturation of the blend layer while preserving the luminosity of the base.
 Useful for colorizing grayscale images or shifting color tones.
@@ -1191,7 +1191,7 @@ Useful for colorizing grayscale images or shifting color tones.
 
 > **ColorBurn**(`props`): `Element`
 
-Defined in: [BlendModes/ColorBurn.tsx:26](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/ColorBurn.tsx#L26)
+Defined in: [BlendModes/ColorBurn.tsx:26](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/ColorBurn.tsx#L26)
 
 Darkens the base by increasing contrast relative to the blend layer.
 Produces deeper shadows than Multiply with more saturated mid-tones.
@@ -1212,7 +1212,7 @@ Produces deeper shadows than Multiply with more saturated mid-tones.
 
 > **ColorDodge**(`props`): `Element`
 
-Defined in: [BlendModes/ColorDodge.tsx:26](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/ColorDodge.tsx#L26)
+Defined in: [BlendModes/ColorDodge.tsx:26](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/ColorDodge.tsx#L26)
 
 Brightens the base by decreasing contrast relative to the blend layer.
 Produces lighter highlights than Screen with more vivid color shifts.
@@ -1233,7 +1233,7 @@ Produces lighter highlights than Screen with more vivid color shifts.
 
 > **Darken**(`props`): `Element`
 
-Defined in: [BlendModes/Darken.tsx:25](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Darken.tsx#L25)
+Defined in: [BlendModes/Darken.tsx:25](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Darken.tsx#L25)
 
 Keeps the darker of the base or blend value for each channel.
 Useful for removing white backgrounds or combining dark elements.
@@ -1254,7 +1254,7 @@ Useful for removing white backgrounds or combining dark elements.
 
 > **DarkerColor**(`props`): `Element`
 
-Defined in: [BlendModes/DarkerColor.tsx:27](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/DarkerColor.tsx#L27)
+Defined in: [BlendModes/DarkerColor.tsx:27](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/DarkerColor.tsx#L27)
 
 Compares the overall luminance of base and blend pixels and keeps the darker one.
 Unlike Darken, operates on the whole pixel rather than per-channel.
@@ -1275,7 +1275,7 @@ Unlike Darken, operates on the whole pixel rather than per-channel.
 
 > **Difference**(`props`): `Element`
 
-Defined in: [BlendModes/Difference.tsx:25](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Difference.tsx#L25)
+Defined in: [BlendModes/Difference.tsx:25](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Difference.tsx#L25)
 
 Subtracts the darker color from the lighter for each channel.
 Identical layers produce black; useful for comparing or creating inverted effects.
@@ -1296,7 +1296,7 @@ Identical layers produce black; useful for comparing or creating inverted effect
 
 > **Divide**(`props`): `Element`
 
-Defined in: [BlendModes/Divide.tsx:21](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Divide.tsx#L21)
+Defined in: [BlendModes/Divide.tsx:21](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Divide.tsx#L21)
 
 Divides the base color by the blend color, producing a brightening effect.
 Dark blend values create strong brightening; useful for removing color casts.
@@ -1317,7 +1317,7 @@ Dark blend values create strong brightening; useful for removing color casts.
 
 > **Exclusion**(`props`): `Element`
 
-Defined in: [BlendModes/Exclusion.tsx:25](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Exclusion.tsx#L25)
+Defined in: [BlendModes/Exclusion.tsx:25](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Exclusion.tsx#L25)
 
 Similar to Difference but with lower contrast. Produces a softer inversion effect.
 Blending with white inverts the base; blending with black has no effect.
@@ -1338,7 +1338,7 @@ Blending with white inverts the base; blending with black has no effect.
 
 > **HardLight**(`props`): `Element`
 
-Defined in: [BlendModes/HardLight.tsx:29](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/HardLight.tsx#L29)
+Defined in: [BlendModes/HardLight.tsx:29](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/HardLight.tsx#L29)
 
 Multiplies dark blend values and screens light blend values.
 Like shining a harsh light on the base layer. Inverse of Overlay.
@@ -1359,7 +1359,7 @@ Like shining a harsh light on the base layer. Inverse of Overlay.
 
 > **HardMix**(`props`): `Element`
 
-Defined in: [BlendModes/HardMix.tsx:22](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/HardMix.tsx#L22)
+Defined in: [BlendModes/HardMix.tsx:22](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/HardMix.tsx#L22)
 
 Reduces each channel to fully on or fully off based on Vivid Light thresholding.
 Produces posterized, high-contrast results with at most 8 colors.
@@ -1380,7 +1380,7 @@ Produces posterized, high-contrast results with at most 8 colors.
 
 > **Hue**(`props`): `Element`
 
-Defined in: [BlendModes/Hue.tsx:28](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Hue.tsx#L28)
+Defined in: [BlendModes/Hue.tsx:28](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Hue.tsx#L28)
 
 Applies the hue of the blend layer while preserving the saturation and luminosity of the base.
 Useful for shifting color tones without affecting brightness or intensity.
@@ -1401,7 +1401,7 @@ Useful for shifting color tones without affecting brightness or intensity.
 
 > **Lighten**(`props`): `Element`
 
-Defined in: [BlendModes/Lighten.tsx:25](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Lighten.tsx#L25)
+Defined in: [BlendModes/Lighten.tsx:25](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Lighten.tsx#L25)
 
 Keeps the lighter of the base or blend value for each channel.
 Useful for removing black backgrounds or combining light elements.
@@ -1422,7 +1422,7 @@ Useful for removing black backgrounds or combining light elements.
 
 > **LighterColor**(`props`): `Element`
 
-Defined in: [BlendModes/LighterColor.tsx:27](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/LighterColor.tsx#L27)
+Defined in: [BlendModes/LighterColor.tsx:27](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/LighterColor.tsx#L27)
 
 Compares the overall luminance of base and blend pixels and keeps the lighter one.
 Unlike Lighten, operates on the whole pixel rather than per-channel.
@@ -1443,7 +1443,7 @@ Unlike Lighten, operates on the whole pixel rather than per-channel.
 
 > **LinearBurn**(`props`): `Element`
 
-Defined in: [BlendModes/LinearBurn.tsx:21](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/LinearBurn.tsx#L21)
+Defined in: [BlendModes/LinearBurn.tsx:21](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/LinearBurn.tsx#L21)
 
 Adds the base and blend values then subtracts 1 per channel. Produces darker results
 than Multiply with a linear falloff.
@@ -1464,7 +1464,7 @@ than Multiply with a linear falloff.
 
 > **LinearDodge**(`props`): `Element`
 
-Defined in: [BlendModes/LinearDodge.tsx:21](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/LinearDodge.tsx#L21)
+Defined in: [BlendModes/LinearDodge.tsx:21](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/LinearDodge.tsx#L21)
 
 Adds the base and blend values per channel, clamped to white.
 Also known as Add. Produces lighter results than Screen with a linear curve.
@@ -1485,7 +1485,7 @@ Also known as Add. Produces lighter results than Screen with a linear curve.
 
 > **LinearLight**(`props`): `Element`
 
-Defined in: [BlendModes/LinearLight.tsx:25](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/LinearLight.tsx#L25)
+Defined in: [BlendModes/LinearLight.tsx:25](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/LinearLight.tsx#L25)
 
 Combines Linear Burn and Linear Dodge based on the blend brightness.
 Burns darks and dodges lights with linear intensity scaling.
@@ -1506,7 +1506,7 @@ Burns darks and dodges lights with linear intensity scaling.
 
 > **Luminosity**(`props`): `Element`
 
-Defined in: [BlendModes/Luminosity.tsx:28](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Luminosity.tsx#L28)
+Defined in: [BlendModes/Luminosity.tsx:28](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Luminosity.tsx#L28)
 
 Applies the luminosity of the blend layer while preserving the hue and saturation of the base.
 Inverse of Color blend mode. Useful for applying tonal values from one image to another.
@@ -1527,7 +1527,7 @@ Inverse of Color blend mode. Useful for applying tonal values from one image to 
 
 > **Multiply**(`props`): `Element`
 
-Defined in: [BlendModes/Multiply.tsx:21](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Multiply.tsx#L21)
+Defined in: [BlendModes/Multiply.tsx:21](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Multiply.tsx#L21)
 
 Multiplies base and blend values per channel, producing darker results.
 White is transparent; black produces black. Standard darkening mode.
@@ -1548,7 +1548,7 @@ White is transparent; black produces black. Standard darkening mode.
 
 > **Overlay**(`props`): `Element`
 
-Defined in: [BlendModes/Overlay.tsx:29](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Overlay.tsx#L29)
+Defined in: [BlendModes/Overlay.tsx:29](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Overlay.tsx#L29)
 
 Multiplies dark base values and screens light base values.
 Increases contrast while preserving highlights and shadows. Most common contrast blend mode.
@@ -1569,7 +1569,7 @@ Increases contrast while preserving highlights and shadows. Most common contrast
 
 > **PinLight**(`props`): `Element`
 
-Defined in: [BlendModes/PinLight.tsx:25](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/PinLight.tsx#L25)
+Defined in: [BlendModes/PinLight.tsx:25](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/PinLight.tsx#L25)
 
 Replaces base values depending on the blend brightness. Dark blend values
 darken via Darken; light blend values lighten via Lighten.
@@ -1590,7 +1590,7 @@ darken via Darken; light blend values lighten via Lighten.
 
 > **Saturation**(`props`): `Element`
 
-Defined in: [BlendModes/Saturation.tsx:28](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Saturation.tsx#L28)
+Defined in: [BlendModes/Saturation.tsx:28](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Saturation.tsx#L28)
 
 Applies the saturation of the blend layer while preserving the hue and luminosity of the base.
 Useful for adjusting color intensity without changing the underlying colors.
@@ -1611,7 +1611,7 @@ Useful for adjusting color intensity without changing the underlying colors.
 
 > **Screen**(`props`): `Element`
 
-Defined in: [BlendModes/Screen.tsx:25](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Screen.tsx#L25)
+Defined in: [BlendModes/Screen.tsx:25](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Screen.tsx#L25)
 
 Multiplies the inverse of base and blend, producing lighter results.
 Black is transparent; white produces white. Standard lightening mode.
@@ -1632,7 +1632,7 @@ Black is transparent; white produces white. Standard lightening mode.
 
 > **SoftLight**(`props`): `Element`
 
-Defined in: [BlendModes/SoftLight.tsx:35](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/SoftLight.tsx#L35)
+Defined in: [BlendModes/SoftLight.tsx:35](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/SoftLight.tsx#L35)
 
 Gently darkens or lightens depending on the blend value.
 Like shining a diffused light on the base. Subtler than Overlay or Hard Light.
@@ -1653,7 +1653,7 @@ Like shining a diffused light on the base. Subtler than Overlay or Hard Light.
 
 > **Subtract**(`props`): `Element`
 
-Defined in: [BlendModes/Subtract.tsx:21](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/Subtract.tsx#L21)
+Defined in: [BlendModes/Subtract.tsx:21](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/Subtract.tsx#L21)
 
 Subtracts the blend color from the base color per channel, clamped to black.
 Produces dark results; useful for masking or creating silhouettes.
@@ -1674,7 +1674,7 @@ Produces dark results; useful for masking or creating silhouettes.
 
 > **VividLight**(`props`): `Element`
 
-Defined in: [BlendModes/VividLight.tsx:22](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/effects/src/BlendModes/VividLight.tsx#L22)
+Defined in: [BlendModes/VividLight.tsx:22](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/BlendModes/VividLight.tsx#L22)
 
 Combines Color Burn and Color Dodge based on the blend brightness.
 Dark blend values increase contrast via burn; light values decrease via dodge.

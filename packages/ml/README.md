@@ -63,7 +63,7 @@ ML components are `RasterEffect`s: they accept `mode="parameter" | "mix"` and ap
 
 > **RemoveBackground**(`props`): `Element`
 
-Defined in: [Components/RemoveBackground.tsx:38](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/ml/src/Components/RemoveBackground.tsx#L38)
+Defined in: [Components/RemoveBackground.tsx:38](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/RemoveBackground.tsx#L38)
 
 Removes the background from child content, outputting RGBA with model-derived alpha. Uses `onnx-community/BEN2-ONNX` by default.
 
@@ -86,7 +86,7 @@ Removes the background from child content, outputting RGBA with model-derived al
 
 > **Sam2**(`props`): `Element`
 
-Defined in: [Components/Sam2.tsx:151](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/ml/src/Components/Sam2.tsx#L151)
+Defined in: [Components/Sam2.tsx:151](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Sam2.tsx#L151)
 
 Point-prompted segmentation using SAM2. Outputs a white-on-black mask for the region matching the given prompts. Uses `onnx-community/sam2-hiera-tiny-ONNX` by default.
 
@@ -111,7 +111,7 @@ Point-prompted segmentation using SAM2. Outputs a white-on-black mask for the re
 
 > **SegFormer**(`props`): `Element`
 
-Defined in: [Components/SegFormer.tsx:83](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/ml/src/Components/SegFormer.tsx#L83)
+Defined in: [Components/SegFormer.tsx:83](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/SegFormer.tsx#L83)
 
 Automatic semantic segmentation via the `image-segmentation` pipeline. Outputs a color-coded segment map. Uses `Xenova/segformer-b0-finetuned-ade-512-512` by default.
 
@@ -134,7 +134,7 @@ Automatic semantic segmentation via the `image-segmentation` pipeline. Outputs a
 
 > **Segment**(`props`): `Element`
 
-Defined in: [Components/Segment.tsx:27](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/ml/src/Components/Segment.tsx#L27)
+Defined in: [Components/Segment.tsx:27](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Segment.tsx#L27)
 
 Discriminated union component that delegates to [Sam2](#sam2) or [SegFormer](#segformer) based on the `model` prop. Use `model="sam2"` for point-prompted segmentation or `model="segformer"` for automatic semantic segmentation.
 
@@ -154,7 +154,7 @@ Discriminated union component that delegates to [Sam2](#sam2) or [SegFormer](#se
 
 > **Upscale**(`props`): `Element`
 
-Defined in: [Components/Upscale.tsx:36](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/ml/src/Components/Upscale.tsx#L36)
+Defined in: [Components/Upscale.tsx:36](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Upscale.tsx#L36)
 
 Upscales child content to higher resolution via the `image-to-image` pipeline. Uses `Xenova/swin2SR-classical-sr-x2-64` by default.
 
@@ -177,7 +177,7 @@ Upscales child content to higher resolution via the `image-to-image` pipeline. U
 
 > **DepthMap**(`props`): `Element`
 
-Defined in: [Components/DepthMap.tsx:37](https://github.com/visionsofparadise/pictel/blob/ad23fcd4584433d37f032efe1c09b97f5cf2b6d0/packages/ml/src/Components/DepthMap.tsx#L37)
+Defined in: [Components/DepthMap.tsx:37](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/DepthMap.tsx#L37)
 
 Produces a grayscale depth map from child content via the `depth-estimation` pipeline. Uses `onnx-community/depth-anything-v2-small` by default.
 

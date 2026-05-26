@@ -75,6 +75,7 @@ export function RasterSource({ width, height, draw }: RasterSourceProps) {
 		<canvas
 			ref={canvasRef}
 			data-pictel-raster
+			data-pictel-raster-source
 			width={width}
 			height={height}
 			style={{ width, height, display: "block" }}

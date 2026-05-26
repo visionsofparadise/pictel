@@ -161,7 +161,7 @@ API reference below — generated from JSDoc on the source.
 
 > **Canvas**(`props`): `Element`
 
-Defined in: Components/Canvas/Canvas.tsx:77
+Defined in: [Components/Canvas/Canvas.tsx:77](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Canvas/Canvas.tsx#L77)
 
 The root of a pictel composition. Layers, effects, blend modes, and raster sources
 go inside as children, and the Canvas renders the composed image.
@@ -190,7 +190,7 @@ in a `Viewer` to switch between them during development.
 
 > **Viewer**(`props`): `Element`
 
-Defined in: Components/Viewer/Viewer.tsx:50
+Defined in: [Components/Viewer/Viewer.tsx:50](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Viewer/Viewer.tsx#L50)
 
 A development shell that hosts one or more `Canvas` children and provides a sidebar
 for switching between them. The selected canvas is tracked in the URL via `?canvas=`.
@@ -273,7 +273,7 @@ to crop it back to content size, wrap the result in `Clip` (or any
 
 > **RasterEffect**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/RasterEffect.tsx:88](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L88)
+Defined in: [Components/RasterEffect/RasterEffect.tsx:102](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L102)
 
 The primitive every effect, blend, and map-driven component is built on. Captures
 its children as pixels, hands them to an `effect` callback, and renders the result

@@ -17,6 +17,20 @@ const SLOT_OBSERVER_OPTIONS: MutationObserverInit = {
 	attributeFilter: ["src"],
 };
 
+function originatedInNestedBoundary(record: MutationRecord, ownSlot: Element): boolean {
+	let node: Node | null = record.target;
+
+	while (node !== null && node !== ownSlot) {
+		if (node instanceof Element && (node.hasAttribute("data-pictel-raster-effect") || node.hasAttribute("data-pictel-raster-source"))) {
+			return true;
+		}
+
+		node = node.parentNode;
+	}
+
+	return false;
+}
+
 interface OffscreenSlotProps {
 	host: Element;
 	style: CSSProperties;
@@ -144,6 +158,7 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 		const unsubscribe = selfRegistry.subscribe(() => {
 			if (signal.aborted) return;
 
+			invalidate();
 			gate();
 		});
 
@@ -229,17 +244,47 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 			}
 		}
 
-		const contentObserver = new MutationObserver(invalidate);
+		const contentObserver = new MutationObserver((records) => {
+			for (const record of records) {
+				if (!originatedInNestedBoundary(record, childrenSlot)) {
+					invalidate();
+
+					return;
+				}
+			}
+		});
 
 		contentObserver.observe(childrenSlot, SLOT_OBSERVER_OPTIONS);
 
-		const applyObserver: MutationObserver | null = applyEl !== null ? new MutationObserver(invalidate) : null;
+		const applyObserver: MutationObserver | null =
+			applyEl !== null
+				? new MutationObserver((records) => {
+						for (const record of records) {
+							if (!originatedInNestedBoundary(record, applyEl)) {
+								invalidate();
+
+								return;
+							}
+						}
+					})
+				: null;
 
 		if (applyObserver !== null && applyEl !== null) {
 			applyObserver.observe(applyEl, SLOT_OBSERVER_OPTIONS);
 		}
 
-		const mapObserver: MutationObserver | null = mapEl !== null ? new MutationObserver(invalidate) : null;
+		const mapObserver: MutationObserver | null =
+			mapEl !== null
+				? new MutationObserver((records) => {
+						for (const record of records) {
+							if (!originatedInNestedBoundary(record, mapEl)) {
+								invalidate();
+
+								return;
+							}
+						}
+					})
+				: null;
 
 		if (mapObserver !== null && mapEl !== null) {
 			mapObserver.observe(mapEl, SLOT_OBSERVER_OPTIONS);
@@ -309,6 +354,7 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 		<RasterEffectContext.Provider value={selfRegistry}>
 			<div
 				ref={childrenSlotRef}
+				data-pictel-raster-effect
 				style={{ display: snapshot ? "none" : "block" }}
 			>
 				{children}

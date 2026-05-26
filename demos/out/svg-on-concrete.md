@@ -2,9 +2,13 @@
 
 A vector mark stamped onto a rough concrete wall — the kind of stencil-and-spray-paint look you'd see on a loading-dock door or behind a building site hoarding. The mark itself is a simple geometric glyph (a secondary vector source layered over the wall), warm orange against the cold grey plaster. Critically the ink isn't flat: the wall's pits and ridges deform the shape, so the glyph bleeds into the depressions and sits proud on the raised aggregate, the way real stamped ink behaves on uneven masonry. Tactile, weathered, urban.
 
-| Before | After |
-| --- | --- |
-| ![](https://pictel-demos.s3.us-east-1.amazonaws.com/sources/wall.jpg) | ![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/svg-on-concrete.png) |
+**Before**
+
+![](https://pictel-demos.s3.us-east-1.amazonaws.com/sources/wall.jpg)
+
+**After**
+
+![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/svg-on-concrete.png)
 
 ```tsx
 import { DisplacementMap, Overlay } from "@pictel/effects";

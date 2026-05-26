@@ -2,9 +2,13 @@
 
 A portrait engraved as if printed on currency — green ink on cream paper, the subject built entirely from fine parallel hatching that bows around the contour of the face. The lines stay straight in the flat regions of the cheek and forehead, then curve inward where the form turns away, the way a master engraver would cut the plate so the print reads as volume rather than a flat pattern. Tonal regions collapse into clean light and shadow before the engraving cuts them, giving the face the deliberate, hand-cut look of a 19th-century banknote portrait rather than a photograph passed through a filter. The background is left as bare paper, the figure floating cleanly on the cream stock.
 
-| Before | After |
-| --- | --- |
-| ![](https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg) | ![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/banknote.png) |
+**Before**
+
+![](https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg)
+
+**After**
+
+![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/banknote.png)
 
 ```tsx
 import { Bilateral, Brightness, DisplacementMap, Duotone, Engrave } from "@pictel/effects";

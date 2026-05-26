@@ -2,9 +2,13 @@
 
 A single headshot run through four eras of hardware-constrained palettes, side by side as a 2×2 grid. The first panel collapses the portrait to pure black and white, ordered in the polite, even pattern of an early Macintosh screen. The second shades the face in the four sickly greens of a Game Boy LCD. The third uses a sixteen-colour palette and a coarse Bayer matrix, the look of an early-90s VGA capture. The fourth steps up to a thirty-two-colour adaptive palette with error-diffusion dithering — the same trick a GIF encoder reaches for when it has to fake a gradient with too few crayons. Across all four, the dithering preserves tonal gradation that the palette alone could never carry: smooth skin, soft falloff at the jawline, the suggestion of depth from almost nothing.
 
-| Before | After |
-| --- | --- |
-| ![](https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg) | ![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/dithering.png) |
+**Before**
+
+![](https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg)
+
+**After**
+
+![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/dithering.png)
 
 ```tsx
 import { Quantize } from "@pictel/effects";

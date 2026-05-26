@@ -61,7 +61,7 @@ if (meta.sources.length === 0) {
 		process.exit(1);
 	}
 
-	beforeAfter = `| Before | After |\n| --- | --- |\n| ![](${primary.s3}) | ![](${meta.output}) |`;
+	beforeAfter = `**Before**\n\n![](${primary.s3})\n\n**After**\n\n![](${meta.output})`;
 }
 
 const out = `# ${meta.title}

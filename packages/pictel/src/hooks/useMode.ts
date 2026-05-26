@@ -1,7 +1,10 @@
-import { DEFAULT_MODE, MODES, type Mode } from "../Mode";
 import { useSearchParam } from "./useSearchParam";
 
-// FIX: Just move the Mode definition and consts here
+export const MODES = ["preview", "display", "render"] as const;
+
+export type Mode = (typeof MODES)[number];
+
+export const DEFAULT_MODE: Mode = "preview";
 
 export function useMode(): Mode {
 	const value = useSearchParam("mode", DEFAULT_MODE);

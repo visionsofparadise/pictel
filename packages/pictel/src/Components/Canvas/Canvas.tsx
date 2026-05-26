@@ -1,17 +1,17 @@
 import { Fragment, useCallback, useMemo, useState, useSyncExternalStore, type CSSProperties, type ComponentProps, type ReactNode } from "react";
-import { CanvasContext, type CanvasContextValue, type CanvasDimensions } from "../context/canvas";
-import { RasterEffectContext, createRegistry } from "../context/raster-effect";
-import { ErrorChip } from "../design-system/ErrorChip";
-import { LoadingOverlay } from "../design-system/LoadingOverlay";
-import { RenderStrip } from "../design-system/RenderStrip";
-import { tokens } from "../design-system/tokens";
-import { Workspace } from "../design-system/Workspace";
-import { useContainerSize } from "../hooks/useContainerSize";
-import { useMode } from "../hooks/useMode";
-import { useSearchParam } from "../hooks/useSearchParam";
-import type { Mode } from "../Mode";
-import { Frame } from "./Frame";
-import type { RasterEffectError } from "./RasterEffect/Error";
+import { CanvasContext, type CanvasContextValue, type CanvasDimensions } from "../../context/canvas";
+import { RasterEffectContext, createRegistry } from "../../context/raster-effect";
+import { ErrorChip } from "./ErrorChip";
+import { LoadingOverlay } from "./LoadingOverlay";
+import { RenderStrip } from "./RenderStrip";
+import { tokens } from "../../tokens";
+import { Workspace } from "./Workspace";
+import { useContainerSize } from "../../hooks/useContainerSize";
+import { useMode } from "../../hooks/useMode";
+import { useSearchParam } from "../../hooks/useSearchParam";
+import type { Mode } from "../../hooks/useMode";
+import { Frame } from "../Frame";
+import type { RasterEffectError } from "../RasterEffect/Error";
 
 interface CanvasProps extends ComponentProps<"div"> {
 	name?: string;

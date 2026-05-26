@@ -3,16 +3,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
-import { useProps } from "./useProps";
+import { useParams } from "./useParams";
 
 // Unit vitest config has no act-environment setup — declare it so act() flushes without warning.
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-function renderUseProps<T>(): T {
+function renderUseParams<T>(): T {
 	let captured: T | undefined;
 
 	function Probe() {
-		captured = useProps<T>();
+		captured = useParams<T>();
 
 		return null;
 	}
@@ -34,26 +34,26 @@ afterEach(() => {
 	vi.restoreAllMocks();
 });
 
-describe("useProps", () => {
-	it("parses a valid JSON object from the props query parameter", () => {
-		window.history.replaceState(null, "", `/?props=${encodeURIComponent('{"label":"Summer Sale","count":3}')}`);
+describe("useParams", () => {
+	it("parses a valid JSON object from the params query parameter", () => {
+		window.history.replaceState(null, "", `/?params=${encodeURIComponent('{"label":"Summer Sale","count":3}')}`);
 
-		const props = renderUseProps<{ label: string; count: number }>();
+		const params = renderUseParams<{ label: string; count: number }>();
 
-		expect(props).toEqual({ label: "Summer Sale", count: 3 });
+		expect(params).toEqual({ label: "Summer Sale", count: 3 });
 	});
 
-	it("returns an empty object when the props parameter is absent", () => {
+	it("returns an empty object when the params parameter is absent", () => {
 		window.history.replaceState(null, "", "/");
 
-		expect(renderUseProps()).toEqual({});
+		expect(renderUseParams()).toEqual({});
 	});
 
-	it("returns an empty object and logs when the props JSON is malformed", () => {
+	it("returns an empty object and logs when the params JSON is malformed", () => {
 		const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-		window.history.replaceState(null, "", `/?props=${encodeURIComponent("{not valid json")}`);
+		window.history.replaceState(null, "", `/?params=${encodeURIComponent("{not valid json")}`);
 
-		expect(renderUseProps()).toEqual({});
+		expect(renderUseParams()).toEqual({});
 		expect(errorSpy).toHaveBeenCalled();
 	});
 });

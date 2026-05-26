@@ -5,7 +5,7 @@ const FORMATS = ["png", "jpeg", "webp", "avif"] as const;
 export interface ExportEntry {
   readonly name: string;
   readonly canvas?: string;
-  readonly props?: Record<string, unknown>;
+  readonly params?: Record<string, unknown>;
   readonly canvasWidth?: number;
   readonly canvasHeight?: number;
   readonly width?: number;
@@ -62,9 +62,9 @@ function validateEntry(entry: unknown, index: number, configPath: string): Expor
   return {
     name: candidate.name,
     canvas: typeof candidate.canvas === "string" ? candidate.canvas : undefined,
-    props:
-      typeof candidate.props === "object" && candidate.props !== null
-        ? (candidate.props as Record<string, unknown>)
+    params:
+      typeof candidate.params === "object" && candidate.params !== null
+        ? (candidate.params as Record<string, unknown>)
         : undefined,
     canvasWidth: validateDimension(candidate.canvasWidth, "canvasWidth", location, entry),
     canvasHeight: validateDimension(candidate.canvasHeight, "canvasHeight", location, entry),

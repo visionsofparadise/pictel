@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 import { Overflow } from "./Overflow";
 
-// FIX: Wait, this doesn't clip properly, don't we have to get the children dimensions an explicitly clip to that? How are we determining what is overflow and what is contents?
-
 interface ClipProps {
 	children: ReactNode;
 }

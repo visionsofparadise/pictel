@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { Canvas } from "../Canvas";
+import { Canvas } from "../Canvas/Canvas";
 import { RasterEffect, type RasterEffectCallback } from "./RasterEffect";
 
 // snapdom requires a real layout engine — stub in jsdom.

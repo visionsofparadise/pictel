@@ -1,12 +1,12 @@
 import { type CSSProperties, type ComponentProps, Children, isValidElement } from "react";
-import type { CanvasDimensions } from "../context/canvas";
-import { Sidebar } from "../design-system/Sidebar";
-import type { SidebarItem } from "../design-system/SidebarRow";
-import { tokens } from "../design-system/tokens";
-import { useMode } from "../hooks/useMode";
-import { useSearchParam } from "../hooks/useSearchParam";
-import type { Mode } from "../Mode";
-import { Canvas } from "./Canvas";
+import type { CanvasDimensions } from "../../context/canvas";
+import { Sidebar } from "./Sidebar";
+import type { SidebarItem } from "./SidebarRow";
+import { tokens } from "../../tokens";
+import { useMode } from "../../hooks/useMode";
+import { useSearchParam } from "../../hooks/useSearchParam";
+import type { Mode } from "../../hooks/useMode";
+import { Canvas } from "../Canvas/Canvas";
 
 interface ViewerProps extends ComponentProps<"div"> {
 	mode?: Mode;

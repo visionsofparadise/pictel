@@ -19,7 +19,7 @@ interface RenderEntryOptions {
   canvas?: string;
   canvasWidth?: number;
   canvasHeight?: number;
-  props?: Record<string, unknown>;
+  params?: Record<string, unknown>;
   scale?: number;
 }
 
@@ -29,7 +29,7 @@ export async function renderEntry({
   canvas,
   canvasWidth,
   canvasHeight,
-  props,
+  params,
   scale,
 }: RenderEntryOptions): Promise<Buffer> {
   const page = await browser.newPage();
@@ -57,8 +57,8 @@ export async function renderEntry({
       url.searchParams.set("canvasHeight", String(canvasHeight));
     }
 
-    if (props !== undefined) {
-      url.searchParams.set("props", JSON.stringify(props));
+    if (params !== undefined) {
+      url.searchParams.set("params", JSON.stringify(params));
     }
 
     await page.setViewport({

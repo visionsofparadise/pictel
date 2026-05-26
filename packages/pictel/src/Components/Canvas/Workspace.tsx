@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { tokens } from "./tokens";
+import { tokens } from "../../tokens";
 
 interface WorkspaceProps {
 	children: ReactNode;

@@ -1,8 +1,8 @@
 import { useState, type CSSProperties } from "react";
-import { createRasterEffectError } from "../Components/RasterEffect/Error";
-import { useCanvasContext } from "../context/canvas";
+import { createRasterEffectError } from "../RasterEffect/Error";
+import { useCanvasContext } from "../../context/canvas";
 import { ExportError, exportCanvas } from "./export";
-import { tokens } from "./tokens";
+import { tokens } from "../../tokens";
 
 type Format = "png" | "jpeg" | "webp";
 

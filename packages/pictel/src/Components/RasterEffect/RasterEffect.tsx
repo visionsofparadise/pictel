@@ -9,6 +9,42 @@ import { getOwnUnloadedImages } from "./utils/scope";
 
 export type RasterEffectCallback = (target: ImageData, apply?: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 
+const SLOT_OBSERVER_OPTIONS: MutationObserverInit = {
+	childList: true,
+	subtree: true,
+	characterData: true,
+	attributes: true,
+	attributeFilter: ["src"],
+};
+
+interface OffscreenSlotProps {
+	host: Element;
+	style: CSSProperties;
+	onMount: (slotEl: HTMLDivElement | null) => void;
+	children: ReactNode;
+}
+
+function OffscreenSlot({ host, style, onMount, children }: OffscreenSlotProps) {
+	const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null);
+
+	return (
+		<>
+			{createPortal(
+				<div
+					ref={(node) => {
+						setSlotEl(node);
+						onMount(node);
+					}}
+					aria-hidden="true"
+					style={style}
+				/>,
+				host,
+			)}
+			{slotEl && createPortal(children, slotEl)}
+		</>
+	);
+}
+
 interface RasterEffectProps {
 	effect: RasterEffectCallback;
 	children: ReactNode;
@@ -195,37 +231,18 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 
 		const contentObserver = new MutationObserver(invalidate);
 
-		contentObserver.observe(childrenSlot, {
-			// FIX: This param set is repeated a few times, just create a CONST and reuse it
-			childList: true,
-			subtree: true,
-			characterData: true,
-			attributes: true,
-			attributeFilter: ["src"],
-		});
+		contentObserver.observe(childrenSlot, SLOT_OBSERVER_OPTIONS);
 
 		const applyObserver: MutationObserver | null = applyEl !== null ? new MutationObserver(invalidate) : null;
 
 		if (applyObserver !== null && applyEl !== null) {
-			applyObserver.observe(applyEl, {
-				childList: true,
-				subtree: true,
-				characterData: true,
-				attributes: true,
-				attributeFilter: ["src"],
-			});
+			applyObserver.observe(applyEl, SLOT_OBSERVER_OPTIONS);
 		}
 
 		const mapObserver: MutationObserver | null = mapEl !== null ? new MutationObserver(invalidate) : null;
 
 		if (mapObserver !== null && mapEl !== null) {
-			mapObserver.observe(mapEl, {
-				childList: true,
-				subtree: true,
-				characterData: true,
-				attributes: true,
-				attributeFilter: ["src"],
-			});
+			mapObserver.observe(mapEl, SLOT_OBSERVER_OPTIONS);
 		}
 
 		const sizeObserver = new ResizeObserver(() => {
@@ -309,28 +326,16 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 					data-pictel-overflow-left={snapshot.overflow.left}
 				/>
 			)}
-			{(hasApply || hasMap) && // FIX: How we do these apply/map slots can be done cleaner no? I don't like how we have these three parts here
-				createPortal(
-					<>
-						{hasApply && (
-							<div
-								ref={setApplySlot}
-								aria-hidden="true"
-								style={slotStyle}
-							/>
-						)}
-						{hasMap && (
-							<div
-								ref={setMapSlot}
-								aria-hidden="true"
-								style={slotStyle}
-							/>
-						)}
-					</>,
-					offscreenHost,
-				)}
-			{hasApply && applySlot !== null && createPortal(apply, applySlot)}
-			{hasMap && mapSlot !== null && createPortal(map, mapSlot)}
+			{hasApply && (
+				<OffscreenSlot host={offscreenHost} style={slotStyle} onMount={setApplySlot}>
+					{apply}
+				</OffscreenSlot>
+			)}
+			{hasMap && (
+				<OffscreenSlot host={offscreenHost} style={slotStyle} onMount={setMapSlot}>
+					{map}
+				</OffscreenSlot>
+			)}
 		</RasterEffectContext.Provider>
 	);
 }

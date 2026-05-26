@@ -30,7 +30,7 @@ import { defineExports } from "@pictel/cli"
 export default defineExports([
   { name: "cover",  width: 1200, height: 1200 },
   { name: "banner", width: 1600, height: 600,  format: "webp", quality: 90 },
-  { name: "card",   width: 800,  height: 800,  props: { variant: "dark" } },
+  { name: "card",   width: 800,  height: 800,  params: { variant: "dark" } },
 ])
 ```
 
@@ -49,7 +49,7 @@ npx pictel render --entry src/compositions.tsx --config pictel.exports.ts
 | `--entry` | path | — | Composition entry module. **Required.** |
 | `--config` | path | — | `pictel.exports.ts` path. When present, the file's entries drive the batch and most other flags are ignored. |
 | `--canvas` | string | — | Canvas name when the composition is a `<Viewer>` with multiple canvases. |
-| `--props` | JSON | — | JSON-encoded props delivered to the composition via `useProps()`. |
+| `--params` | JSON | — | JSON-encoded params delivered to the composition via `useParams()`. |
 | `--width` | number | Canvas authored width | Output buffer width in pixels; overrides the composition's authored width. |
 | `--height` | number | Canvas authored height | Output buffer height in pixels. |
 | `--format` | `png` \| `jpeg` \| `webp` \| `avif` | `png` | Output format. |
@@ -62,7 +62,7 @@ Per-entry encoding `quality` (1–100, ignored for `png`) is only configurable v
 
 The CLI owns the bundler shell (`packages/cli/shell/`, ships in the published package) — `index.html` + `entry.tsx` + a `virtual:pictel-entry` Vite plugin that imports the user's composition. Your project's `vite.config.*` is partially adopted: only the transform/resolve layer (`plugins`, `resolve`, `css`, `define`, `optimizeDeps`, `publicDir`) — never the app-shape layer.
 
-A built shell is served via `vite preview`. Puppeteer navigates with `?mode=render&canvas=…&width=…&height=…&props=…`, waits for `[data-pictel-pending]` to clear (30s default), checks `data-pictel-error`, and element-screenshots `[data-pictel-canvas]` with `omitBackground: true`. Sharp encodes.
+A built shell is served via `vite preview`. Puppeteer navigates with `?mode=render&canvas=…&width=…&height=…&params=…`, waits for `[data-pictel-pending]` to clear (30s default), checks `data-pictel-error`, and element-screenshots `[data-pictel-canvas]` with `omitBackground: true`. Sharp encodes.
 
 Per-entry render errors fail that entry but don't abort the batch; the run exits non-zero with a per-entry summary.
 

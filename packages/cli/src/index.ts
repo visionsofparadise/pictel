@@ -13,7 +13,7 @@ interface RenderOptions {
   readonly entry: string;
   readonly config?: string;
   readonly canvas?: string;
-  readonly props?: Record<string, unknown>;
+  readonly params?: Record<string, unknown>;
   readonly canvasWidth?: number;
   readonly canvasHeight?: number;
   readonly width?: number;
@@ -60,7 +60,7 @@ async function resolveEntries(
     {
       name,
       canvas: options.canvas,
-      props: options.props,
+      params: options.params,
       canvasWidth: options.canvasWidth,
       canvasHeight: options.canvasHeight,
       width: options.width,
@@ -115,7 +115,7 @@ async function runRender(options: RenderOptions): Promise<Array<EntryResult>> {
           canvas: entry.canvas,
           canvasWidth: entry.canvasWidth,
           canvasHeight: entry.canvasHeight,
-          props: entry.props,
+          params: entry.params,
           scale: entry.scale,
         });
 
@@ -168,8 +168,8 @@ program
   .option("--config <path>", "path to a pictel.exports.ts config file")
   .option("--canvas <name>", "name of the Canvas to render")
   .option(
-    "--props <json>",
-    "JSON-encoded props delivered to the composition",
+    "--params <json>",
+    "JSON-encoded params delivered to the composition",
     (value: string) => JSON.parse(value) as Record<string, unknown>,
   )
   .option("--canvas-width <px>", "canvas buffer width override in pixels", Number)

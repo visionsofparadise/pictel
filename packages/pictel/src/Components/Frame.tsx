@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useCanvasContext } from "../context/canvas";
-import { tokens } from "../design-system/tokens";
+import { tokens } from "../tokens";
 
 interface FrameProps {
 	children?: ReactNode;

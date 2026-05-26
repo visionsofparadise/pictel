@@ -161,7 +161,7 @@ API reference below — generated from JSDoc on the source.
 
 > **Canvas**(`props`): `Element`
 
-Defined in: [Components/Canvas.tsx:77](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Canvas.tsx#L77)
+Defined in: Components/Canvas/Canvas.tsx:77
 
 The root of a pictel composition. Layers, effects, blend modes, and raster sources
 go inside as children, and the Canvas renders the composed image.
@@ -190,7 +190,7 @@ in a `Viewer` to switch between them during development.
 
 > **Viewer**(`props`): `Element`
 
-Defined in: [Components/Viewer.tsx:50](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Viewer.tsx#L50)
+Defined in: Components/Viewer/Viewer.tsx:50
 
 A development shell that hosts one or more `Canvas` children and provides a sidebar
 for switching between them. The selected canvas is tracked in the URL via `?canvas=`.
@@ -218,7 +218,7 @@ headless export.
 
 > **Clip**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/Clip.tsx:23](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/Clip.tsx#L23)
+Defined in: [Components/RasterEffect/Clip.tsx:21](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/Clip.tsx#L21)
 
 Frames a wrapped effect at its content size, cropping any bleed (blur halos,
 drop shadow falloff) back to the content edges. Useful when you want the soft
@@ -273,7 +273,7 @@ to crop it back to content size, wrap the result in `Clip` (or any
 
 > **RasterEffect**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/RasterEffect.tsx:52](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L52)
+Defined in: [Components/RasterEffect/RasterEffect.tsx:88](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L88)
 
 The primitive every effect, blend, and map-driven component is built on. Captures
 its children as pixels, hands them to an `effect` callback, and renders the result

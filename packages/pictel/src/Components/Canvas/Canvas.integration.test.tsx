@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
 import { StrictMode, useEffect } from "react";
-import { Canvas, useCanvasContext } from "../index";
+import { Canvas, useCanvasContext } from "../../index";
 import { Brightness, Grayscale, Invert, Multiply } from "@pictel/effects";
-import { createRasterEffectError } from "./RasterEffect/Error";
-import { renderCanvas } from "./utils/render-canvas";
-import { readRasterEffectOutput, readPixel } from "./utils/read-raster-effect-output";
-import { gradientImage, solidImage } from "./utils/test-images";
-import { waitForRasterEffect } from "./utils/wait-for-raster-effect";
+import { createRasterEffectError } from "../RasterEffect/Error";
+import { renderCanvas } from "../utils/render-canvas";
+import { readRasterEffectOutput, readPixel } from "../utils/read-raster-effect-output";
+import { gradientImage, solidImage } from "../utils/test-images";
+import { waitForRasterEffect } from "../utils/wait-for-raster-effect";
 
 let brokenLevel = -1;
 

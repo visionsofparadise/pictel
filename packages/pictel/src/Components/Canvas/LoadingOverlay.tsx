@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { tokens } from "./tokens";
+import { tokens } from "../../tokens";
 
 interface LoadingOverlayProps {
 	pending: boolean;

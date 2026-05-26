@@ -198,7 +198,7 @@ export default tseslint.config(
       "id-denylist": [
         "error",
         "btn", "cb", "ctx", "el", "elem", "err", "evt", "fn", "idx",
-        "msg", "num", "obj", "opts", "params", "pkg", "ptr", "req",
+        "msg", "num", "obj", "opts", "pkg", "ptr", "req",
         "res", "ret", "str", "temp", "tmp", "val", "var",
       ],
 

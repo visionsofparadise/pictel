@@ -1,5 +1,5 @@
 import { snapdom } from "@zumer/snapdom";
-import { createRasterEffectError, type RasterEffectError } from "../utils/errors";
+import { createRasterEffectError, type RasterEffectError } from "../Components/RasterEffect/Error";
 
 /**
  * Error subclass that carries an attached `RasterEffectError`. The export utility

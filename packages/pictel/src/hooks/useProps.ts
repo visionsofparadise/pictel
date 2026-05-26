@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { useSearchParam } from "./useSearchParam";
 
+// FIX: This should be useParams, "props" is overloaded
+
 export function useProps<T = Record<string, unknown>>(): T {
 	const raw = useSearchParam("props", "{}");
 

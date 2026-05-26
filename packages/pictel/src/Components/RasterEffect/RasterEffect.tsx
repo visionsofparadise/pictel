@@ -2,16 +2,12 @@ import { useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, 
 import { createPortal } from "react-dom";
 import { useCanvasContext } from "../../context/canvas";
 import { RasterEffectContext, createRegistry, useRasterEffectContext } from "../../context/raster-effect";
-import { createRasterEffectError } from "../../utils/errors";
 import { normalizeResult, type EffectResult } from "../utils/raster";
+import { createRasterEffectError } from "./Error";
 import { captureWrapper } from "./utils/capture";
 import { getOwnUnloadedImages } from "./utils/scope";
 
-export type RasterEffectCallback = (
-	target: ImageData,
-	apply?: ImageData,
-	map?: ImageData,
-) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
+export type RasterEffectCallback = (target: ImageData, apply?: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 
 interface RasterEffectProps {
 	/**
@@ -104,10 +100,7 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 	const hasApply = apply !== undefined;
 	const hasMap = map !== undefined;
 
-	const slotStyle = useMemo<CSSProperties>(
-		() => ({ width: slotSize.width, height: slotSize.height, pointerEvents: "none" }),
-		[slotSize.width, slotSize.height],
-	);
+	const slotStyle = useMemo<CSSProperties>(() => ({ width: slotSize.width, height: slotSize.height, pointerEvents: "none" }), [slotSize.width, slotSize.height]);
 
 	useLayoutEffect(() => {
 		pendingRef.current = true;
@@ -161,11 +154,7 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 
 			if (selfRegistry.anyPending()) return;
 
-			const unloaded = [
-				...getOwnUnloadedImages(childrenSlot),
-				...(applyEl !== null ? getOwnUnloadedImages(applyEl) : []),
-				...(mapEl !== null ? getOwnUnloadedImages(mapEl) : []),
-			];
+			const unloaded = [...getOwnUnloadedImages(childrenSlot), ...(applyEl !== null ? getOwnUnloadedImages(applyEl) : []), ...(mapEl !== null ? getOwnUnloadedImages(mapEl) : [])];
 
 			if (unloaded.length > 0) {
 				for (const img of unloaded) {
@@ -233,6 +222,7 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 		const contentObserver = new MutationObserver(invalidate);
 
 		contentObserver.observe(childrenSlot, {
+			// FIX: This param set is repeated a few times, just create a CONST and reuse it
 			childList: true,
 			subtree: true,
 			characterData: true,
@@ -240,9 +230,7 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 			attributeFilter: ["src"],
 		});
 
-		const applyObserver: MutationObserver | null = applyEl !== null
-			? new MutationObserver(invalidate)
-			: null;
+		const applyObserver: MutationObserver | null = applyEl !== null ? new MutationObserver(invalidate) : null;
 
 		if (applyObserver !== null && applyEl !== null) {
 			applyObserver.observe(applyEl, {
@@ -254,9 +242,7 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 			});
 		}
 
-		const mapObserver: MutationObserver | null = mapEl !== null
-			? new MutationObserver(invalidate)
-			: null;
+		const mapObserver: MutationObserver | null = mapEl !== null ? new MutationObserver(invalidate) : null;
 
 		if (mapObserver !== null && mapEl !== null) {
 			mapObserver.observe(mapEl, {
@@ -299,7 +285,6 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 			lifecycleRef.current?.dispose();
 			lifecycleRef.current = null;
 		};
-
 	}, [id, effect, hasApply, hasMap, applySlot, mapSlot, captureDimensions, reportError, parent, selfRegistry]);
 
 	const lastSeenSnapshotRef = useRef<Snapshot | null>(null);
@@ -331,7 +316,10 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 
 	return (
 		<RasterEffectContext.Provider value={selfRegistry}>
-			<div ref={childrenSlotRef} style={{ display: snapshot ? "none" : "block" }}>
+			<div
+				ref={childrenSlotRef}
+				style={{ display: snapshot ? "none" : "block" }}
+			>
 				{children}
 			</div>
 			{snapshot && (
@@ -347,13 +335,26 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 					data-pictel-overflow-left={snapshot.overflow.left}
 				/>
 			)}
-			{(hasApply || hasMap) && createPortal(
-				<>
-					{hasApply && <div ref={setApplySlot} aria-hidden="true" style={slotStyle} />}
-					{hasMap && <div ref={setMapSlot} aria-hidden="true" style={slotStyle} />}
-				</>,
-				offscreenHost,
-			)}
+			{(hasApply || hasMap) && // FIX: How we do these apply/map slots can be done cleaner no? I don't like how we have these three parts here
+				createPortal(
+					<>
+						{hasApply && (
+							<div
+								ref={setApplySlot}
+								aria-hidden="true"
+								style={slotStyle}
+							/>
+						)}
+						{hasMap && (
+							<div
+								ref={setMapSlot}
+								aria-hidden="true"
+								style={slotStyle}
+							/>
+						)}
+					</>,
+					offscreenHost,
+				)}
 			{hasApply && applySlot !== null && createPortal(apply, applySlot)}
 			{hasMap && mapSlot !== null && createPortal(map, mapSlot)}
 		</RasterEffectContext.Provider>

@@ -6,6 +6,10 @@
   "scripts": {
     "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
     "unit": "vitest run",
+    "integration": "vitest run --config vitest.integration.config.ts",
+    "update:baselines": "cross-env PICTEL_UPDATE_BASELINES=1 vitest run --config vitest.integration.config.ts --reporter=verbose > .last-baseline-run.log 2>&1 && npm run collect:baselines",
+    "collect:baselines": "tsx scripts/collect-baselines.ts < .last-baseline-run.log",
+    "render:readme": "tsx scripts/render-readme.ts",
     "start": "vite",
     "build": "vite build"
   },
@@ -21,7 +25,12 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@vitejs/plugin-react": "latest",
+    "@vitest/browser": "^4.1.4",
+    "@vitest/browser-playwright": "^4.1.4",
     "concurrently": "latest",
+    "cross-env": "^7.0.3",
+    "playwright": "^1.59.1",
+    "tsx": "^4.20.3",
     "vite": "latest",
     "vitest": "latest"
   }

@@ -1,67 +1,159 @@
 # pictel
 
-A TypeScript framework for agent-native image compositing. Layouts, effects, blending, ML — expressed as React components, rendered by the browser, exported headlessly.
-
-## The pictel ecosystem
-
-- **`pictel`** — framework primitives: `Canvas`, `RasterEffect`, `RasterSource`, `Image`, `Viewer`, `Overflow`, `Clip`
-- **`@pictel/effects`** — standard library: ~32 effects, 25 blend modes, 7 generatives
-- **`@pictel/ml`** — Transformers.js + WebGPU ML effects (segmentation, depth, upscale)
-- **`@pictel/cli`** — headless image renderer (Puppeteer + Sharp)
+A React framework for image compositing as code. Layouts, effects, blending, and ML expressed as components — rendered live in the browser, exported headlessly.
 
 ## Install
 
 ```bash
-npm i pictel @pictel/effects react react-dom
-npm i -D @pictel/cli
+npm install pictel @pictel/effects react react-dom
 ```
 
-(Add `@pictel/ml` for ML effects.)
+`@pictel/ml` is optional — install it if your composition uses ML effects (segmentation, depth, upscale).
 
 ## Quick start
 
-Write a composition (`src/Cover.tsx`):
+```tsx
+import { Canvas, Clip, Image } from "pictel";
+import { Blur } from "@pictel/effects";
+
+export default () => (
+  <Canvas dimensions={{ width: 800, height: 800 }}>
+    <Clip>
+      <Blur radius={4}>
+        <Image src="/photo.jpg" />
+      </Blur>
+    </Clip>
+  </Canvas>
+);
+```
+
+## Examples
+
+### Oil Painting
+
+| Before | After |
+|---|---|
+| <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/oil-painting-before.png" alt="Oil painting — before"> | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/oil-painting-after.png" alt="Oil painting — after"> |
 
 ```tsx
-import { Canvas, Image, staticFile } from "pictel"
-import { Bloom, Duotone } from "@pictel/effects"
+import { Direction, Duotone, Hatch } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
+import headshot from "../../assets/headshot.jpg";
 
-export default function Cover() {
-  return (
-    <Canvas name="cover" dimensions={{ width: 1200, height: 1200 }}>
-      <Bloom threshold={0.7} radius={24}>
-        <Duotone dark={[26, 0, 48]} light={[255, 214, 165]}>
-          <Image src={staticFile("hero.jpg")} fit="cover" />
-        </Duotone>
-      </Bloom>
-    </Canvas>
-  )
+const INK: [number, number, number] = [38, 30, 54];
+const PAPER: [number, number, number] = [240, 234, 220];
+
+export default function OilPainting() {
+	return (
+		<Canvas mode="display" dimensions={{ width: 640, height: 640 }}>
+			<Duotone dark={INK} light={PAPER}>
+				<Hatch
+					bands={4}
+					spacing={[5, 8, 12, 16]}
+					length={24}
+					uniformStep
+					map={
+						<Direction mode="structure">
+							<Image src={headshot} width={640} height={640} fit="cover" crossOrigin="anonymous" />
+						</Direction>
+					}
+				>
+					<Image src={headshot} width={640} height={640} fit="cover" crossOrigin="anonymous" />
+				</Hatch>
+			</Duotone>
+		</Canvas>
+	);
 }
 ```
 
-Preview in a Vite app (the entry default-exports a `<Viewer>` wrapping your `<Canvas>`):
+### Pop Art
+
+| Before | After |
+|---|---|
+| <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/pop-art-before.png" alt="Pop art — before"> | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/pop-art-after.png" alt="Pop art — after"> |
 
 ```tsx
-import Cover from "./Cover"
-import { Viewer } from "pictel"
-export default () => <Viewer><Cover /></Viewer>
+import { Contrast, Halftone, Multiply, Outline, Saturate, Threshold } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
+import photo from "../../assets/Golden Hour Portrait.jpg";
+
+export default function PopArt() {
+	return (
+		<Canvas mode="display" dimensions={{ width: 640, height: 960 }}>
+			<Multiply
+				apply={
+					<Threshold threshold={140}>
+						<Outline sigma={2.4} k={1.6} epsilon={0.005} phi={200}>
+							<Image src={photo} width={640} height={960} fit="cover" crossOrigin="anonymous" />
+						</Outline>
+					</Threshold>
+				}
+			>
+				<Halftone colorMode="color" dotSize={10}>
+					<Contrast amount={1.35}>
+						<Saturate amount={2.4}>
+							<Image src={photo} width={640} height={960} fit="cover" crossOrigin="anonymous" />
+						</Saturate>
+					</Contrast>
+				</Halftone>
+			</Multiply>
+		</Canvas>
+	);
+}
 ```
 
-Render headlessly:
+### Tilt-Shift
 
-```bash
-npx pictel render --entry src/Cover.tsx --out cover.png --width 1200 --height 1200
+| Before | After |
+|---|---|
+| <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/tilt-shift-before.png" alt="Tilt-shift — before"> | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/tilt-shift-after.png" alt="Tilt-shift — after"> |
+
+```tsx
+import { Blur, Brightness, Contrast, Invert, Saturate } from "@pictel/effects";
+import { DepthMap } from "@pictel/ml";
+import { Canvas, Clip, Image } from "pictel";
+import cityPhoto from "../../assets/city overview.jpg";
+
+export default function TiltShift() {
+	return (
+		<Canvas mode="display" dimensions={{ width: 1024, height: 683 }}>
+			<Clip>
+				<Blur
+					radius={7}
+					mode="parameter"
+					map={
+						<Invert>
+							<Brightness amount={2}>
+								<Contrast amount={0.35}>
+									<DepthMap>
+										<Image src={cityPhoto} width={1024} height={683} fit="cover" crossOrigin="anonymous" />
+									</DepthMap>
+								</Contrast>
+							</Brightness>
+						</Invert>
+					}
+				>
+					<Saturate amount={1.1}>
+						<Contrast amount={1.1}>
+							<Image src={cityPhoto} width={1024} height={683} fit="cover" crossOrigin="anonymous" />
+						</Contrast>
+					</Saturate>
+				</Blur>
+			</Clip>
+			<div
+				style={{
+					position: "absolute",
+					inset: 0,
+					boxShadow: "inset 0 0 100px 30px rgba(0,0,0,0.5)",
+					pointerEvents: "none",
+				}}
+			/>
+		</Canvas>
+	);
+}
 ```
 
-## Concepts
-
-- **Canvas** — compositing surface; fixed pixel dimensions
-- **RasterEffect** — the effect primitive: children → pixels; every effect/blend is one
-- **RasterSource** — leaf raster primitive; `Image`, generatives, and custom sources draw into it
-- **Overflow / Clip** — bleed control around effect output
-- **Modes** — `preview` (Viewer chrome), `display` (bare embed), `render` (headless capture)
-
-## API
+API reference below — generated from JSDoc on the source.
 
 ## Layout
 
@@ -179,7 +271,7 @@ changes.
 
 > **RasterEffect**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/RasterEffect.tsx:82](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L82)
+Defined in: [Components/RasterEffect/RasterEffect.tsx:78](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L78)
 
 Unified raster-effect primitive. Handles all effect and blend cases through
 prop-carried secondary inputs.

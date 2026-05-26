@@ -1,0 +1,38 @@
+{
+  "cel-shade": [
+    "fda93f57ed539adb4b0e482430ef8fc5293146c0ee50e93700648ab5800c1c09"
+  ],
+  "damaged-film": [
+    "1c195bb561438384e35324325c755b93cdccea7ed668d972ade3550b2d0b3e22"
+  ],
+  "dithering": [
+    "5692096c2895a4291b16ee997237f81d14eaa8c512a7a6e855b69ebdb89fc274",
+    "11e139c178b150f91a38d8e3db06b8d7d96890c11bc05f4cbf8d5d31ae2157fa",
+    "80d1d3d20e42960f7861603ae9e3849a9b0021962b6afb780ee44b3051c144b2",
+    "ce54e17d081fc7eeebc32e7404563b86efdc65ab88738de557fa72a06f44f78e"
+  ],
+  "generative-poster": [
+    "43044f91723c7fda628d4b90d0b47a3655ff6b7dc40b4a31d577f2c5fb9c46e5"
+  ],
+  "glow": [
+    "5508f3e178549428d874ccce8d944c84f5f76140935834fa2de37bc419b061b5"
+  ],
+  "line-drawing": [
+    "7ab5f1dcc9c9604dcd317627868eef3de6144df1e9352eb226e3f2889b076559"
+  ],
+  "lut-grade": [
+    "a5a4e363566f7bacde71760ae536923aef16aad004f9735427fd907af102e197"
+  ],
+  "oil-painting": [
+    "4da3ddbe5d6f4c61c970e07d1972d2c6a4320f58716c57ffbb387564d387ea54"
+  ],
+  "pencil-sketch": [
+    "c6efa77340981e7538737e82f6d22c975635653cf7d71cb442e5ae6f0223bd1a"
+  ],
+  "pop-art": [
+    "0162c82aab5c66e527107ce4e54e8f024ac66dbd2c7cb2a8e957067b4ad8186e"
+  ],
+  "svg-on-concrete": [
+    "3ecab11a140f7f54ce2e85cd84eb4d5f6107cf844d38ac2325e4163aac2aa675"
+  ]
+}

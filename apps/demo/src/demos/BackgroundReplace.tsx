@@ -1,4 +1,3 @@
-/** First load downloads the BEN2 model (~50MB). */
 import { ConicGradient, DropShadow } from "@pictel/effects";
 import { RemoveBackground } from "@pictel/ml";
 import { Canvas, Clip, Image } from "pictel";

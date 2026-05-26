@@ -5,7 +5,7 @@ import type { SidebarItem } from "../design-system/SidebarRow";
 import { tokens } from "../design-system/tokens";
 import { useMode } from "../hooks/useMode";
 import { useSearchParam } from "../hooks/useSearchParam";
-import type { Mode } from "../modes";
+import type { Mode } from "../Mode";
 import { Canvas } from "./Canvas";
 
 interface ViewerProps extends ComponentProps<"div"> {

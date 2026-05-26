@@ -10,14 +10,6 @@ const MARK_SIZE = 200;
 const MARK_OFFSET_TOP = 48;
 const MARK_OFFSET_RIGHT = 340;
 
-/**
- * Behind: wall photo in natural flow.
- * Overlay: the mark is colorized to a saturated terracotta and DisplacementMap
- * warped by the wall's R/G channels, then composited via Overlay so the wall's
- * variation tonally modulates the mark — reads like printed/stenciled rather
- * than flat black. The mark sits in the upper half of the frame, clear of the
- * busier lower wall.
- */
 export default function SVGOnConcrete() {
 	return (
 		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>

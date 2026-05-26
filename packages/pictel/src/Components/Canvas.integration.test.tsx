@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { StrictMode, useEffect } from "react";
 import { Canvas, useCanvasContext } from "../index";
 import { Brightness, Grayscale, Invert, Multiply } from "@pictel/effects";
-import { createRasterEffectError } from "../utils/errors";
+import { createRasterEffectError } from "./RasterEffect/Error";
 import { renderCanvas } from "./utils/render-canvas";
 import { readRasterEffectOutput, readPixel } from "./utils/read-raster-effect-output";
 import { gradientImage, solidImage } from "./utils/test-images";
@@ -479,8 +479,8 @@ function ErrorReporter() {
 }
 
 describe.sequential("render-mode query contract", () => {
-	test("?width=/?height= override the dimensions prop in render mode", async () => {
-		window.history.replaceState(null, "", "/?width=96&height=48");
+	test("?canvasWidth=/?canvasHeight= override the dimensions prop in render mode", async () => {
+		window.history.replaceState(null, "", "/?canvasWidth=96&canvasHeight=48");
 		const handle = renderCanvas(
 			<Canvas mode="render" dimensions={{ width: 64, height: 64 }}>
 				<Grayscale>

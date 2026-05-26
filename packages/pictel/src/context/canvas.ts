@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { RasterEffectError } from "../utils/errors";
+import type { RasterEffectError } from "../Components/RasterEffect/Error";
 
 export interface CanvasDimensions {
 	width: number;

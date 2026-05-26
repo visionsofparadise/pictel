@@ -10,15 +10,11 @@ import { waitForRasterEffect } from "../utils/wait-for-raster-effect";
 
 // --- Helpers ---
 
-/**
- * Locate the outermost RasterEffect output canvas in `container`. A RasterEffect
- * renders inline as `<div>{children}</div><canvas data-pictel-raster>`; an
- * outer RasterEffect's children wrapper contains an inner RasterEffect's nodes
- * (including the inner's own raster canvas). The outer's canvas is the one
- * whose previous-sibling wrapper element contains another
- * `[data-pictel-raster]` canvas in its subtree; if no such canvas exists
- * (single-RasterEffect composition), the lone raster canvas IS the outer.
- */
+// A RasterEffect renders `<div>{children}</div><canvas data-pictel-raster>`. In
+// a chain of any depth, the outermost effect's canvas is the LAST raster canvas
+// in document order — the parent renders its canvas after its children subtree.
+// The previous `find(prev-sibling-contains-raster)` approach short-circuited at
+// the second-outermost level for chains of depth ≥ 3.
 function getOuterCanvas(container: HTMLElement): HTMLCanvasElement {
 	const all = Array.from(
 		container.querySelectorAll<HTMLCanvasElement>("canvas[data-pictel-raster]"),
@@ -26,16 +22,7 @@ function getOuterCanvas(container: HTMLElement): HTMLCanvasElement {
 
 	if (all.length === 0) throw new Error("no canvas[data-pictel-raster] found in container");
 
-	if (all.length === 1) return all[0]!;
-
-	const outer = all.find((candidate) => {
-		const prev = candidate.previousElementSibling;
-		return prev instanceof HTMLElement && prev.querySelector("canvas[data-pictel-raster]") !== null;
-	});
-
-	if (!outer) throw new Error("could not determine outer raster canvas");
-
-	return outer;
+	return all[all.length - 1]!;
 }
 
 // --- Identity effect for testing ---

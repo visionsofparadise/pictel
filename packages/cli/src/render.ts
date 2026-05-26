@@ -1,22 +1,11 @@
 import puppeteer, { type Browser } from "puppeteer";
 
-/**
- * Timeout (ms) for the render-mode ready signal — the disappearance of
- * `[data-pictel-canvas][data-pictel-pending]`. Mirrors `PENDING_TIMEOUT_MS`
- * in pictel's in-browser export utility
- * (`packages/pictel/src/design-system/export.ts`) so the CLI and the iframe
- * export path wait for the same duration.
- */
 const PENDING_TIMEOUT_MS = 30_000;
 
-/**
- * Launches a headless Chromium instance configured for WebGPU. The flag set
- * was empirically validated in Phase 0 of the CLI renderer plan: Puppeteer's
- * default `--use-angle=swiftshader-webgl` suppresses adapter discovery and must
- * be removed via `ignoreDefaultArgs`; `--enable-unsafe-webgpu` then exposes a
- * hardware adapter headless. The served shell is an `http://localhost` /
- * `http://127.0.0.1` origin — a secure context — so `navigator.gpu` is present.
- */
+// Puppeteer's default `--use-angle=swiftshader-webgl` blocks WebGPU adapter
+// discovery — must be removed via ignoreDefaultArgs. `--enable-unsafe-webgpu`
+// exposes a hardware adapter; the served shell is a localhost (secure-context)
+// origin so `navigator.gpu` is present.
 export function launchBrowser(): Promise<Browser> {
   return puppeteer.launch({
     headless: true,
@@ -26,48 +15,26 @@ export function launchBrowser(): Promise<Browser> {
 }
 
 interface RenderEntryOptions {
-  /** A launched browser owned by the caller — reused across the whole batch. */
   browser: Browser;
-  /** The served render-shell URL (from `serveShell`). */
   baseUrl: string;
-  /** Display name of the Canvas to render. Selects which Canvas a Viewer shows. */
   canvas?: string;
-  /** Output buffer width in CSS pixels. Used only when both width and height are given. */
-  width?: number;
-  /** Output buffer height in CSS pixels. Used only when both width and height are given. */
-  height?: number;
-  /** Props delivered to the composition via `useProps()`. JSON-encoded into the URL. */
+  canvasWidth?: number;
+  canvasHeight?: number;
   props?: Record<string, unknown>;
-  /** Device pixel-density multiplier (Puppeteer `deviceScaleFactor`). */
   scale?: number;
 }
 
-/**
- * Renders a single composition entry to a raw PNG screenshot buffer. Opens a
- * fresh page (clean module and ML state per entry), navigates the served shell
- * in render mode through the URL query-param contract, waits for the
- * `[data-pictel-canvas][data-pictel-pending]` ready signal to clear, checks
- * the `data-pictel-error` render-mode error signal, and element-screenshots
- * the `[data-pictel-canvas]` root. The screenshot is the bare composition at
- * its rendered size — encoding is the caller's responsibility (see
- * `encode.ts`).
- *
- * @param options - The browser, served URL, and the entry's render parameters.
- * @throws If the pipeline does not settle within {@link PENDING_TIMEOUT_MS}, if
- *   the composition reports pipeline errors, or if the canvas root is missing.
- */
 export async function renderEntry({
   browser,
   baseUrl,
   canvas,
-  width,
-  height,
+  canvasWidth,
+  canvasHeight,
   props,
   scale,
 }: RenderEntryOptions): Promise<Buffer> {
   const page = await browser.newPage();
 
-  // Diagnostic collectors — surfaced in the error message on a render failure.
   const pageErrors: Array<string> = [];
   const consoleMessages: Array<string> = [];
 
@@ -86,9 +53,9 @@ export async function renderEntry({
       url.searchParams.set("canvas", canvas);
     }
 
-    if (width !== undefined && height !== undefined) {
-      url.searchParams.set("width", String(width));
-      url.searchParams.set("height", String(height));
+    if (canvasWidth !== undefined && canvasHeight !== undefined) {
+      url.searchParams.set("canvasWidth", String(canvasWidth));
+      url.searchParams.set("canvasHeight", String(canvasHeight));
     }
 
     if (props !== undefined) {
@@ -96,17 +63,15 @@ export async function renderEntry({
     }
 
     await page.setViewport({
-      width: width ?? 1280,
-      height: height ?? 720,
+      width: canvasWidth ?? 1280,
+      height: canvasHeight ?? 720,
       deviceScaleFactor: scale ?? 1,
     });
 
     await page.goto(url.toString(), { waitUntil: "load" });
 
     try {
-      await page.waitForFunction(isPipelineSettled, {
-        timeout: PENDING_TIMEOUT_MS,
-      });
+      await page.waitForFunction(isPipelineSettled, { timeout: PENDING_TIMEOUT_MS });
     } catch {
       throw new Error(
         `Render timed out after ${PENDING_TIMEOUT_MS}ms waiting for [data-pictel-canvas][data-pictel-pending] to clear` +
@@ -114,9 +79,6 @@ export async function renderEntry({
       );
     }
 
-    // `data-pictel-error` on the canvas root carries a JSON array of
-    // `{ id, message }` when the composition reported pipeline errors, and is
-    // absent (→ null) otherwise. Read it after the ready signal clears.
     const errorAttribute = await page.evaluate(readErrorAttribute);
 
     if (typeof errorAttribute === "string") {
@@ -135,10 +97,7 @@ export async function renderEntry({
       );
     }
 
-    const screenshot = await canvasElement.screenshot({
-      omitBackground: true,
-      type: "png",
-    });
+    const screenshot = await canvasElement.screenshot({ omitBackground: true, type: "png" });
 
     return Buffer.from(screenshot);
   } finally {
@@ -146,39 +105,23 @@ export async function renderEntry({
   }
 }
 
-/**
- * The render shell's `document`, as seen inside a Puppeteer-evaluated callback.
- * The package's `src/` tsconfig is Node-only (no DOM `lib`), so the minimal
- * surface the browser-context predicates below touch is declared locally
- * rather than pulling the whole DOM library into a Node build. These functions
- * are serialized and run in the browser by Puppeteer — never in Node.
- */
+// The render shell's `document` as seen inside a Puppeteer-evaluated callback.
+// The package's tsconfig is Node-only (no DOM `lib`); the predicates below run
+// in the browser via Puppeteer, never in Node.
 declare const document: {
   querySelector(selectors: string): { getAttribute(name: string): string | null } | null;
 };
 
-/**
- * Browser-context predicate: true once the single Canvas-root
- * `[data-pictel-canvas][data-pictel-pending]` element is no longer present —
- * the render-mode ready signal derived from the per-Canvas pending registry.
- * Passed to `page.waitForFunction`.
- */
 function isPipelineSettled(): boolean {
   return document.querySelector("[data-pictel-canvas][data-pictel-pending]") === null;
 }
 
-/**
- * Browser-context evaluation: returns the `[data-pictel-canvas]` root's
- * `data-pictel-error` attribute (a JSON `{ id, message }[]`), or `null` when
- * the composition reported no pipeline errors. Passed to `page.evaluate`.
- */
 function readErrorAttribute(): string | null {
   const root = document.querySelector("[data-pictel-canvas]");
 
   return root ? root.getAttribute("data-pictel-error") : null;
 }
 
-/** Appends collected page/console diagnostics to a failure message, or nothing if there are none. */
 function formatDiagnostics(
   pageErrors: ReadonlyArray<string>,
   consoleMessages: ReadonlyArray<string>,

@@ -4,10 +4,6 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadConfig } from "./config";
 
-/**
- * `loadConfig` reads a real file through `jiti`, so each case writes a config
- * module to a temp directory and points `loadConfig` at it.
- */
 describe("loadConfig", () => {
   let dir: string;
 
@@ -19,7 +15,6 @@ describe("loadConfig", () => {
     await rm(dir, { recursive: true, force: true });
   });
 
-  /** Writes `source` to a uniquely-named module under the temp dir and returns its path. */
   async function writeConfig(name: string, source: string): Promise<string> {
     const path = join(dir, `${name}.ts`);
     await writeFile(path, source);
@@ -31,8 +26,8 @@ describe("loadConfig", () => {
     const path = await writeConfig(
       "valid",
       `export default [
-        { name: "instagram", canvas: "Instagram", width: 1080, height: 1080, format: "png" },
-        { name: "banner", width: 1500, height: 500, format: "webp", quality: 90 },
+        { name: "instagram", canvas: "Instagram", canvasWidth: 1080, canvasHeight: 1080, format: "png" },
+        { name: "banner", canvasWidth: 1500, canvasHeight: 500, format: "webp", quality: 90 },
       ];`,
     );
 
@@ -52,7 +47,7 @@ describe("loadConfig", () => {
   it("rejects an entry missing a name", async () => {
     const path = await writeConfig(
       "no-name",
-      `export default [{ canvas: "Instagram", width: 1080, height: 1080 }];`,
+      `export default [{ canvas: "Instagram", canvasWidth: 1080, canvasHeight: 1080 }];`,
     );
 
     await expect(loadConfig(path)).rejects.toThrow(/missing a string "name"/);

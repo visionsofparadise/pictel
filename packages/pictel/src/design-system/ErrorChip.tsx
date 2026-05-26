@@ -1,7 +1,9 @@
 import { AlertTriangle } from "lucide-react";
 import { useState, type CSSProperties } from "react";
-import type { RasterEffectError } from "../utils/errors";
+import type { RasterEffectError } from "../Components/RasterEffect/Error";
 import { tokens } from "./tokens";
+
+// FIX: All of these "design-system" components need to be organized into the components folder. design system was the task we was doing to create these components, not how they should be organized in the package file system
 
 interface ErrorChipProps {
 	errors: Array<RasterEffectError>;

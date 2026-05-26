@@ -11,15 +11,6 @@ const LEAK_H = Math.round(canvasH * 0.38);
 const LEAK_OFFSET_TOP = -Math.round(canvasH * 0.04);
 const LEAK_OFFSET_RIGHT = -Math.round(canvasW * 0.06);
 
-/**
- * Three layers:
- *   Behind: landscape photo, in natural flow.
- *   Mid:    Lighten(light-leak) at 60% opacity — leak's black bg drops out
- *           via max-blend; the leak texture is scaled to ~38% and offset so
- *           the bright sun-flare lands in the upper-right corner rather
- *           than dominating the frame.
- *   Front:  Screen(damaged-film) — white scratches show, dark base discarded.
- */
 export default function DamagedFilm() {
 	return (
 		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>

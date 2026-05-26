@@ -7,8 +7,6 @@ const GAMEBOY = [[15, 56, 15], [48, 98, 48], [139, 172, 15], [155, 188, 15]] as 
 
 const SIZE = 192;
 
-/** 4 dither configs: Mac System, Game Boy, NES, GIF.
- *  Small buffer (192px) so dither pixels are visible at typical gallery scale. */
 export default function Dithering() {
 	return (
 		<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, imageRendering: "pixelated" }}>

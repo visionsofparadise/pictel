@@ -9,9 +9,9 @@ import { Workspace } from "../design-system/Workspace";
 import { useContainerSize } from "../hooks/useContainerSize";
 import { useMode } from "../hooks/useMode";
 import { useSearchParam } from "../hooks/useSearchParam";
-import type { Mode } from "../modes";
-import type { RasterEffectError } from "../utils/errors";
+import type { Mode } from "../Mode";
 import { Frame } from "./Frame";
+import type { RasterEffectError } from "./RasterEffect/Error";
 
 interface CanvasProps extends ComponentProps<"div"> {
 	/** Display name shown in the Viewer sidebar. Used as the `aria-label`. */
@@ -83,44 +83,33 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 		setErrors((prev) => [...prev, error]);
 	}, []);
 
-	const widthParam = useSearchParam("width", "");
-	const heightParam = useSearchParam("height", "");
+	const widthParam = useSearchParam("canvasWidth", "");
+	const heightParam = useSearchParam("canvasHeight", "");
 	const overrideWidth = Number(widthParam);
 	const overrideHeight = Number(heightParam);
 	const hasDimensionOverride =
-		mode === "render" &&
-		widthParam !== "" &&
-		heightParam !== "" &&
-		Number.isFinite(overrideWidth) &&
-		Number.isFinite(overrideHeight) &&
-		overrideWidth > 0 &&
-		overrideHeight > 0;
+		mode === "render" && widthParam !== "" && heightParam !== "" && Number.isFinite(overrideWidth) && Number.isFinite(overrideHeight) && overrideWidth > 0 && overrideHeight > 0;
 	const effectiveWidth = hasDimensionOverride ? overrideWidth : dimensions.width;
 	const effectiveHeight = hasDimensionOverride ? overrideHeight : dimensions.height;
 
-	const captureDimensions = useMemo(
-		() => ({ width: effectiveWidth, height: effectiveHeight }),
-		[effectiveWidth, effectiveHeight],
-	);
-	const effectiveDimensions = useMemo<CanvasDimensions>(
-		() => ({ width: effectiveWidth, height: effectiveHeight }),
-		[effectiveWidth, effectiveHeight],
-	);
+	const captureDimensions = useMemo(() => ({ width: effectiveWidth, height: effectiveHeight }), [effectiveWidth, effectiveHeight]);
+	const effectiveDimensions = useMemo<CanvasDimensions>(() => ({ width: effectiveWidth, height: effectiveHeight }), [effectiveWidth, effectiveHeight]);
 	const registry = useMemo(() => createRegistry(), []);
 	const pending = useSyncExternalStore(registry.subscribe, registry.anyPending, getPendingServerSnapshot);
 
 	const [offscreenHost, setOffscreenHost] = useState<HTMLDivElement | null>(null);
 
-	const contextValue: CanvasContextValue | null = offscreenHost === null
-		? null
-		: {
-			mode,
-			dimensions: effectiveDimensions,
-			viewport: { width, height },
-			captureDimensions,
-			reportError,
-			offscreenHost,
-		};
+	const contextValue: CanvasContextValue | null =
+		offscreenHost === null
+			? null
+			: {
+					mode,
+					dimensions: effectiveDimensions,
+					viewport: { width, height },
+					captureDimensions,
+					reportError,
+					offscreenHost,
+				};
 
 	function provideCanvasContext(content: ReactNode): ReactNode {
 		if (contextValue === null) return null;
@@ -129,10 +118,7 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 	}
 
 	if (mode === "render") {
-		const errorAttribute =
-			errors.length > 0
-				? JSON.stringify(errors.map((entry) => ({ id: entry.id, message: entry.error.message })))
-				: undefined;
+		const errorAttribute = errors.length > 0 ? JSON.stringify(errors.map((entry) => ({ id: entry.id, message: entry.error.message }))) : undefined;
 
 		return (
 			<RasterEffectContext.Provider value={registry}>
@@ -145,7 +131,11 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 					style={{ ...renderOuterStyle(effectiveWidth, effectiveHeight), ...style }}
 					{...rest}
 				>
-					<div ref={setOffscreenHost} aria-hidden="true" style={offscreenHostStyle} />
+					<div
+						ref={setOffscreenHost}
+						aria-hidden="true"
+						style={offscreenHostStyle}
+					/>
 					{provideCanvasContext(<Frame>{children}</Frame>)}
 				</div>
 			</RasterEffectContext.Provider>
@@ -166,7 +156,11 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 				style={{ ...baseOuterStyle, ...style }}
 				{...rest}
 			>
-				<div ref={setOffscreenHost} aria-hidden="true" style={offscreenHostStyle} />
+				<div
+					ref={setOffscreenHost}
+					aria-hidden="true"
+					style={offscreenHostStyle}
+				/>
 				{provideCanvasContext(
 					<>
 						<Wrapper>

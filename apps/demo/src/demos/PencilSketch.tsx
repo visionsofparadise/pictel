@@ -6,13 +6,6 @@ import pencilTexture from "../../assets/Pencil Texture.jpg";
 const canvasW = 1024;
 const canvasH = 1024;
 
-/**
- * Three layers:
- *   Behind:  Grayscale(photo) — the math sketch's "A" base.
- *   Mid:     ColorDodge of A with Blur(Invert(Grayscale)) — the dodge.
- *            Wrapped in Clip so blur bleed doesn't escape the canvas.
- *   Front:   Multiply with a real graphite-paper texture for stroke character.
- */
 export default function PencilSketch() {
 	return (
 		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>

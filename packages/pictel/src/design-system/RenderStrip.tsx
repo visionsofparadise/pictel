@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from "react";
+import { createRasterEffectError } from "../Components/RasterEffect/Error";
 import { useCanvasContext } from "../context/canvas";
-import { createRasterEffectError } from "../utils/errors";
 import { ExportError, exportCanvas } from "./export";
 import { tokens } from "./tokens";
 

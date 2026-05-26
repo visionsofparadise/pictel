@@ -1,4 +1,5 @@
-import { Canvas, LinearGradient, Viewer } from "pictel";
+import { LinearGradient } from "@pictel/effects";
+import { Canvas, Viewer } from "pictel";
 
 /**
  * Multi-Canvas fixture: a Viewer wrapping two named Canvases. Exercises

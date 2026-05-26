@@ -1,4 +1,4 @@
-import { ErrorChip, type PipelineError } from "pictel";
+import { ErrorChip, type RasterEffectError } from "pictel";
 import { useEffect, useRef } from "react";
 
 /**
@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
  * chip's root element after mount, forcing the expanded view without changing
  * ErrorChip's API.
  */
-export function ForcedExpandedErrorChip({ errors }: { errors: Array<PipelineError> }) {
+export function ForcedExpandedErrorChip({ errors }: { errors: Array<RasterEffectError> }) {
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {

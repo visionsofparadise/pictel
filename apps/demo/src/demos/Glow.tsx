@@ -1,4 +1,5 @@
-import { Bloom, Canvas, Image } from "pictel";
+import { Bloom } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
 import landscape from "../../assets/Evening Landscape.jpg";
 
 const canvasW = 640;

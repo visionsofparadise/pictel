@@ -22,9 +22,7 @@
   },
   "dependencies": {
     "@zumer/snapdom": "latest",
-    "alea": "^1.0.1",
-    "lucide-react": "latest",
-    "simplex-noise": "latest"
+    "lucide-react": "latest"
   },
   "peerDependencies": {
     "react": "^19.0.0",
@@ -35,10 +33,12 @@
     "@types/react-dom": "latest",
     "@vitest/browser": "^4.1.4",
     "@vitest/browser-playwright": "^4.1.4",
+    "alea": "^1.0.1",
     "concurrently": "latest",
     "playwright": "^1.59.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "simplex-noise": "latest",
     "tsup": "latest",
     "vitest": "latest"
   }

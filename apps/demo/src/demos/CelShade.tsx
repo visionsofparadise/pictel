@@ -1,4 +1,5 @@
-import { Bilateral, Canvas, Image, LuminanceBands, Multiply, Outline, Saturate, Threshold } from "pictel";
+import { Bilateral, LuminanceBands, Multiply, Outline, Saturate, Threshold } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
 import headshot from "../../assets/headshot.jpg";
 
 const canvasW = 512;

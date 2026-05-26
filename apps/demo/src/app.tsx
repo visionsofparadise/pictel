@@ -81,7 +81,7 @@ const demos: Array<Demo> = [
 		slug: "anaglyph",
 		name: "Anaglyph 3D",
 		description:
-			"DepthMap (Depth Anything V2) provides per-pixel depth. A custom Pipeline effect shifts the red channel left and the cyan channels right by amounts proportional to depth. View through red-cyan glasses for actual 3D parallax.",
+			"DepthMap (Depth Anything V2) provides per-pixel depth. A custom RasterEffect shifts the red channel left and the cyan channels right by amounts proportional to depth. View through red-cyan glasses for actual 3D parallax.",
 		original: cityPhoto,
 		component: Anaglyph,
 		source: anaglyphSource,

@@ -1,4 +1,5 @@
-import { Canvas, Image, Lighten, Screen } from "pictel";
+import { Lighten, Screen } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
 import landscape from "../../assets/Evening Landscape.jpg";
 import degradedFilm from "../../assets/Degraded Film.jpg";
 import lightLeak from "../../assets/Light Leak.jpg";

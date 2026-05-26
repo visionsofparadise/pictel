@@ -1,4 +1,5 @@
-import { Canvas, LinearGradient } from "pictel";
+import { LinearGradient } from "@pictel/effects";
+import { Canvas } from "pictel";
 
 /**
  * Minimal single-Canvas fixture: one Canvas containing a generative

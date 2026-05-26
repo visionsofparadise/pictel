@@ -1,16 +1,16 @@
 import { snapdom } from "@zumer/snapdom";
-import { createPipelineError, type PipelineError } from "../utils/errors";
+import { createRasterEffectError, type RasterEffectError } from "../utils/errors";
 
 /**
- * Error subclass that carries an attached `PipelineError`. The export utility
+ * Error subclass that carries an attached `RasterEffectError`. The export utility
  * wraps any failure (timeout, missing canvas root, snapdom failure, encoding
  * failure) in this so the caller (RenderStrip) can read `.pipelineError` and
  * forward it through the standard `reportError` channel.
  */
 export class ExportError extends Error {
-	readonly pipelineError: PipelineError;
+	readonly pipelineError: RasterEffectError;
 
-	constructor(pipelineError: PipelineError) {
+	constructor(pipelineError: RasterEffectError) {
 		super(pipelineError.error.message);
 		this.name = "ExportError";
 		this.pipelineError = pipelineError;
@@ -49,8 +49,8 @@ const CANVAS_SELECTOR = "[data-pictel-canvas]";
  *
  * Mirrors the CLI's headless export path: a render-mode page at exact target
  * dimensions captured after `data-pictel-pending` clears. Errors are wrapped
- * as `PipelineError` so the caller (RenderStrip) can surface them in the
- * standard error chip alongside pipeline errors.
+ * as `RasterEffectError` so the caller (RenderStrip) can surface them in the
+ * standard error chip alongside raster-effect errors.
  */
 export async function exportCanvas(options: ExportOptions): Promise<void> {
 	const url = new URL(options.sourceUrl);
@@ -99,7 +99,7 @@ export async function exportCanvas(options: ExportOptions): Promise<void> {
 			throw error;
 		}
 
-		throw new ExportError(createPipelineError("render", error));
+		throw new ExportError(createRasterEffectError("render", error));
 	} finally {
 		iframe.remove();
 	}

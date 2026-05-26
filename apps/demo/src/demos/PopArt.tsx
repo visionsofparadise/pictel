@@ -1,4 +1,5 @@
-import { Canvas, Contrast, Halftone, Image, Multiply, Outline, Saturate, Threshold } from "pictel";
+import { Contrast, Halftone, Multiply, Outline, Saturate, Threshold } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
 import photo from "../../assets/Golden Hour Portrait.jpg";
 
 const canvasW = 640;

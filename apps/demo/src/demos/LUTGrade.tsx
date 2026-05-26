@@ -1,4 +1,5 @@
-import { Canvas, CubeLUT, Image } from "pictel";
+import { CubeLUT } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
 import goldenHour from "../../assets/Golden Hour Portrait.jpg";
 import lutUrl from "../../assets/OrangeAndBlue.cube?url";
 

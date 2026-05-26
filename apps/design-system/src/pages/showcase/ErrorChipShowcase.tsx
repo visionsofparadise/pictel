@@ -1,9 +1,9 @@
-import { ErrorChip, tokens, type PipelineError } from "pictel";
+import { ErrorChip, tokens, type RasterEffectError } from "pictel";
 import type { CSSProperties } from "react";
 import { ForcedExpandedErrorChip } from "./ForcedExpandedErrorChip";
 import { subheadingStyle } from "./utils/styles";
 
-const SAMPLE_ERRORS: Array<PipelineError> = [
+const SAMPLE_ERRORS: Array<RasterEffectError> = [
 	{
 		id: "blur-12",
 		error: new Error("Cannot capture pipeline output: source canvas is empty."),

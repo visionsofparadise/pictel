@@ -1,4 +1,5 @@
-import { Blur, Canvas, Clip, ColorDodge, Grayscale, Image, Invert, Multiply } from "pictel";
+import { Blur, ColorDodge, Grayscale, Invert, Multiply } from "@pictel/effects";
+import { Canvas, Clip, Image } from "pictel";
 import headshot from "../../assets/headshot.jpg";
 import pencilTexture from "../../assets/Pencil Texture.jpg";
 

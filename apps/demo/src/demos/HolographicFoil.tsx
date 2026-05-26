@@ -1,5 +1,6 @@
-import { Canvas, Contrast, Grayscale, HardLight, Image, Mask } from "pictel";
+import { Contrast, Grayscale, HardLight, Mask } from "@pictel/effects";
 import { RemoveBackground } from "@pictel/ml";
+import { Canvas, Image } from "pictel";
 import headshot from "../../assets/headshot.jpg";
 import foil from "../../assets/Foil Texture.jpg";
 

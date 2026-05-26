@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { useCanvasContext } from "../context/canvas";
-import { createPipelineError } from "../utils/errors";
+import { createRasterEffectError } from "../utils/errors";
 import { ExportError, exportCanvas } from "./export";
 import { tokens } from "./tokens";
 
@@ -99,7 +99,7 @@ export function RenderStrip({ canvasName, width, height, disabled = false }: Ren
 				sourceUrl: window.location.href,
 			});
 		} catch (caughtError) {
-			const pipelineError = caughtError instanceof ExportError ? caughtError.pipelineError : createPipelineError("render", caughtError);
+			const pipelineError = caughtError instanceof ExportError ? caughtError.pipelineError : createRasterEffectError("render", caughtError);
 
 			reportError(pipelineError);
 		} finally {

@@ -1,5 +1,6 @@
+import { Blur, Brightness, Contrast, Invert, Saturate } from "@pictel/effects";
 import { DepthMap } from "@pictel/ml";
-import { Blur, Brightness, Canvas, Clip, Contrast, Image, Invert, Saturate } from "pictel";
+import { Canvas, Clip, Image } from "pictel";
 import cityPhoto from "../../assets/city overview.jpg";
 
 const canvasW = 1024;

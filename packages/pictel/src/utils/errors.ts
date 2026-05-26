@@ -1,10 +1,10 @@
-export interface PipelineError {
+export interface RasterEffectError {
 	readonly id: string;
 	readonly error: Error;
 	readonly timestamp: number;
 }
 
-export function createPipelineError(id: string, error: unknown): PipelineError {
+export function createRasterEffectError(id: string, error: unknown): RasterEffectError {
 	return {
 		id,
 		error: error instanceof Error ? error : new Error(String(error)),

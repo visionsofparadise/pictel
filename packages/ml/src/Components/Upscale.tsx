@@ -1,5 +1,5 @@
 import { useCallback, useMemo, type ReactNode } from "react"
-import { Pipeline as PictelPipeline, type PipelineCallback } from "pictel"
+import { RasterEffect, type RasterEffectCallback } from "pictel"
 import type { Pipeline } from "@huggingface/transformers"
 import type { RawImage } from "@huggingface/transformers"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
@@ -43,7 +43,7 @@ export function Upscale({
 		[model, revision],
 	)
 
-	const effect = useCallback<PipelineCallback>(
+	const effect = useCallback<RasterEffectCallback>(
 		async (target) => {
 			const pipe = await pipelinePromise
 			const pixels = await upscale(target, pipe)
@@ -54,8 +54,8 @@ export function Upscale({
 	)
 
 	return (
-		<PictelPipeline effect={effect}>
+		<RasterEffect effect={effect}>
 			{children}
-		</PictelPipeline>
+		</RasterEffect>
 	)
 }

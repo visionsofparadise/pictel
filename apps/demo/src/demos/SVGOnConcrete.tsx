@@ -1,4 +1,5 @@
-import { Canvas, DisplacementMap, Image, Overlay } from "pictel";
+import { DisplacementMap, Overlay } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
 import wall from "../../assets/Wall.jpg";
 import mark from "../../assets/Mark.svg";
 

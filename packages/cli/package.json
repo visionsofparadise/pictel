@@ -19,6 +19,7 @@
     "build": "tsup"
   },
   "dependencies": {
+    "@pictel/effects": "*",
     "pictel": "*",
     "puppeteer": "latest",
     "sharp": "latest",

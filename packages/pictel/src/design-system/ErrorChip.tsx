@@ -1,10 +1,10 @@
 import { AlertTriangle } from "lucide-react";
 import { useState, type CSSProperties } from "react";
-import type { PipelineError } from "../utils/errors";
+import type { RasterEffectError } from "../utils/errors";
 import { tokens } from "./tokens";
 
 interface ErrorChipProps {
-	errors: Array<PipelineError>;
+	errors: Array<RasterEffectError>;
 }
 
 const containerStyle: CSSProperties = {

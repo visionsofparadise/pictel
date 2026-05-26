@@ -1,4 +1,5 @@
-import { Canvas, LinePattern, Overlay, ProceduralNoise, RadialGradient, Screen } from "pictel";
+import { LinePattern, Overlay, ProceduralNoise, RadialGradient, Screen } from "@pictel/effects";
+import { Canvas } from "pictel";
 
 const canvasW = 720;
 const canvasH = 960;

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, type ReactNode } from "react"
 import type { Pipeline } from "@huggingface/transformers"
-import { Pipeline as PictelPipeline, type PipelineCallback } from "pictel"
+import { RasterEffect, type RasterEffectCallback } from "pictel"
 import { imageDataToRawImage, rawImageToImageData } from "../bridge"
 import { getOrLoadPipeline } from "../registry"
 import { requireWebGPU } from "../webgpu"
@@ -90,7 +90,7 @@ export function SegFormer({
 		[model, revision],
 	)
 
-	const effect = useCallback<PipelineCallback>(
+	const effect = useCallback<RasterEffectCallback>(
 		async (target) => {
 			const pipe = await pipelinePromise
 			const pixels = await segFormerSegment(target, pipe)
@@ -101,8 +101,8 @@ export function SegFormer({
 	)
 
 	return (
-		<PictelPipeline effect={effect}>
+		<RasterEffect effect={effect}>
 			{children}
-		</PictelPipeline>
+		</RasterEffect>
 	)
 }

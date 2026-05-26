@@ -1,5 +1,6 @@
+import { ChannelMixer, DisplacementMap, LinearDodge } from "@pictel/effects";
 import { DepthMap } from "@pictel/ml";
-import { Canvas, ChannelMixer, DisplacementMap, Image, LinearDodge } from "pictel";
+import { Canvas, Image } from "pictel";
 import cityPhoto from "../../assets/city overview.jpg";
 
 const canvasW = 1024;

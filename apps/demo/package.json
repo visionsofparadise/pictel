@@ -10,6 +10,7 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@pictel/effects": "*",
     "@pictel/ml": "*",
     "pictel": "*",
     "react": "^19.0.0",

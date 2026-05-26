@@ -1,6 +1,7 @@
 /** First load downloads the BEN2 model (~50MB). */
-import { Canvas, Clip, ConicGradient, DropShadow, Image } from "pictel";
+import { ConicGradient, DropShadow } from "@pictel/effects";
 import { RemoveBackground } from "@pictel/ml";
+import { Canvas, Clip, Image } from "pictel";
 import portrait from "../../assets/Portrait with Background 2.jpg";
 
 const canvasW = 713;

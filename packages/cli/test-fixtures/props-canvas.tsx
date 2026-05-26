@@ -1,4 +1,5 @@
-import { Canvas, LinearGradient, useProps } from "pictel";
+import { LinearGradient } from "@pictel/effects";
+import { Canvas, useProps } from "pictel";
 
 interface PropsCanvasProps {
   label?: string;

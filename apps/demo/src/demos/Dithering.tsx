@@ -1,4 +1,5 @@
-import { Canvas, Image, Quantize } from "pictel";
+import { Quantize } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
 import headshot from "../../assets/headshot.jpg";
 
 const MAC_BW = [[0, 0, 0], [255, 255, 255]] as const;

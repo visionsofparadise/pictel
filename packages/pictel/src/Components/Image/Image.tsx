@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { RasterSource } from "../Pipeline/RasterSource";
+import { RasterSource } from "../RasterEffect/RasterSource";
 import { computeFitRect } from "./utils/compute-fit-rect";
 
 type Fit = "cover" | "contain" | "fill" | "none";

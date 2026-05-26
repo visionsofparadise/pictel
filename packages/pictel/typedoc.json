@@ -13,7 +13,7 @@
   "excludeNotDocumented": true,
   "excludeInternal": true,
   "categorizeByGroup": false,
-  "categoryOrder": ["Layout", "Effects", "Generative", "Blend Modes", "Pipeline", "*"],
+  "categoryOrder": ["Layout", "RasterEffect", "*"],
   "defaultCategory": "Other",
   "validation": { "notExported": false },
   "parametersFormat": "table",

@@ -1,4 +1,5 @@
-import { Blur, Canvas, Contrast, Grayscale, Image, ShockFilter } from "pictel";
+import { Blur, Contrast, Grayscale, ShockFilter } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
 import photo from "../../assets/Portrait with Background 1.jpg";
 
 const canvasW = 640;

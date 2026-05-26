@@ -1,5 +1,5 @@
 import { useCallback, useMemo, type ReactNode } from "react"
-import { Pipeline, type PipelineCallback } from "pictel"
+import { RasterEffect, type RasterEffectCallback } from "pictel"
 import { Sam2Model, AutoProcessor, Tensor, RawImage } from "@huggingface/transformers"
 import type { Processor } from "@huggingface/transformers"
 import { requireWebGPU } from "../webgpu"
@@ -160,7 +160,7 @@ export function Sam2({
 		[model, revision],
 	)
 
-	const effect = useCallback<PipelineCallback>(
+	const effect = useCallback<RasterEffectCallback>(
 		async (target) => {
 			const { model: sam2Model, processor } = await resourcesPromise
 			const pixels = await sam2Segment(target, sam2Model, processor, points, negativePoints)
@@ -171,8 +171,8 @@ export function Sam2({
 	)
 
 	return (
-		<Pipeline effect={effect}>
+		<RasterEffect effect={effect}>
 			{children}
-		</Pipeline>
+		</RasterEffect>
 	)
 }

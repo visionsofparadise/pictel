@@ -1,11 +1,11 @@
 import { useCallback } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { Canvas } from "../../index";
-import { Pipeline, type PipelineCallback } from "../Pipeline/Pipeline";
+import { RasterEffect, type RasterEffectCallback } from "../RasterEffect/RasterEffect";
 import { renderCanvas } from "../utils/render-canvas";
-import { readPipelineOutput, readPixel } from "../utils/read-pipeline-output";
+import { readRasterEffectOutput, readPixel } from "../utils/read-raster-effect-output";
 import { solidImage } from "../utils/test-images";
-import { waitForPipeline } from "../utils/wait-for-pipeline";
+import { waitForRasterEffect } from "../utils/wait-for-raster-effect";
 import { Image } from "./Image";
 
 // --- Helpers ---
@@ -29,7 +29,7 @@ function deferred<T = void>(): Deferred<T> {
 /**
  * Wait until the Canvas root has `data-pictel-pending` set. Polls a few
  * frames to give React's `useSyncExternalStore` re-render time to flush after
- * a descendant Pipeline / RasterSource registers and notifies pending.
+ * a descendant RasterEffect / RasterSource registers and notifies pending.
  */
 function waitForCanvasPending(container: HTMLElement, timeoutMs = 1000): Promise<HTMLElement> {
 	return new Promise((resolve, reject) => {
@@ -130,7 +130,7 @@ describe.sequential("Image integration", () => {
 		);
 
 		try {
-			await waitForPipeline(handle.container);
+			await waitForRasterEffect(handle.container);
 
 			const canvas = handle.container.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
 			expect(canvas).not.toBeNull();
@@ -139,7 +139,7 @@ describe.sequential("Image integration", () => {
 
 			if (!canvas) throw new Error("no raster canvas found");
 
-			const pixels = readPipelineOutput(canvas);
+			const pixels = readRasterEffectOutput(canvas);
 			const [r, g, b, a] = readPixel(pixels, 50, 50);
 
 			// "fill" stretches the 50x50 red source over the entire 100x100 canvas.
@@ -169,7 +169,7 @@ describe.sequential("Image integration", () => {
 
 			d.resolve();
 
-			await waitForPipeline(handle.container);
+			await waitForRasterEffect(handle.container);
 
 			expect(canvasRoot.hasAttribute("data-pictel-pending")).toBe(false);
 		} finally {
@@ -177,32 +177,32 @@ describe.sequential("Image integration", () => {
 		}
 	});
 
-	test("fast-path eligibility: parent Pipeline captures the Image leaf canvas", async () => {
+	test("fast-path eligibility: parent RasterEffect captures the Image leaf canvas", async () => {
 		const src = solidImage("red", 100, 100);
 		mockImageDecode({ naturalWidth: 100, naturalHeight: 100 });
 
-		function IdentityPipeline({ children }: { children: React.ReactNode }) {
-			const effect = useCallback<PipelineCallback>((pixels) => ({ pixels }), []);
-			return <Pipeline effect={effect}>{children}</Pipeline>;
+		function IdentityRasterEffect({ children }: { children: React.ReactNode }) {
+			const effect = useCallback<RasterEffectCallback>((pixels) => ({ pixels }), []);
+			return <RasterEffect effect={effect}>{children}</RasterEffect>;
 		}
 
 		const handle = renderCanvas(
 			<Canvas mode="display" dimensions={{ width: 100, height: 100 }}>
-				<IdentityPipeline>
+				<IdentityRasterEffect>
 					<Image src={src} width={100} height={100} fit="fill" />
-				</IdentityPipeline>
+				</IdentityRasterEffect>
 			</Canvas>,
 		);
 
 		try {
-			await waitForPipeline(handle.container);
+			await waitForRasterEffect(handle.container);
 
 			const all = Array.from(
 				handle.container.querySelectorAll<HTMLCanvasElement>("canvas[data-pictel-raster]"),
 			);
 			expect(all.length).toBeGreaterThanOrEqual(2);
 
-			// Outer Pipeline's output canvas is the one whose previous-sibling
+			// Outer RasterEffect's output canvas is the one whose previous-sibling
 			// children wrapper contains another `[data-pictel-raster]` canvas (the
 			// inner / Image leaf canvas). The Image leaf canvas has no such
 			// sibling-with-raster-descendant.
@@ -213,7 +213,7 @@ describe.sequential("Image integration", () => {
 
 			if (!outer) throw new Error("could not locate outer raster canvas");
 
-			const pixels = readPipelineOutput(outer);
+			const pixels = readRasterEffectOutput(outer);
 			const [r, g, b] = readPixel(pixels, 50, 50);
 
 			expect(r).toBeGreaterThanOrEqual(240);
@@ -243,7 +243,7 @@ describe.sequential("Image integration", () => {
 		);
 
 		try {
-			await waitForPipeline(handle.container);
+			await waitForRasterEffect(handle.container);
 
 			const canvasRoot = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
 			if (!canvasRoot) throw new Error("no Canvas root found");

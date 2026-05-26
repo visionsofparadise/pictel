@@ -1,4 +1,5 @@
-import { Canvas, Direction, Duotone, Hatch, Image } from "pictel";
+import { Direction, Duotone, Hatch } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
 import headshot from "../../assets/headshot.jpg";
 
 const INK: [number, number, number] = [38, 30, 54];

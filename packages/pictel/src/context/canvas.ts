@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { PipelineError } from "../utils/errors";
+import type { RasterEffectError } from "../utils/errors";
 
 /**
  * Fixed pixel dimensions for the canvas's compositing buffer. The capture
@@ -22,8 +22,8 @@ export interface CanvasContextValue {
 	dimensions: CanvasDimensions;
 	viewport: Viewport;
 	captureDimensions: CanvasDimensions;
-	reportError: (error: PipelineError) => void;
-	/** Canvas-level offscreen host. Pipelines append apply/map slot divs here and createPortal into them. Non-null whenever the CanvasContext.Provider is mounted: Canvas conditionally provides the context only after the host ref is captured. */
+	reportError: (error: RasterEffectError) => void;
+	/** Canvas-level offscreen host. RasterEffects append apply/map slot divs here and createPortal into them. Non-null whenever the CanvasContext.Provider is mounted: Canvas conditionally provides the context only after the host ref is captured. */
 	offscreenHost: HTMLDivElement;
 }
 

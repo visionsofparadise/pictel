@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useMemo, useState, useSyncExternalStore, type CSSProperties, type ComponentProps, type ReactNode } from "react";
 import { CanvasContext, type CanvasContextValue, type CanvasDimensions } from "../context/canvas";
-import { PipelineContext, createRegistry } from "../context/pipeline";
+import { RasterEffectContext, createRegistry } from "../context/raster-effect";
 import { ErrorChip } from "../design-system/ErrorChip";
 import { LoadingOverlay } from "../design-system/LoadingOverlay";
 import { RenderStrip } from "../design-system/RenderStrip";
@@ -10,7 +10,7 @@ import { useContainerSize } from "../hooks/useContainerSize";
 import { useMode } from "../hooks/useMode";
 import { useSearchParam } from "../hooks/useSearchParam";
 import type { Mode } from "../modes";
-import type { PipelineError } from "../utils/errors";
+import type { RasterEffectError } from "../utils/errors";
 import { Frame } from "./Frame";
 
 interface CanvasProps extends ComponentProps<"div"> {
@@ -77,9 +77,9 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 	const urlMode = useMode();
 	const mode = modeProp ?? urlMode;
 	const { ref, width, height } = useContainerSize();
-	const [errors, setErrors] = useState<Array<PipelineError>>([]);
+	const [errors, setErrors] = useState<Array<RasterEffectError>>([]);
 
-	const reportError = useCallback((error: PipelineError) => {
+	const reportError = useCallback((error: RasterEffectError) => {
 		setErrors((prev) => [...prev, error]);
 	}, []);
 
@@ -135,7 +135,7 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 				: undefined;
 
 		return (
-			<PipelineContext.Provider value={registry}>
+			<RasterEffectContext.Provider value={registry}>
 				<div
 					ref={ref}
 					aria-label={name}
@@ -148,7 +148,7 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 					<div ref={setOffscreenHost} aria-hidden="true" style={offscreenHostStyle} />
 					{provideCanvasContext(<Frame>{children}</Frame>)}
 				</div>
-			</PipelineContext.Provider>
+			</RasterEffectContext.Provider>
 		);
 	}
 
@@ -157,7 +157,7 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 	const baseOuterStyle = mode === "preview" ? previewOuterStyle : displayOuterStyle(dimensions.width, dimensions.height);
 
 	return (
-		<PipelineContext.Provider value={registry}>
+		<RasterEffectContext.Provider value={registry}>
 			<div
 				ref={ref}
 				aria-label={name}
@@ -185,6 +185,6 @@ export function Canvas({ name, dimensions, mode: modeProp, children, style, ...r
 					</>,
 				)}
 			</div>
-		</PipelineContext.Provider>
+		</RasterEffectContext.Provider>
 	);
 }

@@ -1,18 +1,12 @@
 import { describe, expect, test } from "vitest";
 import { StrictMode, useEffect } from "react";
-import {
-	Brightness,
-	Canvas,
-	Grayscale,
-	Invert,
-	Multiply,
-	useCanvasContext,
-} from "../index";
-import { createPipelineError } from "../utils/errors";
+import { Canvas, useCanvasContext } from "../index";
+import { Brightness, Grayscale, Invert, Multiply } from "@pictel/effects";
+import { createRasterEffectError } from "../utils/errors";
 import { renderCanvas } from "./utils/render-canvas";
-import { readPipelineOutput, readPixel } from "./utils/read-pipeline-output";
+import { readRasterEffectOutput, readPixel } from "./utils/read-raster-effect-output";
 import { gradientImage, solidImage } from "./utils/test-images";
-import { waitForPipeline } from "./utils/wait-for-pipeline";
+import { waitForRasterEffect } from "./utils/wait-for-raster-effect";
 
 let brokenLevel = -1;
 
@@ -44,7 +38,7 @@ function getOuterCanvas(container: HTMLElement): HTMLCanvasElement {
 	if (all.length === 0) throw new Error("no canvas[data-pictel-raster] found in container");
 	if (all.length === 1) return all[0]!;
 
-	// Outer Pipeline's canvas is the one whose previous-sibling wrapper contains
+	// Outer RasterEffect's canvas is the one whose previous-sibling wrapper contains
 	// another raster canvas in its subtree.
 	for (const candidate of all) {
 		const prev = candidate.previousElementSibling;
@@ -65,7 +59,7 @@ describe.sequential("pipeline integration ladder", () => {
 				</Canvas>,
 			);
 			try {
-				await waitForPipeline(handle.container);
+				await waitForRasterEffect(handle.container);
 				const img = handle.container.querySelector("img");
 				expect(img).not.toBeNull();
 				// No raster canvas expected for plain Canvas + img.
@@ -87,9 +81,9 @@ describe.sequential("pipeline integration ladder", () => {
 				</Canvas>,
 			);
 			try {
-				await waitForPipeline(handle.container);
+				await waitForRasterEffect(handle.container);
 				const canvas = getCanvas(handle.container);
-				const pixels = readPipelineOutput(canvas);
+				const pixels = readRasterEffectOutput(canvas);
 				const [red, green, blue] = readPixel(pixels, 10, 10);
 				// BT.601 luminance of pure red: 0.299 * 255 ≈ 76.
 				expect(red).toBeGreaterThanOrEqual(74);
@@ -114,9 +108,9 @@ describe.sequential("pipeline integration ladder", () => {
 				</Canvas>,
 			);
 			try {
-				await waitForPipeline(handle.container);
+				await waitForRasterEffect(handle.container);
 				const canvas = getCanvas(handle.container);
-				const pixels = readPipelineOutput(canvas);
+				const pixels = readRasterEffectOutput(canvas);
 				// Sample further from the gradient edges (x=20 instead of x=8,
 				// x=108 instead of x=100): the IMG is rendered inside a
 				// childrenEl whose layout height (36px due to inline baseline)
@@ -152,9 +146,9 @@ describe.sequential("pipeline integration ladder", () => {
 				</Canvas>,
 			);
 			try {
-				await waitForPipeline(handle.container);
+				await waitForRasterEffect(handle.container);
 				const outer = getOuterCanvas(handle.container);
-				const pixels = readPipelineOutput(outer);
+				const pixels = readRasterEffectOutput(outer);
 				// Sample further from edges (see level 2 note on edge offset).
 				const [lowX] = readPixel(pixels, 20, 16);
 				// Double-inverted ≈ original gradient: at x=20 → ~40.
@@ -184,9 +178,9 @@ describe.sequential("pipeline integration ladder", () => {
 				</Canvas>,
 			);
 			try {
-				await waitForPipeline(handle.container);
+				await waitForRasterEffect(handle.container);
 				const canvas = getCanvas(handle.container);
-				const pixels = readPipelineOutput(canvas);
+				const pixels = readRasterEffectOutput(canvas);
 				const [red, green, blue] = readPixel(pixels, 10, 10);
 				// lerp(1, 1.5, luminance(#808080)=0.5) = 1.25; 128 * 1.25 = 160.
 				expect(red).toBeGreaterThanOrEqual(150);
@@ -219,9 +213,9 @@ describe.sequential("pipeline integration ladder", () => {
 				</Canvas>,
 			);
 			try {
-				await waitForPipeline(handle.container);
+				await waitForRasterEffect(handle.container);
 				const canvas = getCanvas(handle.container);
-				const pixels = readPipelineOutput(canvas);
+				const pixels = readRasterEffectOutput(canvas);
 				const [red, green, blue] = readPixel(pixels, 20, 20);
 				// Red * green = 0 in all channels.
 				expect(red).toBeGreaterThanOrEqual(0);
@@ -249,9 +243,9 @@ describe.sequential("pipeline integration ladder", () => {
 				</StrictMode>,
 			);
 			try {
-				await waitForPipeline(handle1.container);
+				await waitForRasterEffect(handle1.container);
 				const canvas = getCanvas(handle1.container);
-				const pixels = readPipelineOutput(canvas);
+				const pixels = readRasterEffectOutput(canvas);
 				const [red] = readPixel(pixels, 10, 10);
 				expect(red).toBeGreaterThanOrEqual(74);
 				expect(red).toBeLessThanOrEqual(78);
@@ -274,9 +268,9 @@ describe.sequential("pipeline integration ladder", () => {
 				</StrictMode>,
 			);
 			try {
-				await waitForPipeline(handle4.container);
+				await waitForRasterEffect(handle4.container);
 				const canvas = getCanvas(handle4.container);
-				const pixels = readPipelineOutput(canvas);
+				const pixels = readRasterEffectOutput(canvas);
 				const [red] = readPixel(pixels, 10, 10);
 				expect(red).toBeGreaterThanOrEqual(150);
 				expect(red).toBeLessThanOrEqual(170);
@@ -297,9 +291,9 @@ describe.sequential("pipeline integration ladder", () => {
 				</Canvas>,
 			);
 			try {
-				await waitForPipeline(handle.container);
+				await waitForRasterEffect(handle.container);
 				const canvas = getCanvas(handle.container);
-				const pixels = readPipelineOutput(canvas);
+				const pixels = readRasterEffectOutput(canvas);
 				// Sample away from edges (see level 2 note on edge offset).
 				const [lowInverted] = readPixel(pixels, 20, 20);
 				// Original at x=20 of 160 → ~32; inverted → ~223.
@@ -332,9 +326,9 @@ describe.sequential("pipeline integration ladder", () => {
 				</Canvas>,
 			);
 			try {
-				await waitForPipeline(handle.container);
+				await waitForRasterEffect(handle.container);
 				const canvas = getCanvas(handle.container);
-				const pixels = readPipelineOutput(canvas);
+				const pixels = readRasterEffectOutput(canvas);
 				// Red column (first 40px) → ~76.
 				const [redGrayscale] = readPixel(pixels, 20, 20);
 				expect(redGrayscale).toBeGreaterThanOrEqual(71);
@@ -370,7 +364,7 @@ describe.sequential("resize behavior", () => {
 			</Canvas>,
 		);
 		try {
-			await waitForPipeline(handle.container);
+			await waitForRasterEffect(handle.container);
 
 			const canvasRoot = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
 			if (!canvasRoot) throw new Error("no [data-pictel-canvas] found in container");
@@ -478,7 +472,7 @@ function waitForAttribute(
 function ErrorReporter() {
 	const { reportError } = useCanvasContext();
 	useEffect(() => {
-		reportError(createPipelineError("test", new Error("boom")));
+		reportError(createRasterEffectError("test", new Error("boom")));
 	}, [reportError]);
 
 	return null;
@@ -495,7 +489,7 @@ describe.sequential("render-mode query contract", () => {
 			</Canvas>,
 		);
 		try {
-			await waitForPipeline(handle.container);
+			await waitForRasterEffect(handle.container);
 			const canvas = getCanvas(handle.container);
 			// captureDimensions reflects the query values, not the prop.
 			expect(canvas.width).toBe(96);
@@ -534,7 +528,7 @@ describe.sequential("render-mode query contract", () => {
 			</Canvas>,
 		);
 		try {
-			await waitForPipeline(handle.container);
+			await waitForRasterEffect(handle.container);
 			const root = handle.container.querySelector<HTMLElement>("[data-pictel-canvas]");
 			if (!root) throw new Error("no [data-pictel-canvas] root found");
 			expect(root.hasAttribute("data-pictel-error")).toBe(false);

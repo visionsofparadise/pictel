@@ -1,5 +1,6 @@
-import { Bilateral, Brightness, Canvas, DisplacementMap, Duotone, Engrave, Image } from "pictel";
+import { Bilateral, Brightness, DisplacementMap, Duotone, Engrave } from "@pictel/effects";
 import { DepthMap, RemoveBackground } from "@pictel/ml";
+import { Canvas, Image } from "pictel";
 import headshot from "../../assets/headshot.jpg";
 
 const INK: [number, number, number] = [24, 56, 38];

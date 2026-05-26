@@ -1,5 +1,6 @@
-import { Canvas, ProceduralNoise } from "pictel";
+import { ProceduralNoise } from "@pictel/effects";
 import { DepthMap } from "@pictel/ml";
+import { Canvas } from "pictel";
 
 /**
  * ML fixture: a Canvas wrapping a `DepthMap` (WebGPU) over a generative

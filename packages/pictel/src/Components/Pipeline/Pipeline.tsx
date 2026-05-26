@@ -119,6 +119,20 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 	);
 
 	useLayoutEffect(() => {
+		pendingRef.current = true;
+
+		const unregister = parent.register(id, () => pendingRef.current);
+
+		parent.notify(id);
+
+		return () => {
+			pendingRef.current = false;
+			parent.notify(id);
+			unregister();
+		};
+	}, [id, parent]);
+
+	useLayoutEffect(() => {
 		const childrenSlot = childrenSlotRef.current;
 
 		if (!childrenSlot) return;
@@ -133,20 +147,20 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 		const controller = new AbortController();
 		const { signal } = controller;
 
-		pendingRef.current = true;
-
-		const unregister = parent.register(id, () => pendingRef.current);
-
-		parent.notify(id);
-
 		const unsubscribe = selfRegistry.subscribe(() => {
 			if (signal.aborted) return;
 
 			gate();
 		});
 
+		let snapshotWasNullForInvalidate = false;
+
 		function invalidate(): void {
 			if (signal.aborted) return;
+
+			if (snapshotWasNullForInvalidate) return;
+
+			snapshotWasNullForInvalidate = true;
 
 			setSnapshot(null);
 		}
@@ -176,8 +190,10 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 
 			if (childrenW === 0 && childrenH === 0) return;
 
+			const wasPending = pendingRef.current;
 			pendingRef.current = true;
-			parent.notify(id);
+
+			if (!wasPending) parent.notify(id);
 
 			setSlotSize({ width: childrenW, height: childrenH });
 
@@ -203,6 +219,8 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 				if (signal.aborted) return;
 
 				const { pixels, overflow } = normalizeResult(rawResult);
+
+				snapshotWasNullForInvalidate = false;
 
 				setSnapshot({
 					bufW: pixels.width,
@@ -273,10 +291,6 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 			dispose: () => {
 				controller.abort();
 				unsubscribe();
-				unregister();
-
-				pendingRef.current = false;
-				parent.notify(id);
 
 				contentObserver.disconnect();
 
@@ -304,9 +318,9 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 		lastSeenSnapshotRef.current = snapshot;
 
 		if (snapshot === null) {
-			// Re-gate only on transitions from set → null (an invalidation), not on
-			// the initial mount where the main effect already kicked off gate().
-			if (previous !== null) lifecycleRef.current?.gate();
+			if (previous !== null) {
+				lifecycleRef.current?.gate();
+			}
 
 			return;
 		}
@@ -320,6 +334,7 @@ export function Pipeline({ effect, children, apply, map }: PipelineProps) {
 		}
 
 		pendingRef.current = false;
+
 		parent.notify(id);
 	}, [snapshot, parent, id]);
 

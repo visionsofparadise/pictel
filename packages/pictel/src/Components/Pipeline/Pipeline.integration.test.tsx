@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { StrictMode, useCallback } from "react";
-import { Canvas, Invert, Outline, Threshold } from "../../index";
+import { Canvas, Invert, LinearGradient, Outline, Threshold } from "../../index";
 import { Pipeline, type PipelineCallback } from "./Pipeline";
 import { renderCanvas } from "../utils/render-canvas";
 import { readPipelineOutput, readPixel } from "../utils/read-pipeline-output";
@@ -568,6 +568,87 @@ describe.sequential("Pipeline integration", () => {
 			expect(observedColors.map).not.toBeNull();
 			expect(observedColors.apply).not.toBe("rgb(255, 0, 0)");
 			expect(observedColors.map).not.toBe("rgb(255, 0, 0)");
+		} finally {
+			handle.cleanup();
+		}
+	});
+
+	test("outer Pipeline with map waits for nested RasterSource cascade at non-square dims", async () => {
+		// Regression: an outer Pipeline with apply/map deferred its own parent
+		// registration until its slot state populated. The cascade let parents
+		// gate-proceed before descendants registered, capturing zero pixels.
+		// Surface: a nested Pipeline using <LinearGradient> (a RasterSource
+		// generator) as both children leaf and as the map subtree, at non-square
+		// non-64 dimensions to expose any width-fill / preW assumptions.
+		function MultiplyByMap({ children, map }: { children: React.ReactNode; map: React.ReactNode }) {
+			const effect = useCallback<PipelineCallback>((target, _apply, mapPixels) => {
+				if (!mapPixels) return { pixels: target };
+
+				const out = new Uint8ClampedArray(target.data.length);
+
+				for (let offset = 0; offset < target.data.length; offset += 4) {
+					out[offset] = Math.round((target.data[offset]! * mapPixels.data[offset]!) / 255);
+					out[offset + 1] = Math.round((target.data[offset + 1]! * mapPixels.data[offset + 1]!) / 255);
+					out[offset + 2] = Math.round((target.data[offset + 2]! * mapPixels.data[offset + 2]!) / 255);
+					out[offset + 3] = target.data[offset + 3]!;
+				}
+
+				return { pixels: new ImageData(out, target.width, target.height) };
+			}, []);
+
+			return <Pipeline effect={effect} map={map}>{children}</Pipeline>;
+		}
+
+		const W = 200;
+		const H = 128;
+
+		const handle = renderCanvas(
+			<Canvas mode="display" dimensions={{ width: W, height: H }}>
+				<MultiplyByMap
+					map={
+						<LinearGradient
+							width={W}
+							height={H}
+							angle={0}
+							stops={[
+								{ color: "#000000", position: 0 },
+								{ color: "#ffffff", position: 1 },
+							]}
+						/>
+					}
+				>
+					<LinearGradient
+						width={W}
+						height={H}
+						angle={90}
+						stops={[
+							{ color: "#ff0000", position: 0 },
+							{ color: "#ff0000", position: 1 },
+						]}
+					/>
+				</MultiplyByMap>
+			</Canvas>,
+		);
+
+		try {
+			await waitForPipeline(handle.container);
+			const canvas = getOuterCanvas(handle.container);
+
+			expect(canvas.width).toBe(W);
+			expect(canvas.height).toBe(H);
+			expect(canvas.style.height).not.toBe("0px");
+			expect(canvas.style.height).not.toBe("");
+
+			const pixels = readPipelineOutput(canvas);
+
+			// Left edge: map=black → product=0. Right edge: map=white → product=red.
+			// If outer captured before inner registered, target would be zero
+			// everywhere → output zero everywhere → right edge red=0.
+			const [leftRed] = readPixel(pixels, 2, H / 2);
+			const [rightRed] = readPixel(pixels, W - 3, H / 2);
+
+			expect(leftRed).toBeLessThanOrEqual(10);
+			expect(rightRed).toBeGreaterThanOrEqual(200);
 		} finally {
 			handle.cleanup();
 		}

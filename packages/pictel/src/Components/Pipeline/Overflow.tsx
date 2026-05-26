@@ -49,7 +49,7 @@ export function Overflow({ children }: OverflowProps) {
 		function apply(): void {
 			if (!wrapperEl) return;
 
-			const canvas = wrapperEl.querySelector<HTMLCanvasElement>("canvas[data-pictel-raster]");
+			const canvas = wrapperEl.querySelector<HTMLCanvasElement>(":scope > canvas[data-pictel-raster]");
 
 			if (!canvas) {
 				clear();
@@ -87,12 +87,7 @@ export function Overflow({ children }: OverflowProps) {
 			canvas.style.height = `${String(cssH + top + bottom)}px`;
 		}
 
-		apply();
-
-		const observer = new MutationObserver(() => {
-			apply();
-		});
-		observer.observe(wrapperEl, {
+		const observerOptions: MutationObserverInit = {
 			childList: true,
 			subtree: true,
 			attributes: true,
@@ -105,7 +100,16 @@ export function Overflow({ children }: OverflowProps) {
 				"width",
 				"height",
 			],
+		};
+
+		const observer = new MutationObserver(() => {
+			observer.disconnect();
+			apply();
+			observer.observe(wrapperEl, observerOptions);
 		});
+
+		apply();
+		observer.observe(wrapperEl, observerOptions);
 
 		return () => {
 			observer.disconnect();

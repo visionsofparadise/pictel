@@ -1,0 +1,94 @@
+{
+	"city-overview": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/city-overview.jpg",
+		"description": "Aerial cityscape overview — wide-angle dense urban grid",
+		"dimensions": [4096, 2730],
+		"license": null,
+		"providerUrl": null
+	},
+	"degraded-film": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/degraded-film.jpg",
+		"description": "Degraded film scan texture — heavy grain and emulsion noise, used as a Screen-blended overlay",
+		"dimensions": [4240, 3155],
+		"license": null,
+		"providerUrl": null
+	},
+	"evening-landscape": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/evening-landscape.jpg",
+		"description": "Evening landscape photo, portrait orientation — used for glow and damaged-film demos",
+		"dimensions": [4000, 6016],
+		"license": null,
+		"providerUrl": null
+	},
+	"foil-texture": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/foil-texture.jpg",
+		"description": "Holographic foil texture — colorful iridescent surface used as a Luminosity-blended overlay",
+		"dimensions": [4240, 2828],
+		"license": null,
+		"providerUrl": null
+	},
+	"golden-hour-portrait": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/golden-hour-portrait.jpg",
+		"description": "Golden-hour portrait, warm side-lit subject — used for LUT grading and pop-art demos",
+		"dimensions": [2624, 3936],
+		"license": null,
+		"providerUrl": null
+	},
+	"headshot": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg",
+		"description": "Studio headshot — bearded male subject on neutral grey backdrop, the most-reused source across demos",
+		"dimensions": [4000, 4000],
+		"license": null,
+		"providerUrl": null
+	},
+	"light-leak": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/light-leak.jpg",
+		"description": "Light-leak overlay — warm-toned analog film leak, Screen-blended in damaged-film demos",
+		"dimensions": [4240, 4240],
+		"license": null,
+		"providerUrl": null
+	},
+	"mark": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/mark.svg",
+		"description": "Matt's personal hexagon-with-circle-and-diamond brand mark, used as a vector overlay on the concrete-wall demo",
+		"type": "svg",
+		"viewBox": [0, 0, 256, 256],
+		"license": "CC0 (Matt Cross — used with permission for pictel demo corpus)",
+		"providerUrl": null
+	},
+	"orange-and-blue-lut": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/orange-and-blue-lut.cube",
+		"description": "Orange-and-Teal cinematic colour grade — 33-point 3D CubeLUT authored in Photon 3D ColorGrading",
+		"type": "lut-cube",
+		"license": null,
+		"providerUrl": null
+	},
+	"pencil-texture": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/pencil-texture.jpg",
+		"description": "Pencil-stroke paper texture — used as a Multiply-blended overlay in the pencil-sketch demo",
+		"dimensions": [4240, 3537],
+		"license": null,
+		"providerUrl": null
+	},
+	"portrait-with-background-1": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/portrait-with-background-1.jpg",
+		"description": "Portrait with environmental background — used for the line-drawing demo",
+		"dimensions": [4672, 7008],
+		"license": null,
+		"providerUrl": null
+	},
+	"portrait-with-background-2": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/portrait-with-background-2.jpg",
+		"description": "Portrait with environmental background — used as the input to the background-replace demo",
+		"dimensions": [2783, 4000],
+		"license": null,
+		"providerUrl": null
+	},
+	"wall": {
+		"s3": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/wall.jpg",
+		"description": "Rough concrete-wall texture — used as the base layer for the SVG-on-concrete demo",
+		"dimensions": [4032, 2268],
+		"license": null,
+		"providerUrl": null
+	}
+}

@@ -27,7 +27,8 @@
     "integration": "vitest run --config vitest.integration.config.ts",
     "unit": "vitest run",
     "build": "tsup",
-    "docs": "typedoc"
+    "docs": "typedoc",
+    "render:readme": "tsx scripts/render-readme.ts"
   },
   "dependencies": {
     "@zumer/snapdom": "latest",
@@ -49,6 +50,7 @@
     "react-dom": "^19.0.0",
     "simplex-noise": "latest",
     "tsup": "latest",
+    "tsx": "^4.20.3",
     "vitest": "latest"
   }
 }

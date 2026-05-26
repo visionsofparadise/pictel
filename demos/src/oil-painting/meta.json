@@ -1,0 +1,9 @@
+{
+	"slug": "oil-painting",
+	"title": "Oil Painting",
+	"sources": [
+		"headshot"
+	],
+	"created": "2026-05-26",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/oil-painting.png"
+}

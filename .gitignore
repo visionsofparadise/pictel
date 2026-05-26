@@ -4,3 +4,5 @@ dist/
 .eslintcache
 .turbo/
 .claude
+demos/.cache/
+.last-baseline-run.log

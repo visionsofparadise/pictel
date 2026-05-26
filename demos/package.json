@@ -1,0 +1,14 @@
+{
+	"name": "demos",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"new": "tsx scripts/new-demo.ts",
+		"render": "tsx scripts/render-demo.ts",
+		"generate-md": "tsx scripts/generate-md.ts"
+	},
+	"devDependencies": {
+		"tsx": "^4.20.3"
+	}
+}

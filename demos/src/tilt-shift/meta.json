@@ -1,0 +1,9 @@
+{
+	"slug": "tilt-shift",
+	"title": "Tilt-Shift",
+	"sources": [
+		"city-overview"
+	],
+	"created": "2026-05-26",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/tilt-shift.png"
+}

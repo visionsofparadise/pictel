@@ -1,0 +1,9 @@
+{
+	"slug": "pop-art",
+	"title": "Pop Art",
+	"sources": [
+		"golden-hour-portrait"
+	],
+	"created": "2026-05-26",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/pop-art.png"
+}

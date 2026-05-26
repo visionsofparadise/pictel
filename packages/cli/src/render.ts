@@ -1,6 +1,6 @@
 import puppeteer, { type Browser, type ConsoleMessage, type Page } from "puppeteer";
 
-const PENDING_TIMEOUT_MS = 30_000;
+const PENDING_TIMEOUT_MS = 120_000;
 
 // Puppeteer's default `--use-angle=swiftshader-webgl` blocks WebGPU adapter
 // discovery — must be removed via ignoreDefaultArgs. `--enable-unsafe-webgpu`

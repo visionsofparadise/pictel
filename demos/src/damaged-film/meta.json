@@ -1,0 +1,11 @@
+{
+	"slug": "damaged-film",
+	"title": "Damaged Film",
+	"sources": [
+		"evening-landscape",
+		"degraded-film",
+		"light-leak"
+	],
+	"created": "2026-05-26",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/damaged-film.png"
+}

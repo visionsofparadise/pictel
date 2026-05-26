@@ -77,7 +77,7 @@ Compose with map-producing effects:
 
 > **applyMappedBilateralGpu**(`pixels`, `map`, `spatialSigma`, `colorSigma`): `Promise`\<`ImageData`\>
 
-Defined in: Effects/BilateralGpu.tsx:19
+Defined in: [Effects/BilateralGpu.tsx:19](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/BilateralGpu.tsx#L19)
 
 GPU-accelerated counterpart to `Bilateral`. Same prop interface; runs the
 filter as a WebGPU compute dispatch. Throws via the standard `RasterEffect`
@@ -158,7 +158,7 @@ glow is clipped to the frame — output dimensions match the input.
 
 > **BloomGpu**(`props`): `Element`
 
-Defined in: Effects/BloomGpu.tsx:23
+Defined in: [Effects/BloomGpu.tsx:23](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/BloomGpu.tsx#L23)
 
 GPU-accelerated counterpart to `Bloom`. Same prop interface. Throws via the
 standard `RasterEffect` error path when WebGPU is unavailable.
@@ -202,7 +202,7 @@ Applies a Gaussian-approximation blur or a map-driven variable-radius blur.
 
 > **BlurGpu**(`props`): `Element`
 
-Defined in: Effects/BlurGpu.tsx:26
+Defined in: [Effects/BlurGpu.tsx:26](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/BlurGpu.tsx#L26)
 
 GPU-accelerated counterpart to `Blur` (parameter mode only — the variable
 (mapped) blur stays CPU). Runs the Gaussian-approximation box-blur cascade
@@ -429,7 +429,7 @@ Adds a drop shadow behind the content at a specified offset with blur and color.
 
 > **DropShadowGpu**(`props`): `Element`
 
-Defined in: Effects/DropShadowGpu.tsx:24
+Defined in: [Effects/DropShadowGpu.tsx:24](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/DropShadowGpu.tsx#L24)
 
 GPU-accelerated counterpart to `DropShadow`. Same prop interface. Throws
 via the standard `RasterEffect` error path when WebGPU is unavailable.
@@ -744,7 +744,7 @@ Requires the `map` prop. Without one the effect throws.
 
 > **LICGpu**(`props`): `Element`
 
-Defined in: Effects/LICGpu.tsx:29
+Defined in: [Effects/LICGpu.tsx:29](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/LICGpu.tsx#L29)
 
 WebGPU-backed `LIC` — line integral convolution accelerated by hardware
 bilinear texture sampling. Public API matches `LIC` exactly. Throws (via
@@ -881,7 +881,7 @@ hard binary outlines.
 
 > **OutlineGpu**(`props`): `Element`
 
-Defined in: Effects/OutlineGpu.tsx:24
+Defined in: [Effects/OutlineGpu.tsx:24](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/OutlineGpu.tsx#L24)
 
 GPU-accelerated counterpart to `Outline`. Same prop interface. Throws via
 the standard `RasterEffect` error path when WebGPU is unavailable.
@@ -1044,7 +1044,7 @@ harden the edges further; cost scales with `iterations`.
 
 > **ShockFilterGpu**(`props`): `Element`
 
-Defined in: Effects/ShockFilterGpu.tsx:25
+Defined in: [Effects/ShockFilterGpu.tsx:25](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/ShockFilterGpu.tsx#L25)
 
 GPU-accelerated counterpart to `ShockFilter`. The iteration loop stays
 entirely on GPU — only the initial upload and final readback cross the
@@ -1837,7 +1837,7 @@ Dark blend values increase contrast via burn; light values decrease via dodge.
 
 > **applyBilateralGpu**(`pixels`, `spatialSigma`, `colorSigma`): `Promise`\<`ImageData`\>
 
-Defined in: Effects/applyBilateralGpu.ts:26
+Defined in: [Effects/applyBilateralGpu.ts:26](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/applyBilateralGpu.ts#L26)
 
 GPU-accelerated bilateral filter. Matches the math of `applyBilateral` (the
 CPU peer) within float-precision tolerance — at the eventual Uint8 output a
@@ -1870,7 +1870,7 @@ sizes pictel cares about.
 
 > **applyBloomGpu**(`pixels`, `threshold`, `radius`, `intensity`): `Promise`\<`ImageData`\>
 
-Defined in: Effects/applyBloomGpu.ts:15
+Defined in: [Effects/applyBloomGpu.ts:15](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/applyBloomGpu.ts#L15)
 
 GPU-accelerated counterpart to `applyBloom`. Highlight extraction and final
 screen-blend composite stay on CPU; the blur-of-highlights step (the
@@ -1897,7 +1897,7 @@ Throws if WebGPU is unavailable.
 
 > **applyBlurGpu**(`pixels`, `radius`): `Promise`\<`EffectResult`\>
 
-Defined in: Effects/applyBlurGpu.ts:22
+Defined in: [Effects/applyBlurGpu.ts:22](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/applyBlurGpu.ts#L22)
 
 GPU-accelerated counterpart to `applyUniformBlur`. Mirrors the CPU peer's
 three-pass box-blur approximation of a Gaussian (using `boxRadiiForGaussian`)
@@ -1924,7 +1924,7 @@ when WebGPU support isn't guaranteed.
 
 > **applyDropShadowGpu**(`pixels`, `offsetX`, `offsetY`, `blurRadius`, `color`): `Promise`\<`EffectResult`\>
 
-Defined in: Effects/applyDropShadowGpu.ts:17
+Defined in: [Effects/applyDropShadowGpu.ts:17](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/applyDropShadowGpu.ts#L17)
 
 GPU-accelerated counterpart to `applyDropShadow`. Same math, same output:
 the only difference is the mask-blur step runs as a WebGPU separable box
@@ -1955,7 +1955,7 @@ Throws if WebGPU is unavailable.
 
 > **applyOutlineGpu**(`pixels`, `sigma`, `kappa`, `epsilon`, `phi`): `Promise`\<`ImageData`\>
 
-Defined in: Effects/applyOutlineGpu.ts:17
+Defined in: [Effects/applyOutlineGpu.ts:17](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/applyOutlineGpu.ts#L17)
 
 GPU-accelerated counterpart to `applyOutline` (XDoG). The two Gaussian
 blurs at σ and k·σ — the dominant cost — run on GPU via `applyBlurGpu`.
@@ -1983,7 +1983,7 @@ Throws if WebGPU is unavailable.
 
 > **applyShockFilterGpu**(`pixels`, `iterations`, `strength`): `Promise`\<`ImageData`\>
 
-Defined in: Effects/applyShockFilterGpu.ts:19
+Defined in: [Effects/applyShockFilterGpu.ts:19](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/applyShockFilterGpu.ts#L19)
 
 GPU-accelerated counterpart to `applyShockFilter`. The iteration loop stays
 entirely on GPU: each iteration runs (a) one separable-blur pass via the

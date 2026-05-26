@@ -1,0 +1,9 @@
+{
+	"slug": "line-drawing",
+	"title": "Line Drawing",
+	"sources": [
+		"portrait-with-background-1"
+	],
+	"created": "2026-05-26",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/line-drawing.png"
+}

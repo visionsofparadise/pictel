@@ -1,0 +1,10 @@
+{
+	"slug": "pencil-sketch",
+	"title": "Pencil Sketch",
+	"sources": [
+		"headshot",
+		"pencil-texture"
+	],
+	"created": "2026-05-26",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/pencil-sketch.png"
+}

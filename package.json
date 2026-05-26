@@ -5,7 +5,8 @@
   "packageManager": "npm@10.9.3",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "demos"
   ],
   "scripts": {
     "check": "turbo check",

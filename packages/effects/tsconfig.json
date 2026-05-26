@@ -4,8 +4,8 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "noEmit": true,
-    "types": ["@webgpu/types"]
+    "types": ["@webgpu/types", "node", "vite/client"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "integration-fixtures/**/*", "scripts/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
 }

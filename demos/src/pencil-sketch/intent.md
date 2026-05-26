@@ -1,0 +1,3 @@
+# Pencil Sketch
+
+A graphite drawing on paper — a headshot rendered as if shaded with the side of a soft pencil, the tonal modulation of hand-drawn graphite carrying the face from highlight to shadow without ever resolving into a hard edge. A second `pencil-texture.jpg` overlay carries the grain of the paper itself, visible across the whole frame: every dark passage is a stack of grey strokes, every light passage is the page showing through. The result reads less as a photograph than as a study from a sketchbook, the kind of drawing you'd find done in a single sitting with a 2B pencil and a thumb for blending.

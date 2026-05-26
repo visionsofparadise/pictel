@@ -1,0 +1,10 @@
+{
+	"slug": "svg-on-concrete",
+	"title": "SVG on Concrete",
+	"sources": [
+		"wall",
+		"mark"
+	],
+	"created": "2026-05-26",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/svg-on-concrete.png"
+}

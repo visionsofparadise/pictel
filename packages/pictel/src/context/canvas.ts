@@ -17,7 +17,6 @@ export interface CanvasContextValue {
 	viewport: Viewport;
 	captureDimensions: CanvasDimensions;
 	reportError: (error: RasterEffectError) => void;
-	/** Canvas-level offscreen host. RasterEffects append apply/map slot divs here and createPortal into them. Non-null whenever the CanvasContext.Provider is mounted: Canvas conditionally provides the context only after the host ref is captured. */
 	offscreenHost: HTMLDivElement;
 }
 

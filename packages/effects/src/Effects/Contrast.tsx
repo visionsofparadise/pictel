@@ -42,7 +42,6 @@ export function applyMappedContrast(pixels: ImageData, map: ImageData, amount: n
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface ContrastProps {
-	/** Contrast multiplier. 1 is unchanged, 0 is flat gray, greater than 1 increases contrast. */
 	amount?: number
 	mode?: "parameter" | "mix"
 	map?: ReactNode

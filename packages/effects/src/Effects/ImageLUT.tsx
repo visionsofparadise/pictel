@@ -70,9 +70,7 @@ export function applyImageLut(pixels: ImageData, lutImage: ImageData, size: numb
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface ImageLUTProps {
-	/** URL to the LUT image. */
 	src: string
-	/** Grid dimension of the LUT (e.g., 16 for a 16x16x16 LUT). */
 	size: number
 	map?: ReactNode
 	children: ReactNode

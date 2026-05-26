@@ -12,13 +12,9 @@ export interface GradientStop {
 }
 
 interface LinearGradientProps {
-	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	width: number
-	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	height: number
-	/** Array of color stops with `color` and `position` (0-1). */
 	stops: Array<GradientStop>
-	/** Gradient angle in degrees. 0 is left-to-right. Default 0. */
 	angle?: number
 }
 

@@ -114,16 +114,7 @@ export function applyStructureField(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface DirectionProps {
-	/** Convolution kernel pair. `sobel` is the classic 3x3 operator; `scharr` produces a larger, more rotationally symmetric response. Defaults to `sobel`. */
 	kernel?: "sobel" | "scharr"
-	/**
-	 * Selects the *field type*, not the `"parameter"|"mix"` modulation axis that
-	 * `mode` denotes on other effects (the two are unrelated — `Direction` has no
-	 * parameter/mix variant). `gradient` (default) emits the per-pixel Sobel
-	 * gradient direction. `structure` emits a smoothed, contour-following
-	 * orientation field computed from the structure tensor — the field
-	 * field-aligned `Hatch`/`LIC` can follow coherently.
-	 */
 	mode?: "gradient" | "structure"
 	map?: ReactNode
 	children: ReactNode

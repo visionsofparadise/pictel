@@ -27,9 +27,7 @@ export function applyGrain(pixels: ImageData, intensity: number, seed: number): 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface GrainProps {
-	/** Maximum noise amplitude in pixel values (0-255 range). */
 	intensity: number
-	/** Random seed for reproducible grain patterns. */
 	seed: number
 	map?: ReactNode
 	children: ReactNode

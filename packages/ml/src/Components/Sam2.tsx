@@ -120,13 +120,9 @@ export async function sam2Segment(
 /* eslint-enable @typescript-eslint/naming-convention */
 
 interface Sam2Props {
-	/** Hugging Face model ID for SAM2. Defaults to `onnx-community/sam2-hiera-tiny-ONNX`. */
 	model?: string
-	/** Model revision. Overridable alongside `model`. */
 	revision?: string
-	/** Positive point prompts indicating the target region. */
 	points?: Array<Point>
-	/** Negative point prompts indicating regions to exclude. */
 	negativePoints?: Array<Point>
 	children: ReactNode
 }

@@ -18,9 +18,7 @@ export async function estimateDepth(pixels: ImageData, pipe: Pipeline): Promise<
 /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 
 interface DepthMapProps {
-	/** Hugging Face model ID for depth estimation. Defaults to `onnx-community/depth-anything-v2-small`. */
 	model?: string
-	/** Model revision hash. Overridable alongside `model`. */
 	revision?: string
 	children: ReactNode
 }

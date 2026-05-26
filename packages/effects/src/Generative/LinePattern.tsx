@@ -2,21 +2,13 @@ import { useCallback } from "react"
 import { RasterSource } from "pictel"
 
 interface LinePatternProps {
-	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	width: number
-	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	height: number
-	/** Random seed (reserved for future jitter support). */
 	seed: number
-	/** Distance between lines in pixels. */
 	spacing: number
-	/** Line thickness in pixels. */
 	thickness: number
-	/** Line angle in degrees. 0 is horizontal. Default 0. */
 	angle?: number
-	/** Line color. */
 	color: string
-	/** Optional background fill color. */
 	background?: string
 }
 

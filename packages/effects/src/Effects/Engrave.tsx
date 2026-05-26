@@ -67,13 +67,9 @@ export function applyEngrave(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface EngraveProps {
-	/** Pixels between adjacent line centres. Default 6. */
 	spacing?: number
-	/** Line orientation in radians. 0 (default) is horizontal, π/2 is vertical — matches `Hatch` and CSS gradients. */
 	angle?: number
-	/** Pixels the line phase bends with tone, bowing the lines around the form ("modeling lines"). 0 (default) keeps lines straight. */
 	relief?: number
-	/** Add a perpendicular cross-hatch set across the darkest tones. Default true. */
 	crossHatch?: boolean
 	children: ReactNode
 }

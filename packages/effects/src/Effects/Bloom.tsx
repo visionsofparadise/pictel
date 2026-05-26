@@ -78,13 +78,9 @@ export function applyMappedBloom(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface BloomProps {
-	/** Luminance threshold (0–1) above which pixels contribute to the glow. A quadratic soft knee fades highlights in smoothly. Default 0.75. */
 	threshold?: number
-	/** Blur radius of the glow in pixels. Larger values spread the glow further. Default 16. */
 	radius?: number
-	/** Glow strength multiplier applied before screen-blending. Default 1. */
 	intensity?: number
-	/** `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance. */
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode

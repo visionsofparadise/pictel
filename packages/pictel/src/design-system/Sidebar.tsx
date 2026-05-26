@@ -18,10 +18,6 @@ const sidebarStyle: CSSProperties = {
 	boxSizing: "border-box",
 };
 
-/**
- * Vertical list of canvas entries shown in the Viewer sidebar. Fixed 200px
- * width; rows display the canvas name plus a dimensions subtext.
- */
 export function Sidebar({ items, activeName, onSelect }: SidebarProps) {
 	return (
 		<div style={sidebarStyle}>

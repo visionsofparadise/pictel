@@ -42,7 +42,6 @@ export function applyMappedPosterize(pixels: ImageData, map: ImageData, levels: 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface PosterizeProps {
-	/** Number of discrete color levels per channel. Minimum 2. */
 	levels: number
 	map?: ReactNode
 	children: ReactNode

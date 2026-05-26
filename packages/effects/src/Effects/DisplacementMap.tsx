@@ -41,9 +41,7 @@ export function applyDisplacement(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface DisplacementMapProps {
-	/** Maximum horizontal displacement in pixels. Default 20. */
 	scaleX?: number
-	/** Maximum vertical displacement in pixels. Default 20. */
 	scaleY?: number
 	map?: ReactNode
 	children: ReactNode

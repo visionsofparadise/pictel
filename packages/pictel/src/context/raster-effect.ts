@@ -1,16 +1,5 @@
 import { createContext, useContext } from "react";
 
-/**
- * Per-subtree pending registry. Each RasterEffect and RasterSource registers a
- * pending getter with its immediate raster-effect-ancestor (the nearest enclosing
- * `RasterEffectContext.Provider` value — either a Canvas's root registry or
- * another RasterEffect's self-registry). Outer raster effects gate on `anyPending`
- * (pure JS read) instead of scanning the DOM for `[data-pictel-pending]`.
- *
- * Subscribers are notified whenever a registrant's pending state flips so
- * downstream consumers (`useSyncExternalStore`, Canvas's attribute mirror,
- * outer RasterEffect's re-gate) can react to ready/pending transitions.
- */
 export interface Registry {
 	register(id: string, getPending: () => boolean): () => void;
 	notify(id: string): void;

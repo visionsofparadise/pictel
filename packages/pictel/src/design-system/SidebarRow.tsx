@@ -23,7 +23,6 @@ interface SidebarRowProps {
 	item: SidebarItem;
 	selected: boolean;
 	onSelect: (name: string) => void;
-	/** Showcase-only override: forces the row's visual state regardless of hover/selected props. */
 	forcedState?: "hover" | "selected";
 }
 

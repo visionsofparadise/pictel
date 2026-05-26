@@ -5,18 +5,6 @@ import { renderCanvas } from "../utils/render-canvas";
 import { solidImage } from "../utils/test-images";
 import { waitForRasterEffect } from "../utils/wait-for-raster-effect";
 
-/**
- * Geometric behavior of the Clip + Overflow design. A Blur radius=10 over
- * 100x100 content paints a 120x120 backing canvas (10px bleed each side).
- * The RasterEffect renders the canvas inline at the children-measured CSS
- * dimensions (100x100), so bleed pixels are squished into the content
- * footprint by default. Overflow finds the `[data-pictel-raster]` canvas,
- * absolutely positions it, expands it to 120x120, and offsets it by -10
- * top/left so the canvas renders at its natural 1:1 pixel ratio extending
- * outside its layout box. Clip wraps Overflow in an `overflow: hidden`
- * container sized to the content (100x100) so the natural-ratio bleed is
- * cropped at the content edges.
- */
 describe.sequential("Clip component", () => {
 	test("without Clip, canvas backs at bleed dims but CSS sizes to content", async () => {
 		const handle = renderCanvas(

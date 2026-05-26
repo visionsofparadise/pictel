@@ -7,10 +7,6 @@ export interface RenderResult {
 	cleanup: () => void;
 }
 
-/**
- * Mount a JSX tree into a fresh detached container and return cleanup handles.
- * Caller is responsible for calling cleanup() in afterEach.
- */
 export function renderCanvas(jsx: ReactElement): RenderResult {
 	const container = document.createElement("div");
 	container.style.position = "relative";

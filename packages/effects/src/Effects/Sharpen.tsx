@@ -84,7 +84,6 @@ export function applyMappedSharpen(pixels: ImageData, map: ImageData, amount: nu
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface SharpenProps {
-	/** Sharpening strength. Higher values produce more aggressive edge enhancement. */
 	amount: number
 	map?: ReactNode
 	children: ReactNode

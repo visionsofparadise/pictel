@@ -46,7 +46,6 @@ export async function segFormerSegment(pixels: ImageData, pipe: Pipeline): Promi
 }
 /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
-/** Deterministic color palette for segment indices. */
 function segmentColor(index: number): [number, number, number] {
 	const palette: Array<[number, number, number]> = [
 		[230, 25, 75], [60, 180, 75], [255, 225, 25], [0, 130, 200],
@@ -60,9 +59,7 @@ function segmentColor(index: number): [number, number, number] {
 }
 
 interface SegFormerProps {
-	/** Hugging Face model ID for semantic segmentation. Defaults to `Xenova/segformer-b0-finetuned-ade-512-512`. */
 	model?: string
-	/** Model revision. Overridable alongside `model`. */
 	revision?: string
 	children: ReactNode
 }

@@ -42,7 +42,6 @@ export function applyMappedBrightness(pixels: ImageData, map: ImageData, amount:
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface BrightnessProps {
-	/** Brightness multiplier. 1 is unchanged, 0 is black, greater than 1 brightens. */
 	amount?: number
 	mode?: "parameter" | "mix"
 	map?: ReactNode

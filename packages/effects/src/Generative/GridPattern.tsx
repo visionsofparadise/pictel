@@ -2,21 +2,13 @@ import { useCallback } from "react"
 import { RasterSource } from "pictel"
 
 interface GridPatternProps {
-	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	width: number
-	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	height: number
-	/** Random seed (reserved for future jitter support). */
 	seed: number
-	/** Horizontal spacing between vertical lines in pixels. */
 	spacingX: number
-	/** Vertical spacing between horizontal lines. Defaults to `spacingX`. */
 	spacingY?: number
-	/** Line thickness in pixels. */
 	thickness: number
-	/** Line color. */
 	color: string
-	/** Optional background fill color. */
 	background?: string
 }
 

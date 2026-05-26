@@ -2,19 +2,12 @@ import { useCallback } from "react"
 import { RasterSource } from "pictel"
 
 interface DotPatternProps {
-	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	width: number
-	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	height: number
-	/** Random seed (reserved for future jitter support). */
 	seed: number
-	/** Distance between dot centers in pixels. */
 	spacing: number
-	/** Dot radius in pixels. */
 	radius: number
-	/** Dot fill color. */
 	color: string
-	/** Optional background fill color. */
 	background?: string
 }
 

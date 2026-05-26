@@ -19,13 +19,6 @@ function pixel(r: number, g: number, b: number, a: number): ImageData {
 	return new ImageData(new Uint8ClampedArray([r, g, b, a]), 1, 1)
 }
 
-/**
- * Build an identity strip LUT of the given size.
- * Strip layout: size blocks side by side, each size x size pixels.
- * Total: (size * size) wide, size tall.
- * Blue selects block, X=red within block, Y=green.
- * Identity: output color = input color.
- */
 function identityStripLut(size: number): ImageData {
 	const width = size * size
 	const height = size

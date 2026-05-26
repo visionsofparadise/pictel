@@ -40,10 +40,6 @@ function parseHex(hex: string): ParsedColor {
 	return { r: 0, g: 0, b: 0, a: 255 }
 }
 
-/**
- * Parses a CSS color string (`#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()`, `rgba()`)
- * into 0–255 RGBA channels. Falls back to opaque black on unrecognized input.
- */
 export function parseColor(color: string): ParsedColor {
 	const trimmed = color.trim()
 

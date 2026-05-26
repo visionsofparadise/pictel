@@ -5,15 +5,10 @@ import { luminance } from "./utils/luminance"
 import { mixBlend } from "./utils/mix-blend"
 
 export interface ColorGradeAdjustments {
-	/** Brightness multiplier. Default 1. */
 	brightness?: number
-	/** Contrast multiplier. Default 1. */
 	contrast?: number
-	/** Saturation multiplier. Default 1. */
 	saturation?: number
-	/** Warm/cool shift. Positive warms (adds red, removes blue), negative cools. */
 	temperature?: number
-	/** Green/magenta shift. Positive adds magenta, negative adds green. */
 	tint?: number
 }
 

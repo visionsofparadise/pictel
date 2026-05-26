@@ -5,23 +5,10 @@ import { computeFitRect } from "./utils/compute-fit-rect";
 type Fit = "cover" | "contain" | "fill" | "none";
 
 interface ImageProps {
-	/** Source URL or data URL to decode into the leaf canvas. */
 	src: string;
-	/** Output width in pixels. Sets the canvas backing buffer and the CSS box. */
 	width: number;
-	/** Output height in pixels. */
 	height: number;
-	/**
-	 * How the decoded source maps into the `width × height` output box.
-	 * Semantics match CSS `object-fit`.
-	 *
-	 * - `cover` (default) — fills output, cropping overflow.
-	 * - `contain` — fits inside output, letterboxing with transparency.
-	 * - `fill` — stretches to output dimensions.
-	 * - `none` — draws at the source's intrinsic size, centered, clipping overflow.
-	 */
 	fit?: Fit;
-	/** CORS mode for cross-origin sources. Forwarded to the underlying image element. */
 	crossOrigin?: "anonymous" | "use-credentials";
 }
 

@@ -17,9 +17,7 @@ export async function upscale(pixels: ImageData, pipe: Pipeline): Promise<ImageD
 }
 
 interface UpscaleProps {
-	/** Hugging Face model ID for super-resolution. Defaults to `Xenova/swin2SR-classical-sr-x2-64`. */
 	model?: string
-	/** Model revision hash. Overridable alongside `model`. */
 	revision?: string
 	children: ReactNode
 }

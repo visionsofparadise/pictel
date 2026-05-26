@@ -48,7 +48,6 @@ export function applyMappedHueRotate(pixels: ImageData, map: ImageData, angle: n
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface HueRotateProps {
-	/** Hue rotation in degrees. 180 inverts all colors; 360 returns to original. */
 	angle: number
 	mode?: "parameter" | "mix"
 	map?: ReactNode

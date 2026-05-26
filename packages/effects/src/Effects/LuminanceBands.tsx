@@ -92,9 +92,7 @@ export function applyMappedLuminanceBands(pixels: ImageData, map: ImageData, ban
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface LuminanceBandsProps {
-	/** Number of discrete luminance tiers. Minimum 2. */
 	bands: number
-	/** Optional explicit tier boundaries (length = bands - 1, ascending values in 0..255). */
 	thresholds?: Array<number>
 	mode?: "parameter" | "mix"
 	map?: ReactNode

@@ -1,11 +1,3 @@
-/**
- * Poll until no `[data-pictel-canvas][data-pictel-pending]` element exists in
- * the container, using requestAnimationFrame between checks. Rejects after
- * timeout with a diagnostic listing which canvases are still pending. Waits a
- * minimum of four animation frames so React's initial commit and the first
- * registry-notify-driven re-render both land before the first "no pending"
- * resolution.
- */
 export function waitForRasterEffect(
 	container: HTMLElement,
 	options: { timeout?: number } = {},

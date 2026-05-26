@@ -42,7 +42,6 @@ export function applyMappedThreshold(pixels: ImageData, map: ImageData, level: n
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface ThresholdProps {
-	/** Luminance threshold (0-255). Pixels at or above become white. */
 	threshold: number
 	map?: ReactNode
 	children: ReactNode

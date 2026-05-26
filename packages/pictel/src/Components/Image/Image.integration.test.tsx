@@ -24,11 +24,6 @@ function deferred<T = void>(): Deferred<T> {
 	return { promise, resolve, reject };
 }
 
-/**
- * Wait until the Canvas root has `data-pictel-pending` set. Polls a few
- * frames to give React's `useSyncExternalStore` re-render time to flush after
- * a descendant RasterEffect / RasterSource registers and notifies pending.
- */
 function waitForCanvasPending(container: HTMLElement, timeoutMs = 1000): Promise<HTMLElement> {
 	return new Promise((resolve, reject) => {
 		const start = performance.now();
@@ -48,16 +43,6 @@ function waitForCanvasPending(container: HTMLElement, timeoutMs = 1000): Promise
 	});
 }
 
-/**
- * Mock `HTMLImageElement.prototype.decode` so tests have deterministic control
- * over decode resolution and the resulting `naturalWidth`/`naturalHeight`.
- *
- * The browser populates `naturalWidth`/`naturalHeight` from a real source load,
- * but our integration tests need to drive that state explicitly — for the
- * deferred-decode case (we want to observe pending mid-decode), for the
- * decode-failure case (we want a deterministic rejection), and for the abort
- * case (we want a never-resolving decode).
- */
 function mockImageDecode({
 	naturalWidth,
 	naturalHeight,

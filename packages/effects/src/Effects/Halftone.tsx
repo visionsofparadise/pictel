@@ -161,18 +161,9 @@ export function applyHalftone(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface HalftoneProps {
-	/** Grid cell size in pixels. Larger values produce coarser halftone. */
 	dotSize: number
-	/** Rotation angle of the dot grid in degrees — `"luminance"` and `"color"` modes only. Default 0. */
 	angle?: number
-	/**
-	 * Color mode for the screen. Default `"luminance"`.
-	 * - `"luminance"` — monochrome screen: dot radius from per-cell luminance, dots stamped in `dotColor` on white.
-	 * - `"cmyk"` — process halftone: the image is separated into Cyan/Magenta/Yellow/Key channels, each screened on its own grid at a classic process angle (C 15°, M 75°, Y 0°, K 45°), dots stamped in ink color and overprinted via multiply so overlapping colored dots reproduce color.
-	 * - `"color"` — single-screen color halftone: one shared grid, each cell a single dot in that cell's own average color sized by darkness. No overlapping screens, so nothing can misregister — the clean comic-dot look.
-	 */
 	colorMode?: HalftoneColorMode
-	/** Ink color `[r, g, b]` (0-255) for the `"luminance"` screen — lets monochrome mode stamp a colored Ben-Day screen. Ignored in `"cmyk"` mode. Default black `[0, 0, 0]`. */
 	dotColor?: [number, number, number]
 	map?: ReactNode
 	children: ReactNode

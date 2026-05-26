@@ -10,11 +10,6 @@ interface RenderStripProps {
 	canvasName: string;
 	width: number;
 	height: number;
-	/**
-	 * Disable the Render button. Set when the canvas is pending (mid-pipeline)
-	 * or has surfaced any pipeline errors — exporting under either condition
-	 * would capture an in-progress or broken composition.
-	 */
 	disabled?: boolean;
 }
 

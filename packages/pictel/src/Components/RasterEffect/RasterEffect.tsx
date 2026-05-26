@@ -10,30 +10,9 @@ import { getOwnUnloadedImages } from "./utils/scope";
 export type RasterEffectCallback = (target: ImageData, apply?: ImageData, map?: ImageData) => ImageData | EffectResult | Promise<ImageData | EffectResult>;
 
 interface RasterEffectProps {
-	/**
-	 * Effect callback. Receives target pixels (children), optional apply pixels
-	 * (overlay layer), and optional map pixels (parameter map).
-	 */
 	effect: RasterEffectCallback;
-	/**
-	 * Base layer content. Renders inside a wrapper that sizes to children's
-	 * intrinsic dimensions while no capture has resolved, and flips to
-	 * `display: none` once a snapshot is set — so the sibling output canvas
-	 * occupies the same layout slot at the same dimensions children measured at.
-	 */
 	children: ReactNode;
-	/**
-	 * Overlay layer for blend modes. Rendered into the Canvas-level offscreen
-	 * host via a React portal; captured in parallel with children. Not visible
-	 * in the live DOM and does not inherit CSS from the composition position.
-	 */
 	apply?: ReactNode;
-	/**
-	 * Parameter map for map-driven effects. Rendered into the Canvas-level
-	 * offscreen host via a React portal; captured in parallel with children.
-	 * Not visible in the live DOM and does not inherit CSS from the composition
-	 * position.
-	 */
 	map?: ReactNode;
 }
 

@@ -1,12 +1,6 @@
 import { snapdom } from "@zumer/snapdom";
 import { createRasterEffectError, type RasterEffectError } from "../Components/RasterEffect/Error";
 
-/**
- * Error subclass that carries an attached `RasterEffectError`. The export utility
- * wraps any failure (timeout, missing canvas root, snapdom failure, encoding
- * failure) in this so the caller (RenderStrip) can read `.pipelineError` and
- * forward it through the standard `reportError` channel.
- */
 export class ExportError extends Error {
 	readonly pipelineError: RasterEffectError;
 
@@ -18,40 +12,18 @@ export class ExportError extends Error {
 }
 
 export interface ExportOptions {
-	/** Display name of the canvas being exported. Used as the download filename stem and as the `?canvas=` query parameter. */
 	canvasName: string;
-	/** Target output width in pixels. Sets the iframe width and the snapdom capture width. */
 	width: number;
-	/** Target output height in pixels. Sets the iframe height and the snapdom capture height. */
 	height: number;
-	/** Output image format. PNG ignores `quality`. */
 	format: "png" | "jpeg" | "webp";
-	/** Encoding quality, 0–1. Ignored when `format === "png"`. */
 	quality?: number;
-	/** Current page URL. The iframe loads this with `?mode=render&canvas=<canvasName>` so it renders the same composition headlessly at target dimensions. */
 	sourceUrl: string;
 }
 
 const PENDING_TIMEOUT_MS = 30_000;
 
-/**
- * Capture root marker. Set by Canvas (`data-pictel-canvas=""`) on its outermost
- * div. The export utility queries for this attribute inside the iframe to find
- * the element to hand to snapdom. The Canvas component adds this attribute as
- * part of Phase 4 of the design-system rollout.
- */
 const CANVAS_SELECTOR = "[data-pictel-canvas]";
 
-/**
- * Render a Canvas in `render` mode inside a hidden iframe at the specified
- * target dimensions, wait for the pipeline to settle, capture via snapdom, and
- * trigger a download as PNG/JPEG/WebP.
- *
- * Mirrors the CLI's headless export path: a render-mode page at exact target
- * dimensions captured after `data-pictel-pending` clears. Errors are wrapped
- * as `RasterEffectError` so the caller (RenderStrip) can surface them in the
- * standard error chip alongside raster-effect errors.
- */
 export async function exportCanvas(options: ExportOptions): Promise<void> {
 	const url = new URL(options.sourceUrl);
 	url.searchParams.set("mode", "render");
@@ -105,14 +77,7 @@ export async function exportCanvas(options: ExportOptions): Promise<void> {
 	}
 }
 
-/**
- * Resolves when the iframe fires its `load` event — i.e. navigation to the
- * `src` URL has completed and `contentDocument` reflects the rendered target
- * page rather than the initial `about:blank`. A freshly-created iframe whose
- * `src` has just been assigned can briefly report
- * `contentDocument.readyState === "complete"` for `about:blank` BEFORE
- * navigation begins, so the `load` event is the only trustworthy signal.
- */
+// A freshly-created iframe whose `src` was just assigned can briefly report `contentDocument.readyState === "complete"` for `about:blank` BEFORE navigation begins, so the `load` event is the only trustworthy signal.
 function waitForLoad(iframe: HTMLIFrameElement): Promise<void> {
 	return new Promise((resolve, reject) => {
 		const onLoad = () => {
@@ -128,14 +93,7 @@ function waitForLoad(iframe: HTMLIFrameElement): Promise<void> {
 	});
 }
 
-/**
- * Resolves once the iframe document has no
- * `[data-pictel-canvas][data-pictel-pending]` element. Rejects after
- * `PENDING_TIMEOUT_MS`. Must only be called after `waitForLoad(iframe)` has
- * resolved — the contentDocument of a pre-navigation iframe is `about:blank`,
- * where no pending markers ever appear, and `check()` would resolve
- * immediately against an empty document.
- */
+// Must only be called after `waitForLoad` resolves — pre-navigation `contentDocument` is `about:blank` where no pending markers ever appear, so `check()` would resolve immediately against an empty document.
 function waitForReady(iframe: HTMLIFrameElement): Promise<void> {
 	return new Promise((resolve, reject) => {
 		let observer: MutationObserver | null = null;

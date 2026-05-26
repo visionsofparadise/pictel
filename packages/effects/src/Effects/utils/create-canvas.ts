@@ -1,7 +1,3 @@
-/**
- * Allocate a 2D drawing surface, preferring `OffscreenCanvas` where available
- * and falling back to a DOM canvas. Throws if no 2D context can be obtained.
- */
 export function createCanvas(width: number, height: number): {
 	canvas: OffscreenCanvas | HTMLCanvasElement
 	context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D

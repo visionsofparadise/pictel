@@ -29,9 +29,7 @@ export function applyDuotone(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface DuotoneProps {
-	/** RGB triple [r, g, b] (0-255) for shadow tones. */
 	dark: [number, number, number]
-	/** RGB triple [r, g, b] (0-255) for highlight tones. */
 	light: [number, number, number]
 	map?: ReactNode
 	children: ReactNode

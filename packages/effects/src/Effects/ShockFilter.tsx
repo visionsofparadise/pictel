@@ -123,11 +123,8 @@ export function applyMappedShockFilter(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface ShockFilterProps {
-	/** Number of blur-then-sharpen passes. More iterations flatten regions further and crispen edges harder. Cost is linear in this value. Default 8. */
 	iterations?: number
-	/** Shock step size `dt` per iteration, clamped to `<= 1` for stability. Default 1. */
 	strength?: number
-	/** `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance. */
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode

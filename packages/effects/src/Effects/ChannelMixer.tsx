@@ -26,7 +26,6 @@ export function applyChannelMix(pixels: ImageData, matrix: Array<Array<number>>)
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface ChannelMixerProps {
-	/** 3x3 array where `matrix[outChannel][inChannel]` is the weight. Stabilize with `useMemo`. */
 	matrix: Array<Array<number>>
 	map?: ReactNode
 	children: ReactNode

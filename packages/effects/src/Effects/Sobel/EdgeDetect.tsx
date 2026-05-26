@@ -35,7 +35,6 @@ export function applyEdgeDetect(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface EdgeDetectProps {
-	/** Convolution kernel pair. `sobel` is the classic 3x3 operator; `scharr` produces a larger, more rotationally symmetric response. Defaults to `sobel`. */
 	kernel?: "sobel" | "scharr"
 	map?: ReactNode
 	children: ReactNode

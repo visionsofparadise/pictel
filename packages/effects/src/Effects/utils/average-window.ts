@@ -2,12 +2,6 @@ import { sampleWindow } from "./sample-window"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-/**
- * Average a per-pixel scalar over the `dotSize`-wide window centered on a
- * source-space point, clamped to image bounds. `sample(offset)` reads the
- * scalar in [0, 1] at the given byte offset. Returns `null` when the window
- * falls entirely outside the source.
- */
 export function averageCoverage(
 	width: number,
 	height: number,
@@ -34,12 +28,6 @@ export function averageCoverage(
 	return sum / count
 }
 
-/**
- * Average the source RGB over the `dotSize`-wide window centered on a
- * source-space point, clamped to image bounds. Returns an `[r, g, b]` tuple
- * (each in [0, 255]), or `null` when the window falls entirely outside the
- * source.
- */
 export function averageColor(
 	width: number,
 	height: number,

@@ -19,9 +19,7 @@ export async function removeBackground(pixels: ImageData, pipe: Pipeline): Promi
 /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
 
 interface RemoveBackgroundProps {
-	/** Hugging Face model ID for background removal. Defaults to `onnx-community/BEN2-ONNX`. */
 	model?: string
-	/** Model revision hash. Overridable alongside `model`. */
 	revision?: string
 	children: ReactNode
 }

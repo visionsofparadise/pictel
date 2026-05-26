@@ -1,16 +1,5 @@
 type Fit = "cover" | "contain" | "fill" | "none";
 
-/**
- * Compute the destination rect to pass to `CanvasRenderingContext2D.drawImage`
- * for the given source and destination dimensions under a fit mode. The result
- * is the `(dx, dy, dw, dh)` argument set in `drawImage`'s 5-argument form.
- *
- * Matches CSS `object-fit` semantics:
- * - `fill` stretches the source to fully cover the destination.
- * - `cover` scales the source uniformly to cover the destination, cropping overflow.
- * - `contain` scales the source uniformly to fit inside the destination, letterboxing.
- * - `none` draws the source at intrinsic size centered in the destination.
- */
 export function computeFitRect(
 	srcW: number,
 	srcH: number,

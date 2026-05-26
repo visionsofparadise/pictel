@@ -14,11 +14,8 @@ import { Frame } from "./Frame";
 import type { RasterEffectError } from "./RasterEffect/Error";
 
 interface CanvasProps extends ComponentProps<"div"> {
-	/** Display name shown in the Viewer sidebar. Used as the `aria-label`. */
 	name?: string;
-	/** Fixed compositing buffer size in pixels. Required. The pipeline rasterizes at exactly these dimensions; visual fit (preview workspace, display container) is a CSS-only concern handled by Frame. */
 	dimensions: CanvasDimensions;
-	/** Overrides URL-based mode detection. One of `"preview"` (full chrome), `"display"` (inline embed, no chrome), or `"render"` (pure composition for headless export). */
 	mode?: Mode;
 }
 

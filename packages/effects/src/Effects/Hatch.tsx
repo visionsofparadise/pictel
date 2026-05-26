@@ -184,17 +184,11 @@ export function applyHatchFieldAligned(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface HatchProps {
-	/** Number of tonal bands. Minimum 2. Default 4. */
 	bands?: number
-	/** Per-band line angles in radians. Required in constant-angle mode (no `map` prop). Length must equal `bands`. */
 	angles?: Array<number>
-	/** Per-band line spacing in pixels. Length must equal `bands`. In constant-angle mode this is the literal stripe period; in field-aligned mode it drives the noise-seed density (`min(0.5, 2 / spacing)`) so tighter spacing yields darker hatching. */
 	spacing: Array<number>
-	/** Field-aligned LIC integration length per direction. Default 20. */
 	length?: number
-	/** Field-aligned LIC step size in pixels. Default 1.0. */
 	stepSize?: number
-	/** Field-aligned mode: integrate at a constant step length, ignoring the field's magnitude channel. Default false. Set true when the `map` is a smooth field (e.g. a depth gradient) so the lines actually follow it. */
 	uniformStep?: boolean
 	map?: ReactNode
 	children: ReactNode

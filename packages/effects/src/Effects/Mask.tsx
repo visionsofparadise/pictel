@@ -35,9 +35,7 @@ export function applyMask(pixels: ImageData, mask: ImageData, source: MaskSource
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface MaskProps {
-	/** The mask. Its alpha channel — or luminance, per `source` — clips the children. Required. */
 	map: ReactNode
-	/** Which channel of the map drives the clip. `"alpha"` (default) or `"luminance"`. */
 	source?: MaskSource
 	children: ReactNode
 }

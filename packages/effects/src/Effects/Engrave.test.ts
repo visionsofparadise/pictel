@@ -15,7 +15,6 @@ beforeAll(() => {
 	} as unknown as typeof globalThis.ImageData
 })
 
-/** Build a `size`×`size` image filled with a uniform RGBA value. */
 function uniform(size: number, red: number, green: number, blue: number, alpha: number): ImageData {
 	const data = new Uint8ClampedArray(size * size * 4)
 

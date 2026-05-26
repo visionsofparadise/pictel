@@ -112,13 +112,9 @@ export function applyDropShadow(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface DropShadowProps {
-	/** Horizontal shadow offset in pixels. */
 	offsetX: number
-	/** Vertical shadow offset in pixels. */
 	offsetY: number
-	/** Shadow blur radius in pixels. */
 	blurRadius: number
-	/** Shadow color as hex (`#rgb`, `#rrggbb`, `#rrggbbaa`) or `rgb()`/`rgba()`. */
 	color: string
 	map?: ReactNode
 	children: ReactNode

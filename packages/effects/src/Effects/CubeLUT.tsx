@@ -102,7 +102,6 @@ export function applyLut(pixels: ImageData, lut: Float32Array, size: number): Im
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface CubeLUTProps {
-	/** URL to a .cube LUT file. */
 	src: string
 	map?: ReactNode
 	children: ReactNode

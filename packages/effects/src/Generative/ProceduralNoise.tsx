@@ -32,21 +32,13 @@ export function fbm(
 }
 
 interface ProceduralNoiseProps {
-	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	width: number
-	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	height: number
-	/** Noise algorithm. `"simplex"` or `"perlin"` (uses simplex with seed offset). */
 	type: "simplex" | "perlin"
-	/** Random seed for reproducible patterns. */
 	seed: number
-	/** Frequency scale. Smaller values produce larger features. Default 0.01. */
 	scale?: number
-	/** Number of noise layers for fBm detail. Default 1. */
 	octaves?: number
-	/** Amplitude falloff per octave. Default 0.5. */
 	persistence?: number
-	/** RGB tint [r, g, b] (0-255). Default: grayscale. */
 	tint?: [number, number, number]
 }
 

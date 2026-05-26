@@ -296,11 +296,8 @@ export function applyMappedQuantize(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 export interface QuantizeProps {
-	/** Fixed palette. Mutually exclusive with `count`. */
 	palette?: ReadonlyArray<Rgb>
-	/** Auto-derive a palette of this size from the source via median-cut. Mutually exclusive with `palette`. */
 	count?: number
-	/** Dithering algorithm. Default `"none"`. */
 	dither?: DitherMode
 	map?: ReactNode
 	children: ReactNode

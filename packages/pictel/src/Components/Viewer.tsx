@@ -9,7 +9,6 @@ import type { Mode } from "../Mode";
 import { Canvas } from "./Canvas";
 
 interface ViewerProps extends ComponentProps<"div"> {
-	/** Overrides URL-based mode detection for all child canvases. One of `"preview"`, `"display"`, or `"render"`. */
 	mode?: Mode;
 }
 

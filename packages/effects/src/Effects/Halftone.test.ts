@@ -124,9 +124,6 @@ describe("applyHalftone", () => {
 	})
 })
 
-/**
- * Build a source image whose left half is pure black and right half is pure white.
- */
 function leftBlackRightWhiteImage(width: number, height: number): ImageData {
 	const data = new Uint8ClampedArray(width * height * 4)
 	const half = width / 2
@@ -143,10 +140,6 @@ function leftBlackRightWhiteImage(width: number, height: number): ImageData {
 	return new ImageData(data, width, height)
 }
 
-/**
- * For each `arc()` mock call, the first arg is the dot's drawn x position.
- * Count how many fall in the left half vs the right half of the output.
- */
 function countDotSidesByScreenX(arcCalls: readonly unknown[][], halfWidth: number) {
 	let left = 0
 	let right = 0
@@ -214,7 +207,6 @@ describe("applyHalftone with non-zero angle", () => {
 	})
 })
 
-/** Normalize a CSS color string to a comparable `rgb(r, g, b)` form. */
 function rgb(r: number, g: number, b: number): string {
 	return `rgb(${r}, ${g}, ${b})`
 }

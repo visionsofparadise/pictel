@@ -42,7 +42,6 @@ export function applyMappedOpacity(pixels: ImageData, map: ImageData, amount: nu
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface OpacityProps {
-	/** Opacity multiplier. 1 is unchanged, 0 is fully transparent. Default 1. */
 	amount?: number
 	mode?: "parameter" | "mix"
 	map?: ReactNode

@@ -23,7 +23,6 @@ export function applyInvert(pixels: ImageData, amount: number): ImageData {
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface InvertProps {
-	/** Inversion amount. 0 is unchanged, 1 is fully inverted. Default 1. */
 	amount?: number
 	map?: ReactNode
 	children: ReactNode

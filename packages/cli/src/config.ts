@@ -6,18 +6,12 @@ export interface ExportEntry {
   readonly name: string;
   readonly canvas?: string;
   readonly props?: Record<string, unknown>;
-  /** Canvas buffer override — overrides the composition's authored `dimensions`. */
   readonly canvasWidth?: number;
-  /** Canvas buffer override — overrides the composition's authored `dimensions`. */
   readonly canvasHeight?: number;
-  /** Output image width in pixels. Sharp resizes the capture. Defaults to canvasWidth (no resize). */
   readonly width?: number;
-  /** Output image height in pixels. Sharp resizes the capture. Defaults to canvasHeight (no resize). */
   readonly height?: number;
   readonly format?: "png" | "jpeg" | "webp" | "avif";
-  /** Encoding quality (1–100). Ignored for `png`. */
   readonly quality?: number;
-  /** Device pixel-density multiplier (Puppeteer `deviceScaleFactor`). */
   readonly scale?: number;
 }
 

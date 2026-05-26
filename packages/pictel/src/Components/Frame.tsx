@@ -6,20 +6,6 @@ interface FrameProps {
 	children?: ReactNode;
 }
 
-/**
- * Visual frame around the composition. Layout always sizes to the fixed
- * `dimensions` from CanvasContext (the buffer is fixed; capture is decoupled
- * from container size). Modes differ in how the buffer-sized box is presented:
- *
- * - **preview**: Frame paints a checkerboard background and applies a
- *   `transform: scale(scaleFactor)` to fit the buffer-sized box into the
- *   workspace viewport. Buffer pixels are 1:1 with composition pixels;
- *   the visual scale is for display only.
- * - **display**: Frame applies `max-width: 100%; max-height: 100%; height: auto`
- *   so the buffer-sized box scales like an `<img>` to fit the host container.
- *   Buffer dims stay fixed; the rendered surface scales visually.
- * - **render**: Frame renders at the literal pixel size with no chrome.
- */
 export function Frame({ children }: FrameProps) {
 	const { mode, dimensions, viewport } = useCanvasContext();
 	const { width, height } = dimensions;

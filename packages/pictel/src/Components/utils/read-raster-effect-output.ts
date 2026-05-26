@@ -1,12 +1,3 @@
-/**
- * Reads the output ImageData from a RasterEffect's resolved canvas.
- *
- * Accepts either a `<canvas data-pictel-raster>` element directly, or any
- * ancestor element containing one (in which case the first matching
- * descendant canvas is used). The canvas is a sibling of the RasterEffect's
- * children wrapper in the DOM; callers usually pass the canvas directly
- * via `container.querySelector("canvas[data-pictel-raster]")`.
- */
 export function readRasterEffectOutput(root: HTMLElement): ImageData {
 	const canvas =
 		root instanceof HTMLCanvasElement && root.hasAttribute("data-pictel-raster")
@@ -24,9 +15,6 @@ export function readRasterEffectOutput(root: HTMLElement): ImageData {
 	return context.getImageData(0, 0, canvas.width, canvas.height);
 }
 
-/**
- * Sample a single pixel from ImageData. Returns [r, g, b, a] in 0-255.
- */
 export function readPixel(
 	pixels: ImageData,
 	x: number,

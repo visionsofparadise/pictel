@@ -3,11 +3,6 @@ import { RasterEffect, type RasterEffectCallback } from "pictel"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-/**
- * Bilinear sample of an ImageData buffer at a fractional position. Coordinates
- * are clamped to the image bounds (extension by clamping). Returns an RGBA
- * tuple with each channel in [0, 255].
- */
 function sampleBilinear(image: ImageData, x: number, y: number): [number, number, number, number] {
 	const { width, height, data } = image
 
@@ -127,13 +122,9 @@ export function applyLIC(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface LICProps {
-	/** Number of integration steps in each direction (forward and backward). Default 20. */
 	length?: number
-	/** Base step size in pixels per integration step. Default 1.0. */
 	stepSize?: number
-	/** When true, integrate at a constant step length, ignoring the field's magnitude channel. Default false — step length scales with magnitude (0.25–1.0×), which suits field visualization but stalls on a smooth field. Set true to follow a smooth field such as a depth gradient. */
 	uniformStep?: boolean
-	/** Required: vector field map providing the LIC direction field. */
 	map: ReactNode
 	children: ReactNode
 }

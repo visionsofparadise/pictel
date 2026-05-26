@@ -31,7 +31,6 @@ export function applySepia(pixels: ImageData, amount: number): ImageData {
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface SepiaProps {
-	/** Sepia intensity. 0 is unchanged, 1 is fully sepia. Default 1. */
 	amount?: number
 	map?: ReactNode
 	children: ReactNode

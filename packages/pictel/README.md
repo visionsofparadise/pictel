@@ -161,7 +161,7 @@ API reference below — generated from JSDoc on the source.
 
 > **Canvas**(`props`): `Element`
 
-Defined in: [Components/Canvas.tsx:80](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Canvas.tsx#L80)
+Defined in: [Components/Canvas.tsx:77](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Canvas.tsx#L77)
 
 The root of a pictel composition. Layers, effects, blend modes, and raster sources
 go inside as children, and the Canvas renders the composed image.
@@ -190,7 +190,7 @@ in a `Viewer` to switch between them during development.
 
 > **Viewer**(`props`): `Element`
 
-Defined in: [Components/Viewer.tsx:51](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Viewer.tsx#L51)
+Defined in: [Components/Viewer.tsx:50](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Viewer.tsx#L50)
 
 A development shell that hosts one or more `Canvas` children and provides a sidebar
 for switching between them. The selected canvas is tracked in the URL via `?canvas=`.
@@ -273,7 +273,7 @@ to crop it back to content size, wrap the result in `Clip` (or any
 
 > **RasterEffect**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/RasterEffect.tsx:73](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L73)
+Defined in: [Components/RasterEffect/RasterEffect.tsx:52](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L52)
 
 The primitive every effect, blend, and map-driven component is built on. Captures
 its children as pixels, hands them to an `effect` callback, and renders the result
@@ -305,7 +305,7 @@ or modulation map (`map`), and returns transformed `ImageData`.
 
 > **RasterSource**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/RasterSource.tsx:43](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterSource.tsx#L43)
+Defined in: [Components/RasterEffect/RasterSource.tsx:28](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterSource.tsx#L28)
 
 The leaf primitive for components that produce pixels from a draw callback —
 `Image` and the generative components (`LinearGradient`, `ProceduralNoise`, etc.)
@@ -337,7 +337,7 @@ styled `<div>` if you need to position or style it — the API is closed
 
 > **Image**(`props`): `Element`
 
-Defined in: [Components/Image/Image.tsx:47](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Image/Image.tsx#L47)
+Defined in: [Components/Image/Image.tsx:34](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/Image/Image.tsx#L34)
 
 Loads a raster image, decodes it, and renders it into a canvas at the requested
 output size and fit. Use `Image` instead of a raw `<img>` for any source that will

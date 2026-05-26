@@ -26,7 +26,6 @@ export function applyGrayscale(pixels: ImageData, amount: number): ImageData {
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface GrayscaleProps {
-	/** Desaturation amount. 0 is unchanged, 1 is fully grayscale. Default 1. */
 	amount?: number
 	map?: ReactNode
 	children: ReactNode

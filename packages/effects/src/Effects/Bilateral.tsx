@@ -82,11 +82,8 @@ export function applyMappedBilateral(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface BilateralProps {
-	/** Spatial radius in pixels (Gaussian sigma). Sensible values are 2–6; larger values are slow. */
 	spatialSigma: number
-	/** Color tolerance in 0–255 units. Larger values bridge more across edges. */
 	colorSigma: number
-	/** `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance. */
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode

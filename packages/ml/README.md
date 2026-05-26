@@ -60,7 +60,7 @@ ML components are `RasterEffect`s — they process their children and output pix
 
 > **RemoveBackground**(`props`): `Element`
 
-Defined in: [Components/RemoveBackground.tsx:38](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/RemoveBackground.tsx#L38)
+Defined in: [Components/RemoveBackground.tsx:36](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/RemoveBackground.tsx#L36)
 
 Removes the background from the child content — the subject keeps its color, everything else becomes transparent. Stack over any background (gradient, image, solid color) for cutout compositions. Requires WebGPU.
 
@@ -83,7 +83,7 @@ Removes the background from the child content — the subject keeps its color, e
 
 > **Sam2**(`props`): `Element`
 
-Defined in: [Components/Sam2.tsx:145](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Sam2.tsx#L145)
+Defined in: [Components/Sam2.tsx:141](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Sam2.tsx#L141)
 
 Point-prompted segmentation — drop one or more `points` on what you want segmented and SAM2 returns a white-on-black mask of that region. Use `negativePoints` to carve regions out of the result. Reach for this over `SegFormer` when you want to target a specific subject rather than label everything. Pass through a downstream effect's `map` prop to confine that effect to the masked region. Requires WebGPU.
 
@@ -108,7 +108,7 @@ Point-prompted segmentation — drop one or more `points` on what you want segme
 
 > **SegFormer**(`props`): `Element`
 
-Defined in: [Components/SegFormer.tsx:79](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/SegFormer.tsx#L79)
+Defined in: [Components/SegFormer.tsx:76](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/SegFormer.tsx#L76)
 
 Automatic semantic segmentation — labels every region of the child content and outputs a color-coded segment map (each detected class gets a deterministic palette color). Reach for this when you want every object segmented without prompting; use `Sam2` instead when you need to target a specific region by clicking points. Pass through a downstream effect's `map` prop to drive per-segment effects. Requires WebGPU.
 
@@ -151,7 +151,7 @@ Discriminated union component that delegates to [Sam2](#sam2) or [SegFormer](#se
 
 > **Upscale**(`props`): `Element`
 
-Defined in: [Components/Upscale.tsx:36](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Upscale.tsx#L36)
+Defined in: [Components/Upscale.tsx:34](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Upscale.tsx#L34)
 
 Upscales child content to higher resolution — the default model doubles each dimension. The canvas backing buffer grows; the rendered surface keeps the original layout footprint so upscaled pixels read as added detail rather than added size. Requires WebGPU.
 
@@ -174,7 +174,7 @@ Upscales child content to higher resolution — the default model doubles each d
 
 > **DepthMap**(`props`): `Element`
 
-Defined in: [Components/DepthMap.tsx:37](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/DepthMap.tsx#L37)
+Defined in: [Components/DepthMap.tsx:35](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/DepthMap.tsx#L35)
 
 Produces a grayscale depth map of the child content — nearer surfaces brighter, farther surfaces darker. Pass through a downstream effect's `map` prop to drive depth-based effects (variable-radius blur, depth-cued color grading, parallax displacement). Requires WebGPU.
 

@@ -13,23 +13,14 @@ import {
   type UserConfig,
 } from "vite";
 
-/** The id Vite resolves `virtual:pictel-entry` to internally. The leading
- * NUL byte is the Vite convention marking a virtual module so other plugins
- * leave it untouched. */
+// Leading NUL byte is the Vite convention marking a virtual module so other
+// plugins leave it untouched.
 const RESOLVED_ENTRY_ID = "\0virtual:pictel-entry";
 
-/** Absolute path to the installed shell directory (`packages/cli/shell`).
- * Resolved relative to this module so it works when `@pictel/cli` is installed
- * under a user's `node_modules`. After tsup builds `src/` to `dist/`, this
- * module lives at `dist/index.js`, so `../shell` reaches the shipped shell. */
+// After tsup builds `src/` to `dist/`, this module lives at `dist/index.js`,
+// so `../shell` reaches the shipped `packages/cli/shell` directory.
 const SHELL_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "shell");
 
-/**
- * A Vite plugin exposing the user's composition entry module as the virtual
- * module `virtual:pictel-entry`, which the render shell's `entry.tsx` imports.
- *
- * @param entryAbsPath - Absolute path to the user's composition entry module.
- */
 export function pictelEntryPlugin(entryAbsPath: string): Plugin {
   // POSIX-normalize the absolute path so the generated import specifier is a
   // valid module string on Windows (backslashes break Vite's import parsing).
@@ -52,9 +43,8 @@ export function pictelEntryPlugin(entryAbsPath: string): Plugin {
   };
 }
 
-/** Detect whether an adopted plugin set already contains a React plugin.
- * Both `@vitejs/plugin-react` and its SWC variant name their plugins with a
- * `vite:react` prefix. */
+// Both `@vitejs/plugin-react` and its SWC variant name their plugins with a
+// `vite:react` prefix.
 function hasReactPlugin(plugins: Array<PluginOption>): boolean {
   for (const plugin of plugins.flat(Infinity as 1)) {
     if (
@@ -72,21 +62,10 @@ function hasReactPlugin(plugins: Array<PluginOption>): boolean {
 }
 
 interface BuildViteConfigOptions {
-  /** Absolute path to the user's composition entry module. */
   entryAbsPath: string;
-  /** Already-resolved user project root (nearest `package.json` to `--entry`). */
   projectDir: string;
 }
 
-/**
- * Builds the CLI-owned Vite config for the render shell. Partially adopts the
- * user's `vite.config.*` if present — only the transform/resolve layer
- * (`plugins`, `resolve`, `css`, `define`, `optimizeDeps`, `publicDir`). The
- * app-shape layer (`root`, `build`, `server`, `base`, `appType`, HTML input)
- * is always pictel-owned.
- *
- * @param options - The entry path and resolved project directory.
- */
 export async function buildViteConfig({
   entryAbsPath,
   projectDir,
@@ -124,18 +103,10 @@ export async function buildViteConfig({
 }
 
 interface BuildShellOptions {
-  /** Absolute path to the user's composition entry module. */
   entryAbsPath: string;
-  /** Already-resolved user project root. */
   projectDir: string;
 }
 
-/**
- * Does a one-time Vite production build of the render shell + the user's
- * composition entry into a fresh temp directory.
- *
- * @param options - The entry path and resolved project directory.
- */
 export async function buildShell({
   entryAbsPath,
   projectDir,
@@ -154,12 +125,6 @@ export async function buildShell({
   return { outDir };
 }
 
-/**
- * Serves an already-built shell output directory statically via Vite's
- * `preview` API. `preview` runs no HMR — consistent with build-once-serve-static.
- *
- * @param outDir - The build output directory produced by `buildShell`.
- */
 export async function serveShell(
   outDir: string,
 ): Promise<{ url: string; close: () => Promise<void> }> {

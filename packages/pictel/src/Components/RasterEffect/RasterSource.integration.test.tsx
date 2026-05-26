@@ -27,11 +27,6 @@ function deferred(): Deferred {
 	return { promise, resolve };
 }
 
-/**
- * Wait until the Canvas root has `data-pictel-pending` set. Polls a few
- * frames to give React's `useSyncExternalStore` re-render time to flush after
- * a descendant RasterEffect / RasterSource registers and notifies pending.
- */
 function waitForCanvasPending(container: HTMLElement, timeoutMs = 1000): Promise<HTMLElement> {
 	return new Promise((resolve, reject) => {
 		const start = performance.now();

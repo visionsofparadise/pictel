@@ -274,9 +274,7 @@ export function applyVariableBlur(pixels: ImageData, map: ImageData, radius: num
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface BlurProps {
-	/** Blur radius in pixels. With a map, radius scales per-pixel by map luminance. */
 	radius: number;
-	/** `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance. */
 	mode?: "parameter" | "mix";
 	map?: ReactNode;
 	children: ReactNode;

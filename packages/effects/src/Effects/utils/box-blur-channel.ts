@@ -1,15 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-/**
- * Separable, edge-clamped box blur over a single-channel `Float32Array`.
- *
- * Runs a horizontal pass then a vertical pass, each a sliding-window box sum
- * normalized by the window width. Sample coordinates outside the image are
- * clamped to the nearest edge pixel (`[0, width-1]` / `[0, height-1]`).
- *
- * `radius` is rounded; a `radius <= 0` returns an unmodified copy of `src`.
- * The input array is never mutated — a new `Float32Array` is returned.
- */
 export function boxBlurChannel(
 	src: Float32Array,
 	width: number,

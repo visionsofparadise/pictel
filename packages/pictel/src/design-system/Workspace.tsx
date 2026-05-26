@@ -18,15 +18,6 @@ const workspaceStyle: CSSProperties = {
 	boxSizing: "border-box",
 };
 
-/**
- * Padded gutter wrapper for the composition in `preview` mode. Centers the
- * composition, scrolls if it exceeds the viewport, and provides the
- * `position: relative` anchor that floating chrome (error chip, render strip,
- * loading spinner) absolutely positions against.
- *
- * Floating chrome is rendered as siblings of the workspace by Canvas — the
- * workspace itself only knows about its single child slot.
- */
 export function Workspace({ children }: WorkspaceProps) {
 	return <div style={workspaceStyle}>{children}</div>;
 }

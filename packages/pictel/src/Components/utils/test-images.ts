@@ -1,6 +1,3 @@
-/**
- * Build a solid-color data URL using an offscreen canvas.
- */
 export function solidImage(color: string, width: number, height: number): string {
 	const canvas = document.createElement("canvas");
 	canvas.width = width;
@@ -15,9 +12,6 @@ export function solidImage(color: string, width: number, height: number): string
 	return canvas.toDataURL();
 }
 
-/**
- * Build a horizontal or vertical gradient data URL.
- */
 export function gradientImage(
 	from: string,
 	to: string,
@@ -43,9 +37,6 @@ export function gradientImage(
 	return canvas.toDataURL();
 }
 
-/**
- * Build a checkerboard pattern data URL. `size` is the square side in pixels.
- */
 export function checkerboardImage(
 	colorA: string,
 	colorB: string,

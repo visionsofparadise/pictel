@@ -45,7 +45,6 @@ export function applyMappedSaturate(pixels: ImageData, map: ImageData, amount: n
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface SaturateProps {
-	/** Saturation multiplier. 0 is grayscale, 1 is unchanged, greater than 1 oversaturates. Default 1. */
 	amount?: number
 	mode?: "parameter" | "mix"
 	map?: ReactNode

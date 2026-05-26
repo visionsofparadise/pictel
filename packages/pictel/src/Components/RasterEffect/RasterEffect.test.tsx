@@ -19,7 +19,6 @@ vi.mock("@zumer/snapdom", () => ({
 	},
 }));
 
-/** Mount JSX, return cleanup handle. */
 function mount(jsx: React.ReactElement): { container: HTMLElement; root: Root; cleanup: () => void } {
 	const container = document.createElement("div");
 	container.style.width = "64px";
@@ -38,7 +37,6 @@ function mount(jsx: React.ReactElement): { container: HTMLElement; root: Root; c
 	};
 }
 
-/** Wait until [data-pictel-canvas][data-pictel-pending] is no longer set. */
 function waitForResolved(container: HTMLElement, timeout = 5000): Promise<void> {
 	return new Promise<void>((resolve, reject) => {
 		const start = Date.now();

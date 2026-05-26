@@ -8,17 +8,11 @@ import { RasterSource } from "pictel"
 import type { GradientStop } from "./LinearGradient"
 
 interface RadialGradientProps {
-	/** Output width in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	width: number
-	/** Output height in pixels. Required — generatives produce pixels at intrinsic dimensions. */
 	height: number
-	/** Array of color stops with `color` and `position` (0-1). */
 	stops: Array<GradientStop>
-	/** Horizontal center as a fraction of width. Default 0.5. */
 	centerX?: number
-	/** Vertical center as a fraction of height. Default 0.5. */
 	centerY?: number
-	/** Gradient radius as a fraction of the smaller dimension. Default 0.5. */
 	radius?: number
 }
 

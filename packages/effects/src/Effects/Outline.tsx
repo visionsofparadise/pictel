@@ -95,15 +95,10 @@ export function applyMappedOutline(
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
 interface OutlineProps {
-	/** Inner Gaussian σ in pixels. Larger σ produces thicker, softer lines. Default 1. */
 	sigma?: number
-	/** Outer-to-inner Gaussian σ ratio. The XDoG paper uses 1.6. Default 1.6. */
 	k?: number
-	/** XDoG threshold (after normalization to [-1, 1]). Default 0 — uniform regions of any luminance render white; only pixels where S falls below 0 (the dark side of edges) get sigmoid-darkened. Negative values produce thicker strokes; positive values darken low-luminance regions toward sketchy output. */
 	epsilon?: number
-	/** Sigmoid sharpness. Higher → more binary; lower → softer. Default 200. */
 	phi?: number
-	/** `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance. */
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode

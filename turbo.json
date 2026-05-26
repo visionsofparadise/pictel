@@ -8,7 +8,7 @@
     },
     "docs": {
       "dependsOn": [],
-      "inputs": ["src/**", "typedoc.json", "clean-docs.mjs"],
+      "inputs": ["src/**", "typedoc.json", "clean-docs.mjs", "README.template.md", "tsconfig.json"],
       "outputs": ["README.md"]
     },
     "build": {

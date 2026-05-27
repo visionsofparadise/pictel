@@ -1,0 +1,9 @@
+{
+	"slug": "pin-light-cutoff",
+	"title": "Pin Light Cutoff",
+	"sources": [
+		"golden-hour-portrait"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/pin-light-cutoff.png"
+}

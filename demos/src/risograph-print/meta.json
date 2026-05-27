@@ -1,0 +1,9 @@
+{
+	"slug": "risograph-print",
+	"title": "Risograph Print",
+	"sources": [
+		"portrait-with-background-1"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/risograph-print.png"
+}

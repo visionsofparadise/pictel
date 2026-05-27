@@ -1,0 +1,9 @@
+{
+	"slug": "color-blend-recolor",
+	"title": "Color Blend Recolor",
+	"sources": [
+		"headshot"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/color-blend-recolor.png"
+}

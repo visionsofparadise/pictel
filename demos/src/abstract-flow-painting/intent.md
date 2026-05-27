@@ -1,0 +1,3 @@
+# Abstract Flow Painting
+
+A purely-generated abstract painting in which clouds of organic noise have been pulled into long parallel streaks running diagonally across the frame. The streaks all run in the same direction — set by a uniform vertical gradient feeding the flow field — and the noise underneath gives them their varying weight and rhythm. The output is then mapped through a deep-violet-to-warm-pink duotone, lifting it from a raw flow visualization into something that reads as brush-stroked. The result is the kind of motion-streaked abstract you'd brief a flow-field generative artist to make.

@@ -1,0 +1,9 @@
+{
+	"slug": "point-segment",
+	"title": "Point Segment",
+	"sources": [
+		"portrait-with-background-2"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/point-segment.png"
+}

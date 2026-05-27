@@ -1,0 +1,9 @@
+{
+	"slug": "hue-blend-recolor",
+	"title": "Hue Blend Recolor",
+	"sources": [
+		"headshot"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/hue-blend-recolor.png"
+}

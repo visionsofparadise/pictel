@@ -1,0 +1,9 @@
+{
+	"slug": "vivid-light-pop",
+	"title": "Vivid Light Pop",
+	"sources": [
+		"golden-hour-portrait"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/vivid-light-pop.png"
+}

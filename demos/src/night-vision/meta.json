@@ -1,0 +1,9 @@
+{
+	"slug": "night-vision",
+	"title": "Night Vision",
+	"sources": [
+		"evening-landscape"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/night-vision.png"
+}

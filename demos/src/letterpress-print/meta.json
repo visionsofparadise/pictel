@@ -1,0 +1,9 @@
+{
+	"slug": "letterpress-print",
+	"title": "Letterpress Print",
+	"sources": [
+		"pencil-texture"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/letterpress-print.png"
+}

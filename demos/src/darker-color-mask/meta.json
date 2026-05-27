@@ -1,0 +1,9 @@
+{
+	"slug": "darker-color-mask",
+	"title": "Darker Color Mask",
+	"sources": [
+		"evening-landscape"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/darker-color-mask.png"
+}

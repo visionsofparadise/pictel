@@ -1,0 +1,9 @@
+{
+	"slug": "lighter-color-overlay",
+	"title": "Lighter Color Overlay",
+	"sources": [
+		"portrait-with-background-1"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/lighter-color-overlay.png"
+}

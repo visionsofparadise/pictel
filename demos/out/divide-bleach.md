@@ -1,0 +1,44 @@
+# Divide Bleach
+
+A portrait pushed through a divide-blend bleach pass — the subject still reads, but the midtones lift toward a pale warm cream and the highlights blow out to flat paper-white. Where the underlying tone is dark enough, the result snaps to a fully-bleached white plate; where it's deeper, a fragile residual structure remains. The effect approaches the bleached-photographic-paper aesthetic — washed, sun-faded, almost dropped to the substrate.
+
+**Before**
+
+![](https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg)
+
+**After**
+
+![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/divide-bleach.png)
+
+```tsx
+import { Divide, LinearGradient } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
+
+const PORTRAIT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg";
+
+const W = 1024;
+const H = 1024;
+
+export default function DivideBleach() {
+	return (
+		<Canvas mode="display" dimensions={{ width: W, height: H }}>
+			<Divide
+				apply={
+					<LinearGradient
+						width={W}
+						height={H}
+						angle={45}
+						stops={[
+							{ color: "rgb(240, 220, 200)", position: 0 },
+							{ color: "rgb(210, 190, 175)", position: 0.5 },
+							{ color: "rgb(180, 160, 150)", position: 1 },
+						]}
+					/>
+				}
+			>
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+			</Divide>
+		</Canvas>
+	);
+}
+```

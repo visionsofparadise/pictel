@@ -1,0 +1,9 @@
+{
+	"slug": "color-dodge-glow",
+	"title": "Color Dodge Glow",
+	"sources": [
+		"city-overview"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/color-dodge-glow.png"
+}

@@ -1,0 +1,9 @@
+{
+	"slug": "hard-mix-pop",
+	"title": "Hard Mix Pop",
+	"sources": [
+		"portrait-with-background-1"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/hard-mix-pop.png"
+}

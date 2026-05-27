@@ -1,0 +1,9 @@
+{
+	"slug": "soft-light-grade",
+	"title": "Soft Light Grade",
+	"sources": [
+		"headshot"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/soft-light-grade.png"
+}

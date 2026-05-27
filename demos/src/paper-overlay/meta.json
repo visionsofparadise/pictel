@@ -1,0 +1,10 @@
+{
+	"slug": "paper-overlay",
+	"title": "Paper Overlay",
+	"sources": [
+		"evening-landscape",
+		"pencil-texture"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/paper-overlay.png"
+}

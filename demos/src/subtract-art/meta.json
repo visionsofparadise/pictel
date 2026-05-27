@@ -1,0 +1,9 @@
+{
+	"slug": "subtract-art",
+	"title": "Subtract Color Art",
+	"sources": [
+		"city-overview"
+	],
+	"created": "2026-05-27",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/subtract-art.png"
+}

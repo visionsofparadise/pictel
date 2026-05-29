@@ -14,6 +14,8 @@ npm install pictel @pictel/effects
 - [`@pictel/ml`](https://www.npmjs.com/package/@pictel/ml) — ML-powered effects via Transformers.js + WebGPU: background removal, segmentation, depth maps, and upscaling.
 - [`@pictel/cli`](https://www.npmjs.com/package/@pictel/cli) — headless renderer (Puppeteer + Sharp) that exports compositions to PNG/JPEG/WebP/AVIF.
 
+A corpus of worked examples — each a single composition with its intent, before/after images, and full source — lives in [`demos/out/`](https://github.com/visionsofparadise/pictel/tree/main/demos/out).
+
 ## Quick start
 
 ```tsx

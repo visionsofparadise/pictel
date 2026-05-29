@@ -1,0 +1,3 @@
+# Lava Pool
+
+A purely-generated molten lava surface — soft simplex-noise clouds at intermediate scale, contrast-stretched to fill the full luminance range, then mapped through a deep-maroon-through-burning-orange-through-pale-gold ramp so the noise reads as a roiling field of cooling and re-melting magma. The darkest pools settle into nearly-black blood-red where the crust has set; mid-temperature flows wash through bright orange; the hottest cracks resolve to white-gold. No flow direction, no rotation — just an organic temperature map across the frame, the kind of look a planetary close-up of an active lava lake would produce.

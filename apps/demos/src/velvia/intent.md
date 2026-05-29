@@ -1,0 +1,3 @@
+# Velvia
+
+A landscape rendered through the Fuji Velvia 50 lens — the legendary nature-and-landscape slide film whose deeply saturated greens, royal blues, and crimson sunset reds defined a generation of National Parks photography. Reds and oranges sit a notch hotter than reality; greens push toward emerald rather than olive; blues hold their depth without crushing; the overall contrast is medium-high with a slight global cool bias balancing the warm tones. Velvia is recognisable instantly as the film that exaggerates colour in service of drama — fields look lusher, sunsets look hotter, and storm skies look more menacing than they would in any neutral capture.

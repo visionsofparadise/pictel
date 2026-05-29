@@ -1,0 +1,3 @@
+# Cinestill
+
+A portrait pushed into the Cinestill 800T register — the tungsten-balanced motion-picture stock that famously left red halation rings around every highlight when respooled into a 35mm still camera (the anti-halation backing layer was removed for movie-camera use, so any bright point bled red light back into the surrounding emulsion). Highlights pick up a warm red bloom that spreads softly into their neighbouring midtones; the rest of the image keeps its near-natural colour balance with a mild push toward warm. Skin tones, sky, and shadow all read normally — only the lights catch fire.

@@ -215,6 +215,134 @@ export default function TiltShift() {
 }
 ```
 
+### Banknote Print
+
+| Before | After |
+| --- | --- |
+| <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg" alt="Banknote Print — before"> | <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/banknote.png" alt="Banknote Print — after"> |
+
+```tsx
+import { Bilateral, Brightness, DisplacementMap, Duotone, Engrave } from "@pictel/effects";
+import { DepthMap, RemoveBackground } from "@pictel/ml";
+import { Canvas, Image } from "pictel";
+
+const HEADSHOT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg";
+
+const INK: [number, number, number] = [24, 56, 38];
+const CREAM: [number, number, number] = [234, 230, 213];
+const canvasW = 512;
+const canvasH = 512;
+
+export default function Banknote() {
+	const subject = (
+		<RemoveBackground>
+			<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+		</RemoveBackground>
+	);
+
+	return (
+		<Canvas
+			mode="display"
+			dimensions={{ width: canvasW, height: canvasH }}
+			style={{ backgroundColor: `rgb(${String(CREAM[0])}, ${String(CREAM[1])}, ${String(CREAM[2])})` }}
+		>
+			<Duotone dark={INK} light={CREAM}>
+				<DisplacementMap scaleX={10} scaleY={14} map={<DepthMap>{subject}</DepthMap>}>
+					<Engrave spacing={5} relief={0}>
+						<Brightness amount={1.35}>
+							<Bilateral spatialSigma={4} colorSigma={60}>
+								{subject}
+							</Bilateral>
+						</Brightness>
+					</Engrave>
+				</DisplacementMap>
+			</Duotone>
+		</Canvas>
+	);
+}
+```
+
+### Night Vision
+
+| Before | After |
+| --- | --- |
+| <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/sources/evening-landscape.jpg" alt="Night Vision — before"> | <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/night-vision.png" alt="Night Vision — after"> |
+
+```tsx
+import { Contrast, Duotone, Grain, LinePattern, Multiply } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
+
+const LANDSCAPE_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/evening-landscape.jpg";
+
+const W = 1024;
+const H = 1536;
+
+const DARK_GREEN: [number, number, number] = [4, 18, 8];
+const PHOSPHOR_GREEN: [number, number, number] = [120, 240, 110];
+
+export default function NightVision() {
+	return (
+		<Canvas mode="display" dimensions={{ width: W, height: H }}>
+			<Grain intensity={24} seed={6173}>
+				<Multiply
+					apply={
+						<LinePattern
+							width={W}
+							height={H}
+							seed={0}
+							spacing={3}
+							thickness={1}
+							angle={0}
+							color="rgb(40, 80, 30)"
+							background="rgb(230, 240, 220)"
+						/>
+					}
+				>
+					<Duotone dark={DARK_GREEN} light={PHOSPHOR_GREEN}>
+						<Contrast amount={1.35} mode="parameter">
+							<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+						</Contrast>
+					</Duotone>
+				</Multiply>
+			</Grain>
+		</Canvas>
+	);
+}
+```
+
+### Risograph Print
+
+| Before | After |
+| --- | --- |
+| <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/sources/portrait-with-background-1.jpg" alt="Risograph Print — before"> | <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/risograph-print.png" alt="Risograph Print — after"> |
+
+```tsx
+import { Quantize } from "@pictel/effects";
+import { Canvas, Image } from "pictel";
+
+const PORTRAIT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/portrait-with-background-1.jpg";
+
+const W = 1024;
+const H = 1536;
+
+const RISO_PALETTE = [
+	[245, 240, 230],
+	[235, 60, 130],
+	[40, 80, 180],
+	[35, 35, 40],
+] as const;
+
+export default function RisographPrint() {
+	return (
+		<Canvas mode="display" dimensions={{ width: W, height: H }}>
+			<Quantize palette={RISO_PALETTE} dither="bayer-8">
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+			</Quantize>
+		</Canvas>
+	);
+}
+```
+
 API reference below — generated from JSDoc on the source.
 
 ## Layout

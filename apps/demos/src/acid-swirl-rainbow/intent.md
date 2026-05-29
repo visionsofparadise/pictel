@@ -1,0 +1,3 @@
+# Acid Swirl Rainbow
+
+A purely-generated psychedelic vortex — clouds of organic noise pulled into a tangential swirl around the centre of the frame, then remapped through the full visible spectrum from indigo through cyan and green to yellow and magenta. Every band of the rainbow is exercised: the deepest valleys of the swirl resolve to inky indigo, the brightest crests push past yellow into hot magenta, and the smooth turbulent regions between sweep through every hue in between. The form is unmistakably a turbulence vortex (concentric pulls into the centre, undulating streamlines, no rigid geometry) but the colour reads as a poster from a 1968 head-shop wall — the full spectrum saturating the swirl rather than a single-hue duotone wash.

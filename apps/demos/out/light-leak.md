@@ -14,10 +14,10 @@ A portrait with a warm analog light-leak burning into the lower-left corner — 
 import { LinearGradient, Screen } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const PORTRAIT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/golden-hour-portrait.jpg";
+const PORTRAIT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg";
 
 const W = 1024;
-const H = 1536;
+const H = 1024;
 
 export default function LightLeak() {
 	return (

@@ -1,0 +1,9 @@
+{
+	"slug": "motion-streak",
+	"title": "Motion Streak",
+	"sources": [
+		"city-overview"
+	],
+	"created": "2026-05-29",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/motion-streak.png"
+}

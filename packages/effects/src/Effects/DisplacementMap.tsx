@@ -7,6 +7,7 @@ export function applyDisplacement(
 	map: ImageData,
 	scaleX: number,
 	scaleY: number,
+	useMagnitude = false,
 ): ImageData {
 	const { width, height, data: src } = pixels
 	const { width: mapWidth, height: mapHeight, data: mapPixels } = map
@@ -21,8 +22,9 @@ export function applyDisplacement(
 			const mapR = mapPixels[mapIdx]!
 			const mapG = mapPixels[mapIdx + 1]!
 
-			const dx = ((mapR - 128) / 128) * scaleX
-			const dy = ((mapG - 128) / 128) * scaleY
+			const magnitude = useMagnitude ? mapPixels[mapIdx + 2]! / 255 : 1
+			const dx = ((mapR - 128) / 128) * magnitude * scaleX
+			const dy = ((mapG - 128) / 128) * magnitude * scaleY
 
 			const srcX = Math.min(Math.max(Math.floor(x + dx), 0), width - 1)
 			const srcY = Math.min(Math.max(Math.floor(y + dy), 0), height - 1)
@@ -43,6 +45,7 @@ export function applyDisplacement(
 interface DisplacementMapProps {
 	scaleX?: number
 	scaleY?: number
+	useMagnitude?: boolean
 	map?: ReactNode
 	children: ReactNode
 }
@@ -53,6 +56,10 @@ interface DisplacementMapProps {
  *
  * - `scaleX` — Maximum horizontal displacement in pixels. Default 20.
  * - `scaleY` — Maximum vertical displacement in pixels. Default 20.
+ * - `useMagnitude` — When true, scale each displacement by the map's blue channel
+ *   (`B/255`), letting `DisplacementMap` consume a Direction-encoded field (e.g.
+ *   `VectorField`) that carries unit direction in R/G and magnitude in B. Default
+ *   false, which ignores B and treats R/G as the full displacement vector.
  *
  * @param props
  * @category Effects
@@ -60,18 +67,19 @@ interface DisplacementMapProps {
 export function DisplacementMap({
 	scaleX = 20,
 	scaleY = 20,
+	useMagnitude = false,
 	map,
 	children,
 }: DisplacementMapProps) {
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
-				return applyDisplacement(target, mapPixels, scaleX, scaleY)
+				return applyDisplacement(target, mapPixels, scaleX, scaleY, useMagnitude)
 			}
 
 			return target
 		},
-		[scaleX, scaleY],
+		[scaleX, scaleY, useMagnitude],
 	)
 
 	return (

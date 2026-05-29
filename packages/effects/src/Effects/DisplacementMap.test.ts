@@ -101,3 +101,75 @@ describe("applyDisplacement", () => {
 		expect(map.data).toEqual(originalMap)
 	})
 })
+
+function magnitudeMap(width: number, height: number, r: number, g: number, b: number): ImageData {
+	return makeImage(width, height, () => [r, g, b, 255])
+}
+
+describe("applyDisplacement useMagnitude", () => {
+	it("default path ignores the blue channel (regression guard)", () => {
+		const source = makeImage(16, 1, (x) => [x * 16, 0, 0, 255])
+		const mapHighB = magnitudeMap(16, 1, 255, 128, 255)
+		const mapZeroB = magnitudeMap(16, 1, 255, 128, 0)
+
+		const a = applyDisplacement(source, mapHighB, 16, 0)
+		const b = applyDisplacement(source, mapZeroB, 16, 0)
+
+		expect(a.data).toEqual(b.data)
+	})
+
+	it("B=0 produces no displacement when useMagnitude is true", () => {
+		const source = makeImage(16, 1, (x) => [x * 16, 0, 0, 255])
+		const map = magnitudeMap(16, 1, 255, 128, 0)
+
+		const result = applyDisplacement(source, map, 16, 0, true)
+
+		for (let x = 0; x < 16; x++) {
+			expect(result.data[x * 4]).toBe(x * 16)
+		}
+	})
+
+	it("B=255 displaces by the full scale when useMagnitude is true", () => {
+		const source = makeImage(16, 1, (x) => [x * 16, 0, 0, 255])
+		const scaleX = 8
+		const map = magnitudeMap(16, 1, 255, 128, 255)
+
+		const result = applyDisplacement(source, map, scaleX, 0, true)
+
+		const dx = ((255 - 128) / 128) * (255 / 255) * scaleX
+		for (let x = 0; x < 16; x++) {
+			const sampledX = Math.min(Math.max(Math.floor(x + dx), 0), 15)
+			expect(result.data[x * 4]).toBe(sampledX * 16)
+		}
+	})
+
+	it("B=128 displaces by ~half the full scale", () => {
+		const source = makeImage(16, 1, (x) => [x * 16, 0, 0, 255])
+		const scaleX = 8
+
+		const fullDx = ((255 - 128) / 128) * (255 / 255) * scaleX
+		const halfDx = ((255 - 128) / 128) * (128 / 255) * scaleX
+		expect(halfDx).toBeCloseTo(fullDx / 2, 1)
+
+		const full = applyDisplacement(source, magnitudeMap(16, 1, 255, 128, 255), scaleX, 0, true)
+		const half = applyDisplacement(source, magnitudeMap(16, 1, 255, 128, 128), scaleX, 0, true)
+
+		const fullSampledX = Math.min(Math.max(Math.floor(0 + fullDx), 0), 15)
+		const halfSampledX = Math.min(Math.max(Math.floor(0 + halfDx), 0), 15)
+		expect(full.data[0]).toBe(fullSampledX * 16)
+		expect(half.data[0]).toBe(halfSampledX * 16)
+		expect(halfSampledX).toBeLessThan(fullSampledX)
+	})
+
+	it("does not mutate input ImageData in magnitude mode", () => {
+		const source = makeImage(3, 3, (x, y) => [x * 80, y * 80, 50, 255])
+		const map = magnitudeMap(3, 3, 200, 100, 200)
+		const originalSource = new Uint8ClampedArray(source.data)
+		const originalMap = new Uint8ClampedArray(map.data)
+
+		applyDisplacement(source, map, 10, 10, true)
+
+		expect(source.data).toEqual(originalSource)
+		expect(map.data).toEqual(originalMap)
+	})
+})

@@ -380,13 +380,17 @@ legibility.
 
 > **DisplacementMap**(`props`): `Element`
 
-Defined in: [Effects/DisplacementMap.tsx:60](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/DisplacementMap.tsx#L60)
+Defined in: [Effects/DisplacementMap.tsx:67](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/DisplacementMap.tsx#L67)
 
 Displaces pixels using the `map` prop's red and green channels for X and Y offset.
 Supply a `map` prop providing the displacement source.
 
 - `scaleX` — Maximum horizontal displacement in pixels. Default 20.
 - `scaleY` — Maximum vertical displacement in pixels. Default 20.
+- `useMagnitude` — When true, scale each displacement by the map's blue channel
+  (`B/255`), letting `DisplacementMap` consume a Direction-encoded field (e.g.
+  `VectorField`) that carries unit direction in R/G and magnitude in B. Default
+  false, which ignores B and treats R/G as the full displacement vector.
 
 #### Parameters
 
@@ -520,6 +524,35 @@ white.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `props` | `EngraveProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
+### GradientMap()
+
+> **GradientMap**(`props`): `Element`
+
+Defined in: Effects/GradientMap.tsx:104
+
+Maps pixel luminance through a multi-stop color ramp. Shadows take the first stop's
+color, highlights the last, with continuous interpolation across the band between stops.
+
+A generalization of `Duotone` to N color stops — the same `{ color, position }` stop
+model used by the gradient generatives. Luminance (BT.601) keys a 256-entry ramp built
+once from `stops`.
+
+- `stops` — Array of color stops with `color` (any CSS color the library parses) and
+  `position` (0-1). Sorted by position; luminance below the first / above the last stop
+  clamps to that stop's color.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `GradientMapProps` | - |
 
 #### Returns
 
@@ -1301,6 +1334,53 @@ size. Wrap in a styled div if positioning is needed.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `props` | `RadialGradientProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
+### VectorField()
+
+> **VectorField**(`props`): `Element`
+
+Defined in: Generative/VectorField.tsx:113
+
+Synthesizes a parametric direction field at intrinsic dimensions, emitting the
+same three-channel encoding as `Direction` (`R=(cos+1)·127.5`, `G=(sin+1)·127.5`,
+`B=magnitude·255`). Drops directly into any field consumer — feed it through the
+`map` prop on `LIC` (motion / zoom / spin blur) or magnitude-aware `DisplacementMap`
+(twirl / pinch / spherize) or field-aligned `Hatch`.
+
+Like the gradient generatives it produces pixels at intrinsic dimensions: the
+host/agent specifies `width` and `height` explicitly. The output is not meant to
+be visually readable — it renders as red/green static.
+
+- `width` — Output width in pixels. Required.
+- `height` — Output height in pixels. Required.
+- `pattern` — `"linear"` (constant `(cos angle, sin angle)`), `"radial"` (unit
+  vector pointing outward from the center), or `"tangential"` (radial rotated 90°,
+  a swirl).
+- `angle` — Direction in degrees for `linear`. 0 is left-to-right. Default 0.
+- `centerX` — Horizontal center as a fraction of width, for `radial`/`tangential`. Default 0.5.
+- `centerY` — Vertical center as a fraction of height, for `radial`/`tangential`. Default 0.5.
+- `magnitude` — B-channel profile over corner-normalized radius `r∈[0,1]`:
+  `"constant"` (1 everywhere, default), `"linear"` (`r`, grows outward),
+  `"falloff"` (`1−r`, decays outward — bounds a twirl so corners stay put).
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | \{ `angle?`: `number`; `centerX?`: `number`; `centerY?`: `number`; `height`: `number`; `magnitude?`: `MagnitudeProfile`; `pattern`: `VectorFieldPattern`; `width`: `number`; \} | - |
+| `props.angle?` | `number` | - |
+| `props.centerX?` | `number` | - |
+| `props.centerY?` | `number` | - |
+| `props.height` | `number` | - |
+| `props.magnitude?` | `MagnitudeProfile` | - |
+| `props.pattern` | `VectorFieldPattern` | - |
+| `props.width` | `number` | - |
 
 #### Returns
 

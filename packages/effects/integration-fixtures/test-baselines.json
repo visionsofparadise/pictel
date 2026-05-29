@@ -17,11 +17,17 @@
   "glow": [
     "5508f3e178549428d874ccce8d944c84f5f76140935834fa2de37bc419b061b5"
   ],
+  "gradient-map": [
+    "9302bb8c5b52acc81923cce279383605bcd94483064d56ea775f587ded51c859"
+  ],
   "line-drawing": [
     "7ab5f1dcc9c9604dcd317627868eef3de6144df1e9352eb226e3f2889b076559"
   ],
   "lut-grade": [
     "e01701007f07d35b8ec59b36770f8da7b4107f211ebda5a4467163a42e0d6cc0"
+  ],
+  "motion-streak": [
+    "5212dbb94f513ecb065ae2b6d2eb4ec152b22a5e35dba4d7eb5064f63b87ab21"
   ],
   "oil-painting": [
     "4da3ddbe5d6f4c61c970e07d1972d2c6a4320f58716c57ffbb387564d387ea54"
@@ -32,7 +38,13 @@
   "pop-art": [
     "0162c82aab5c66e527107ce4e54e8f024ac66dbd2c7cb2a8e957067b4ad8186e"
   ],
+  "radial-zoom-blur": [
+    "7bd7b4f361fd8265b61aa186c497eab09f3ca4895129685813934d4448630335"
+  ],
   "svg-on-concrete": [
     "9b7f2d2d6b842c9596722f2d9e398fc3363015e41f3e816dd553774168277c4b"
+  ],
+  "twirl-distortion": [
+    "ffc96257fcd92174e7c6b93ad21b9c96a3e9803052c299869fa1f6c73469b3a7"
   ]
 }

@@ -1,0 +1,9 @@
+{
+	"slug": "lomo",
+	"title": "Lomo",
+	"sources": [
+		"portrait-with-background-2"
+	],
+	"created": "2026-05-29",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/lomo.png"
+}

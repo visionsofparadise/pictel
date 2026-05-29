@@ -1,0 +1,3 @@
+# Lomo
+
+A portrait pushed through the Holga / Lomography aesthetic — the deliberately-flawed plastic-camera look that defined an entire counter-culture photography movement. Heavy black corner vignetting frames the centre subject hard; saturation is cranked so the colours bleed into one another; a cool blue-magenta cast settles into the shadows the way Russian-made plastic lenses bias colour balance; fine grain sits across the frame like cheap drugstore film. The image still reads as a portrait, but as one taken on equipment that was indifferent to fidelity and committed to character — the kind of photograph that would be posted to early-2000s Flickr lomo pools alongside light-leaked Diana-camera shots.

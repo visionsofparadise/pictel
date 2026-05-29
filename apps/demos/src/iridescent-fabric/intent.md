@@ -1,0 +1,3 @@
+# Iridescent Fabric
+
+A purely-generated stretch of iridescent textile — the kind of holographic-foil cellophane or oil-slicked silk that shifts colour as the angle of view changes. A full-spectrum conic sweep around the centre carries the rainbow hue rotation; a soft off-axis highlight pools where a virtual light would catch the fabric, lifting the colours where it bleeds in; a wider radial darkening rolls the edges toward shadow so the impression is of a curved, semi-glossy surface rather than a flat colour wheel. The result has no subject and no scene — just a chromatic surface texture that could be photographed as a fashion close-up, a record sleeve detail, or a holographic sticker.

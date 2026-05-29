@@ -1,0 +1,3 @@
+# Soft Pastel
+
+A portrait lifted into a pastel-watercolour register — the high-frequency detail (skin pores, fabric weave, leaf stipple in the background) smoothed away, contrast pulled gently down so nothing reaches deep black, saturation reduced so every hue sits a notch softer than reality, and the whole frame nudged a touch warmer and brighter. The structure of the photograph is intact — the subject still recognisable, the composition still readable — but the surface has been quieted, the way a memory of a photograph is softer than the photograph itself. The result is the kind of mood-board pastel a magazine designer would commission for a perfume ad.

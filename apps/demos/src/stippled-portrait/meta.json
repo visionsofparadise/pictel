@@ -1,0 +1,9 @@
+{
+	"slug": "stippled-portrait",
+	"title": "Stippled Portrait",
+	"sources": [
+		"headshot"
+	],
+	"created": "2026-05-29",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/stippled-portrait.png"
+}

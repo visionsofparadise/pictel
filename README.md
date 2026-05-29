@@ -17,7 +17,7 @@ This is the monorepo for the framework, its standard effect library, ML effects,
 
 ## Demos
 
-- [`demos/`](demos) — a corpus of worked examples. Each demo is a single composition with its intent, before/after images, and full source; rendered review surfaces live in [`demos/out/`](demos/out).
+- [`apps/demos/`](apps/demos) — a corpus of worked examples. Each demo is a single composition with its intent, before/after images, and full source; rendered review surfaces live in [`apps/demos/out/`](apps/demos/out).
 
 ## Development
 

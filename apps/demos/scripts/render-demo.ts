@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const demosRoot = resolve(here, "..");
-const repoRoot = resolve(demosRoot, "..");
+const repoRoot = resolve(demosRoot, "..", "..");
 
 const slug = process.argv[2];
 

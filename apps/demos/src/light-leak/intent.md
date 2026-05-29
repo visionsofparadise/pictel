@@ -1,0 +1,3 @@
+# Light Leak
+
+A portrait with a warm analog light-leak burning into the lower-left corner — the kind of accidental exposure a 35mm film camera produces when the back seal degrades and a stray slice of daylight catches the un-rewound stretch of film. Warm amber light spills in along a diagonal axis, deepest where it enters the frame and fading off entirely toward the opposite corner. The original photograph stays intact in the unaffected three-quarters of the frame; the leak adds atmosphere rather than replacing content. The result is the deliberately-imperfect aesthetic that vintage-camera and Lo-Fi mobile-photo apps spent the late 2000s trying to bottle.

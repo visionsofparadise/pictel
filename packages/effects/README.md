@@ -535,7 +535,7 @@ white.
 
 > **GradientMap**(`props`): `Element`
 
-Defined in: Effects/GradientMap.tsx:104
+Defined in: [Effects/GradientMap.tsx:104](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/GradientMap.tsx#L104)
 
 Maps pixel luminance through a multi-stop color ramp. Shadows take the first stop's
 color, highlights the last, with continuous interpolation across the band between stops.
@@ -1345,7 +1345,7 @@ size. Wrap in a styled div if positioning is needed.
 
 > **VectorField**(`props`): `Element`
 
-Defined in: Generative/VectorField.tsx:113
+Defined in: [Generative/VectorField.tsx:113](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/VectorField.tsx#L113)
 
 Synthesizes a parametric direction field at intrinsic dimensions, emitting the
 same three-channel encoding as `Direction` (`R=(cos+1)·127.5`, `G=(sin+1)·127.5`,

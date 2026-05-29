@@ -1,0 +1,3 @@
+# Kodachrome
+
+A photograph rendered with the deep-saturation, archival-warm look of Kodachrome slide film — the colour stock that defined National Geographic covers and family-vacation slide projectors from the 1930s through the 2000s. Reds and oranges sit slightly hotter than reality; deep blues hold their depth without crushing; greens lean a touch more yellow than emulsion-modern films would render them; shadows close down with a hint of warmth rather than a neutral grey. The overall contrast is medium-high, the saturation conspicuous, and the colour balance unmistakably analogue — every frame looks like it was projected through a Carousel onto a basement screen in 1972.

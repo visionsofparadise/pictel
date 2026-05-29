@@ -219,7 +219,7 @@ export default function TiltShift() {
 
 | Before | After |
 | --- | --- |
-| <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg" alt="Banknote Print — before"> | <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/banknote.png" alt="Banknote Print — after"> |
+| <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/banknote-before.png" alt="Banknote Print — before"> | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/banknote-after.png" alt="Banknote Print — after"> |
 
 ```tsx
 import { Bilateral, Brightness, DisplacementMap, Duotone, Engrave } from "@pictel/effects";
@@ -266,7 +266,7 @@ export default function Banknote() {
 
 | Before | After |
 | --- | --- |
-| <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/sources/evening-landscape.jpg" alt="Night Vision — before"> | <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/night-vision.png" alt="Night Vision — after"> |
+| <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/night-vision-before.png" alt="Night Vision — before"> | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/night-vision-after.png" alt="Night Vision — after"> |
 
 ```tsx
 import { Contrast, Duotone, Grain, LinePattern, Multiply } from "@pictel/effects";
@@ -314,7 +314,7 @@ export default function NightVision() {
 
 | Before | After |
 | --- | --- |
-| <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/sources/portrait-with-background-1.jpg" alt="Risograph Print — before"> | <img src="https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/risograph-print.png" alt="Risograph Print — after"> |
+| <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/risograph-before.png" alt="Risograph Print — before"> | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/risograph-after.png" alt="Risograph Print — after"> |
 
 ```tsx
 import { Quantize } from "@pictel/effects";

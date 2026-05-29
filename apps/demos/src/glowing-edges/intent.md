@@ -1,0 +1,3 @@
+# Glowing Edges
+
+An aerial cityscape reduced to its structural skeleton — every building outline, road edge, and rooftop seam lit up as a glowing line against deep near-black. The interior of every flat surface (uniform rooftops, tarmac, the calm body of a building wall) collapses to darkness; only the gradient between regions survives, then is recoloured as if the line work had been etched out and back-lit with cold green-cyan emission. The image reads as an architectural wireframe lit from behind — a city seen as edges first, with every contour glowing harder where the original tonal step was sharper.

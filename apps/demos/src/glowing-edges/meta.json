@@ -1,0 +1,9 @@
+{
+	"slug": "glowing-edges",
+	"title": "Glowing Edges",
+	"sources": [
+		"city-overview"
+	],
+	"created": "2026-05-29",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/glowing-edges.png"
+}

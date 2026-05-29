@@ -1,0 +1,3 @@
+# Gel Light
+
+A portrait lit as if by a rig of theatrical gel-coloured spotlights sweeping clockwise around the subject — hot pink across one shoulder, dropping into amber and gold across the face, cooling through emerald and electric cyan past the other shoulder, then climbing back through violet to magenta. The colours sit *on* the skin and clothing rather than replacing them, the way a coloured gel modifies an existing photograph rather than recolouring it from scratch — original luminance and contrast preserved, the rainbow sweep blending in as light rather than paint. The mood is high-fashion editorial: a single still under a rotating Source Four with chromatic gels in every aperture.

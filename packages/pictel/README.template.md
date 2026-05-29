@@ -1,14 +1,18 @@
 # pictel
 
-A React framework for image compositing as code. Layouts, effects, blending, and ML expressed as components — rendered live in the browser, exported headlessly.
+Pictel is a framework for Photoshop-like image editing via React code. It provides primitives for comprehensive pixel processing, live preview, and headless rendering.
 
 ## Install
 
 ```bash
-npm install pictel @pictel/effects react react-dom
+npm install pictel @pictel/effects
 ```
 
-`@pictel/ml` is optional — install it if your composition uses ML effects (segmentation, depth, upscale).
+## Packages
+
+- [`@pictel/effects`](https://www.npmjs.com/package/@pictel/effects) — the effect library: colour grading, blurs, blend modes, halftone, displacement, line-integral convolution, generative sources, and more.
+- [`@pictel/ml`](https://www.npmjs.com/package/@pictel/ml) — ML-powered effects via Transformers.js + WebGPU: background removal, segmentation, depth maps, and upscaling.
+- [`@pictel/cli`](https://www.npmjs.com/package/@pictel/cli) — headless renderer (Puppeteer + Sharp) that exports compositions to PNG/JPEG/WebP/AVIF.
 
 ## Quick start
 
@@ -17,13 +21,13 @@ import { Canvas, Clip, Image } from "pictel";
 import { Blur } from "@pictel/effects";
 
 export default () => (
-  <Canvas dimensions={{ width: 800, height: 800 }}>
-    <Clip>
-      <Blur radius={4}>
-        <Image src="/photo.jpg" />
-      </Blur>
-    </Clip>
-  </Canvas>
+	<Canvas dimensions={{ width: 800, height: 800 }}>
+		<Clip>
+			<Blur radius={4}>
+				<Image src="/photo.jpg" />
+			</Blur>
+		</Clip>
+	</Canvas>
 );
 ```
 
@@ -31,8 +35,8 @@ export default () => (
 
 ### Oil Painting
 
-| Before | After |
-|---|---|
+| Before                                                                                                                                                        | After                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/oil-painting-before.png" alt="Oil painting — before"> | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/oil-painting-after.png" alt="Oil painting — after"> |
 
 ```tsx
@@ -45,8 +49,14 @@ const PAPER: [number, number, number] = [240, 234, 220];
 
 export default function OilPainting() {
 	return (
-		<Canvas mode="display" dimensions={{ width: 640, height: 640 }}>
-			<Duotone dark={INK} light={PAPER}>
+		<Canvas
+			mode="display"
+			dimensions={{ width: 640, height: 640 }}
+		>
+			<Duotone
+				dark={INK}
+				light={PAPER}
+			>
 				<Hatch
 					bands={4}
 					spacing={[5, 8, 12, 16]}
@@ -54,11 +64,23 @@ export default function OilPainting() {
 					uniformStep
 					map={
 						<Direction mode="structure">
-							<Image src={headshot} width={640} height={640} fit="cover" crossOrigin="anonymous" />
+							<Image
+								src={headshot}
+								width={640}
+								height={640}
+								fit="cover"
+								crossOrigin="anonymous"
+							/>
 						</Direction>
 					}
 				>
-					<Image src={headshot} width={640} height={640} fit="cover" crossOrigin="anonymous" />
+					<Image
+						src={headshot}
+						width={640}
+						height={640}
+						fit="cover"
+						crossOrigin="anonymous"
+					/>
 				</Hatch>
 			</Duotone>
 		</Canvas>
@@ -68,8 +90,8 @@ export default function OilPainting() {
 
 ### Pop Art
 
-| Before | After |
-|---|---|
+| Before                                                                                                                                              | After                                                                                                                                             |
+| --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/pop-art-before.png" alt="Pop art — before"> | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/pop-art-after.png" alt="Pop art — after"> |
 
 ```tsx
@@ -79,20 +101,43 @@ import photo from "../../assets/Golden Hour Portrait.jpg";
 
 export default function PopArt() {
 	return (
-		<Canvas mode="display" dimensions={{ width: 640, height: 960 }}>
+		<Canvas
+			mode="display"
+			dimensions={{ width: 640, height: 960 }}
+		>
 			<Multiply
 				apply={
 					<Threshold threshold={140}>
-						<Outline sigma={2.4} k={1.6} epsilon={0.005} phi={200}>
-							<Image src={photo} width={640} height={960} fit="cover" crossOrigin="anonymous" />
+						<Outline
+							sigma={2.4}
+							k={1.6}
+							epsilon={0.005}
+							phi={200}
+						>
+							<Image
+								src={photo}
+								width={640}
+								height={960}
+								fit="cover"
+								crossOrigin="anonymous"
+							/>
 						</Outline>
 					</Threshold>
 				}
 			>
-				<Halftone colorMode="color" dotSize={10}>
+				<Halftone
+					colorMode="color"
+					dotSize={10}
+				>
 					<Contrast amount={1.35}>
 						<Saturate amount={2.4}>
-							<Image src={photo} width={640} height={960} fit="cover" crossOrigin="anonymous" />
+							<Image
+								src={photo}
+								width={640}
+								height={960}
+								fit="cover"
+								crossOrigin="anonymous"
+							/>
 						</Saturate>
 					</Contrast>
 				</Halftone>
@@ -104,8 +149,8 @@ export default function PopArt() {
 
 ### Tilt-Shift
 
-| Before | After |
-|---|---|
+| Before                                                                                                                                                    | After                                                                                                                                                   |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/tilt-shift-before.png" alt="Tilt-shift — before"> | <img src="https://raw.githubusercontent.com/visionsofparadise/pictel/main/packages/pictel/README-images/tilt-shift-after.png" alt="Tilt-shift — after"> |
 
 ```tsx
@@ -116,7 +161,10 @@ import cityPhoto from "../../assets/city overview.jpg";
 
 export default function TiltShift() {
 	return (
-		<Canvas mode="display" dimensions={{ width: 1024, height: 683 }}>
+		<Canvas
+			mode="display"
+			dimensions={{ width: 1024, height: 683 }}
+		>
 			<Clip>
 				<Blur
 					radius={7}
@@ -126,7 +174,13 @@ export default function TiltShift() {
 							<Brightness amount={2}>
 								<Contrast amount={0.35}>
 									<DepthMap>
-										<Image src={cityPhoto} width={1024} height={683} fit="cover" crossOrigin="anonymous" />
+										<Image
+											src={cityPhoto}
+											width={1024}
+											height={683}
+											fit="cover"
+											crossOrigin="anonymous"
+										/>
 									</DepthMap>
 								</Contrast>
 							</Brightness>
@@ -135,7 +189,13 @@ export default function TiltShift() {
 				>
 					<Saturate amount={1.1}>
 						<Contrast amount={1.1}>
-							<Image src={cityPhoto} width={1024} height={683} fit="cover" crossOrigin="anonymous" />
+							<Image
+								src={cityPhoto}
+								width={1024}
+								height={683}
+								fit="cover"
+								crossOrigin="anonymous"
+							/>
 						</Contrast>
 					</Saturate>
 				</Blur>

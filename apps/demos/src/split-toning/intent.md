@@ -1,0 +1,3 @@
+# Split Toning
+
+A portrait pushed into a classical split-toned darkroom print — cool steel-blue settled into every shadow, neutral grey holding the midtones in their original tonality, and warm wheaten gold lifting through the highlights. The tonal structure of the photograph is preserved exactly; only the colour temperature shifts across the luminance range, the way a wet-printer once tinted shadows and highlights with separate selenium and sepia baths. The result reads as a portrait, not a colour study — but a portrait that breathes between two complementary temperatures rather than the warm, even cast of an untoned print.

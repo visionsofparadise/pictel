@@ -1,0 +1,3 @@
+# Bleach Bypass
+
+A landscape pushed into the desaturated, high-contrast silver-retention look that motion-picture labs got in the 80s and 90s by skipping (or partially skipping) the bleach bath during ECN-2 processing — the residual undeveloped silver layered on top of the colour dyes, hardening the contrast and draining most of the chroma. Colour is present but muted, the saturated greens and warm earth-tones flattened back toward a near-monochrome base. Shadows close down hard, highlights bloom but don't blow out, and a fine silver-grain noise sits across the whole frame the way a retained silver halide pattern would. Cinematic in the literal sense — the look of Saving Private Ryan, Seven, and a generation of 35mm features that wanted the photochemistry to show.

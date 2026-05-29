@@ -1,0 +1,3 @@
+# Solarize (Sabattier Effect)
+
+A studio portrait pushed through the Sabattier curve — the partial tonal reversal that early-twentieth-century darkroom photographers like Man Ray got by flashing the studio lights mid-development. The deepest shadows and the brightest highlights both resolve to a soft cream-white; the midtones plunge to near-black where they would normally have rendered as flesh and fabric. The face emerges as a graphic V-curve mask of itself: bright on either end of the luminance spectrum, dark through the middle, with a hard dividing tone where the curve crosses. The look is monochrome and strange — recognisable as a portrait, but lit by an inverted physics where mid-grey is the absence of light rather than its average.

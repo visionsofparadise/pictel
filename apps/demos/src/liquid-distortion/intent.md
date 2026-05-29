@@ -1,0 +1,3 @@
+# Liquid Distortion
+
+A portrait photographed as if reflected on the surface of a slow-moving pond — large lazy vertical waves drag the image up and down across broad bands, with smaller horizontal sway nudging the columns sideways. The subject still reads as a face, but the geometry has been pulled into long flowing ripples — verticals bend, horizontals smear vertically, the whole frame breathes the way a still water-reflection moves with a passing breeze. The displacement is anisotropic on purpose: vertical motion dominates so the impression is of a tall, gentle swell rather than a uniformly choppy surface.

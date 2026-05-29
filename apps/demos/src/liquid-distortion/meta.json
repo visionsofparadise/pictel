@@ -1,0 +1,9 @@
+{
+	"slug": "liquid-distortion",
+	"title": "Liquid Distortion",
+	"sources": [
+		"golden-hour-portrait"
+	],
+	"created": "2026-05-29",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/liquid-distortion.png"
+}

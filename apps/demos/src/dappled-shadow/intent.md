@@ -1,0 +1,3 @@
+# Dappled Shadow
+
+A portrait lit through the canopy of a leafy tree on a sunny afternoon — large organic patches of bright sunlight and cooler diffuse shadow falling across the subject in a soft, mottled pattern. The shadow shapes are not crisp; they are the blurred large-scale silhouettes of overlapping leaves seen far above the camera, where the aperture of the gaps between branches softens every edge. The image stays recognisably a portrait, but the lighting has gained the lived-in irregularity of a moment shot in a garden rather than a studio — the kind of casual sun-flecked dappling that classical French Impressionists worked obsessively to render in paint.

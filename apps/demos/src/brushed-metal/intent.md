@@ -1,0 +1,3 @@
+# Brushed Metal
+
+A purely-generated stretch of brushed-aluminium surface — fine parallel scratches running horizontally across a satin-grey panel, the way a wire-wheel finish leaves directional striation on a sheet of polished stainless. The flow is locked to a single horizontal direction (no swirl, no rotation); the value range climbs from a deep gunmetal in the recessed grooves through a satin mid-grey to bright catchlights where the surface catches light. The result reads as a metal panel sample — the kind of swatch a product designer would slot into a CMF moodboard, or a fabricator would specify as "#4 brushed finish."

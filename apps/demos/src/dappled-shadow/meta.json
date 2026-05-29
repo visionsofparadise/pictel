@@ -1,0 +1,9 @@
+{
+	"slug": "dappled-shadow",
+	"title": "Dappled Shadow",
+	"sources": [
+		"portrait-with-background-1"
+	],
+	"created": "2026-05-29",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/dappled-shadow.png"
+}

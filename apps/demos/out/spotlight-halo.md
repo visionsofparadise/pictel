@@ -1,6 +1,6 @@
-# Rim Light
+# Spotlight Halo
 
-A portrait lit by a single cool back-rim source — a thin halo of pale blue-white light wrapping around the edge of the subject where it would catch the contour from behind, the centre of the face left alone in its natural front-key tone. The rim is bright but narrow: it only kicks where the subject's silhouette meets the dark background, fading inward as the geometry turns away from the back light. The mood is sculptural — a cinematic three-point-lighting setup compressed onto a still photograph, where the silhouette is what defines the subject against deep shadow.
+A studio portrait framed by a soft cool halo of light — a thin ring of pale blue-white added by Screen-blending a radial-gradient ring at the perimeter of the centred subject, with the corners of the frame falling away into deep shadow. The subject sits in the bright central core untouched; the halo ring brightens whichever part of the subject extends to where the ring crosses the silhouette. The mood is theatrical — a follow-spot's edge catching the subject's outline, the surrounding scene falling off into a darkened stage.
 
 **Before**
 
@@ -8,7 +8,7 @@ A portrait lit by a single cool back-rim source — a thin halo of pale blue-whi
 
 **After**
 
-![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/rim-light.png)
+![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/spotlight-halo.png)
 
 ```tsx
 import { RadialGradient, Screen } from "@pictel/effects";
@@ -19,7 +19,7 @@ const PORTRAIT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/he
 const W = 1024;
 const H = 1024;
 
-export default function RimLight() {
+export default function SpotlightHalo() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Screen

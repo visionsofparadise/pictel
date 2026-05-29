@@ -6,7 +6,7 @@ const PORTRAIT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/he
 const W = 1024;
 const H = 1024;
 
-export default function RimLight() {
+export default function SpotlightHalo() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Screen

@@ -185,3 +185,91 @@ describe("applyStructureField", () => {
 		expect(input.data).toEqual(original)
 	})
 })
+
+function equiluminantHueEdge(size: number, alpha = 255): ImageData {
+	const data = new Uint8ClampedArray(size * size * 4)
+	const mid = size / 2
+	for (let y = 0; y < size; y++) {
+		for (let x = 0; x < size; x++) {
+			const i = (y * size + x) * 4
+			if (x < mid) {
+				data[i] = 64
+				data[i + 1] = 64
+				data[i + 2] = 64
+			} else {
+				data[i] = 214
+				data[i + 1] = 0
+				data[i + 2] = 0
+			}
+			data[i + 3] = alpha
+		}
+	}
+	return new ImageData(data, size, size)
+}
+
+function blackToRedVerticalEdge(size: number, alpha = 255): ImageData {
+	// Vertical boundary: black on left, red on right. The channel-averaged
+	// gradient ((gxR+gxG+gxB)/3) points along +X — gxR is strongly positive,
+	// gxG and gxB are zero. Avoids the channel-cancellation case (e.g.
+	// red→green) where R drops and G rises and the average is ~0.
+	const data = new Uint8ClampedArray(size * size * 4)
+	const mid = size / 2
+	for (let y = 0; y < size; y++) {
+		for (let x = 0; x < size; x++) {
+			const i = (y * size + x) * 4
+			if (x < mid) {
+				data[i] = 0
+				data[i + 1] = 0
+				data[i + 2] = 0
+			} else {
+				data[i] = 255
+				data[i + 1] = 0
+				data[i + 2] = 0
+			}
+			data[i + 3] = alpha
+		}
+	}
+	return new ImageData(data, size, size)
+}
+
+describe("applyDirection space=color", () => {
+	it("space=luminance default matches the omitted-arg default", () => {
+		const input = verticalEdge(16)
+		const omitted = applyDirection(input, "sobel")
+		const explicit = applyDirection(input, "sobel", "luminance")
+		expect(explicit.data).toEqual(omitted.data)
+	})
+
+	it("on equiluminant hue boundary: luminance magnitude ≈ 0, color magnitude is strong", () => {
+		const size = 16
+		const input = equiluminantHueEdge(size)
+		const lumResult = applyDirection(input, "sobel", "luminance")
+		const colorResult = applyDirection(input, "sobel", "color")
+
+		for (let y = 2; y < size - 2; y++) {
+			const lumB = lumResult.data[(y * size + 7) * 4 + 2]!
+			expect(lumB).toBeLessThanOrEqual(1)
+
+			const colorB = colorResult.data[(y * size + 7) * 4 + 2]!
+			expect(colorB).toBeGreaterThan(40)
+		}
+	})
+
+	it("color direction on a black→red vertical boundary points along +X", () => {
+		const size = 16
+		const input = blackToRedVerticalEdge(size)
+		const result = applyDirection(input, "sobel", "color")
+
+		// Channel-averaged gx is gxR/3 here (G,B unchanged) but colour magnitude
+		// is full |gxR|, so encoded cos = 1/3 rather than 1. Asserting half-plane.
+		const px = (8 * size + 7) * 4
+		const r = result.data[px]!
+		const g = result.data[px + 1]!
+		const b = result.data[px + 2]!
+
+		expect(r).toBeGreaterThan(160)
+		expect(g).toBeGreaterThanOrEqual(126)
+		expect(g).toBeLessThanOrEqual(130)
+		expect(b).toBeGreaterThan(0)
+	})
+})

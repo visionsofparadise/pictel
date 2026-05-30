@@ -347,7 +347,7 @@ applies trilinear-interpolated color transformation.
 
 > **Direction**(`props`): `Element`
 
-Defined in: [Effects/Sobel/Direction.tsx:153](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sobel/Direction.tsx#L153)
+Defined in: [Effects/Sobel/Direction.tsx:170](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sobel/Direction.tsx#L170)
 
 Produces a direction field describing how the image flows at every pixel.
 Feed this through the `map` prop on `LIC` or the field-aligned mode of
@@ -363,6 +363,11 @@ legibility.
   `"structure"` emits a smooth, contour-following orientation field — the
   one to reach for when feeding `LIC` or `Hatch` over an organic field.
   Unrelated to the `"parameter"|"mix"` `mode` on other effects.
+- `space` — `"luminance"` (default) runs Sobel on BT.601 luminance;
+  `"color"` runs per-channel Sobel and outputs the channel-averaged
+  gradient direction with colour-distance magnitude. `space="color"` is
+  honoured only for `mode="gradient"` — `mode="structure"` always uses
+  luminance regardless of `space`.
 
 #### Parameters
 
@@ -477,7 +482,7 @@ Maps pixel luminance to a two-color gradient. Shadows map to `dark`, highlights 
 
 > **EdgeDetect**(`props`): `Element`
 
-Defined in: [Effects/Sobel/EdgeDetect.tsx:55](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sobel/EdgeDetect.tsx#L55)
+Defined in: [Effects/Sobel/EdgeDetect.tsx:69](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Effects/Sobel/EdgeDetect.tsx#L69)
 
 Outputs the gradient magnitude of the input as a continuous grayscale field.
 
@@ -486,6 +491,11 @@ Pre-blur the input (chain `<Blur>`) for cleaner, less noise-driven edges.
 
 - `kernel` — `sobel` (default) or `scharr`. Scharr has a larger response and
   is more rotationally symmetric.
+- `space` — `"luminance"` (default) runs Sobel on BT.601 luminance; equal-
+  luminance hue boundaries produce zero magnitude. `"color"` runs Sobel on
+  R, G, B independently and combines per-pixel as `√(Σ_channel(gxC²+gyC²))`
+  — the true colour-distance gradient. Use `"color"` when boundary detection
+  must respect hue changes (e.g. asymmetric watercolour rim effects).
 
 #### Parameters
 
@@ -1281,7 +1291,7 @@ size. Wrap in a styled div if positioning is needed.
 
 > **ProceduralNoise**(`props`): `Element`
 
-Defined in: [Generative/ProceduralNoise.tsx:64](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/ProceduralNoise.tsx#L64)
+Defined in: [Generative/ProceduralNoise.tsx:71](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/ProceduralNoise.tsx#L71)
 
 Generates procedural noise textures using simplex noise with fractal Brownian motion.
 
@@ -1293,7 +1303,9 @@ size. Wrap in a styled div if positioning is needed.
 - `height` — Output height in pixels. Required.
 - `type` — Noise algorithm. `"simplex"` or `"perlin"` (uses simplex with seed offset).
 - `seed` — Random seed for reproducible patterns.
-- `scale` — Frequency scale. Smaller values produce larger features. Default 0.01.
+- `scale` — Frequency scale (shorthand applied to both axes when `scaleX`/`scaleY` are unset). Smaller values produce larger features. Default 0.01.
+- `scaleX` — Horizontal frequency scale. Default: equal to `scale`. Supply with `scaleY` to produce anisotropic noise (e.g. fine pore lines along one axis, coarse banding along the other).
+- `scaleY` — Vertical frequency scale. Default: equal to `scale`.
 - `octaves` — Number of noise layers for fBm detail. Default 1.
 - `persistence` — Amplitude falloff per octave. Default 0.5.
 - `tint` — RGB tint [r, g, b] (0-255). Default: grayscale.
@@ -1345,7 +1357,7 @@ size. Wrap in a styled div if positioning is needed.
 
 > **VectorField**(`props`): `Element`
 
-Defined in: [Generative/VectorField.tsx:113](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/VectorField.tsx#L113)
+Defined in: [Generative/VectorField.tsx:117](https://github.com/visionsofparadise/pictel/blob/main/packages/effects/src/Generative/VectorField.tsx#L117)
 
 Synthesizes a parametric direction field at intrinsic dimensions, emitting the
 same three-channel encoding as `Direction` (`R=(cos+1)·127.5`, `G=(sin+1)·127.5`,
@@ -1367,7 +1379,9 @@ be visually readable — it renders as red/green static.
 - `centerY` — Vertical center as a fraction of height, for `radial`/`tangential`. Default 0.5.
 - `magnitude` — B-channel profile over corner-normalized radius `r∈[0,1]`:
   `"constant"` (1 everywhere, default), `"linear"` (`r`, grows outward),
-  `"falloff"` (`1−r`, decays outward — bounds a twirl so corners stay put).
+  `"falloff"` (`1−r`, decays outward — bounds a twirl so corners stay put),
+  `"bump"` (`4·r·(1−r)`, tent peaking at r=0.5 — bounds a centred bulge so radial
+  unit-direction integrates through the origin).
 
 #### Parameters
 

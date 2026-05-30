@@ -1,0 +1,3 @@
+# fisheye-lens
+
+A wide aerial cityscape pushed through a centred bulge, as if shot through a fisheye lens dome. The middle of the frame magnifies outward — the city blocks at the centre puff toward the viewer, straight avenues and rooftop ridges bowing into smooth arcs that follow the curvature of the bulge. The perimeter stays anchored: the same blocks that sit at the edge of the original photo still sit at the edge of the warped one, so the deformation reads as an optical bulge rather than a uniform zoom. The transition from edge to centre is smooth — no swirl, no tear, no flat plateau in the middle.

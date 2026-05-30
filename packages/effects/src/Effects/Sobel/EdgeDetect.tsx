@@ -2,27 +2,35 @@ import type { ReactNode } from "react"
 import { useCallback } from "react"
 import { RasterEffect, type RasterEffectCallback } from "pictel"
 import { mixBlend } from "../utils/mix-blend"
-import { applyKernels, SCHARR_X, SCHARR_Y, SOBEL_X, SOBEL_Y } from "./kernel"
+import {
+	applyColorKernels,
+	applyKernels,
+	SCHARR_X,
+	SCHARR_Y,
+	SOBEL_X,
+	SOBEL_Y,
+} from "./kernel"
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 export function applyEdgeDetect(
 	pixels: ImageData,
 	kernel: "sobel" | "scharr",
+	space: "luminance" | "color" = "luminance",
 ): ImageData {
 	const { width, height, data: src } = pixels
 	const kernelX = kernel === "scharr" ? SCHARR_X : SOBEL_X
 	const kernelY = kernel === "scharr" ? SCHARR_Y : SOBEL_Y
-	const { gx, gy, maxResponse } = applyKernels(pixels, kernelX, kernelY)
+	const { magnitude, maxResponse } =
+		space === "color"
+			? applyColorKernels(pixels, kernelX, kernelY)
+			: applyKernels(pixels, kernelX, kernelY)
 
 	const output = new Uint8ClampedArray(src.length)
 
 	for (let pixelIdx = 0; pixelIdx < width * height; pixelIdx++) {
 		const px = pixelIdx * 4
-		const magnitude = Math.sqrt(
-			gx[pixelIdx]! * gx[pixelIdx]! + gy[pixelIdx]! * gy[pixelIdx]!,
-		)
-		const byte = Math.min(255, Math.max(0, Math.round((magnitude / maxResponse) * 255)))
+		const byte = Math.min(255, Math.max(0, Math.round((magnitude[pixelIdx]! / maxResponse) * 255)))
 		output[px] = byte
 		output[px + 1] = byte
 		output[px + 2] = byte
@@ -36,6 +44,7 @@ export function applyEdgeDetect(
 
 interface EdgeDetectProps {
 	kernel?: "sobel" | "scharr"
+	space?: "luminance" | "color"
 	map?: ReactNode
 	children: ReactNode
 }
@@ -48,14 +57,24 @@ interface EdgeDetectProps {
  *
  * - `kernel` — `sobel` (default) or `scharr`. Scharr has a larger response and
  *   is more rotationally symmetric.
+ * - `space` — `"luminance"` (default) runs Sobel on BT.601 luminance; equal-
+ *   luminance hue boundaries produce zero magnitude. `"color"` runs Sobel on
+ *   R, G, B independently and combines per-pixel as `√(Σ_channel(gxC²+gyC²))`
+ *   — the true colour-distance gradient. Use `"color"` when boundary detection
+ *   must respect hue changes (e.g. asymmetric watercolour rim effects).
  *
  * @param props
  * @category Effects
  */
-export function EdgeDetect({ kernel = "sobel", map, children }: EdgeDetectProps) {
+export function EdgeDetect({
+	kernel = "sobel",
+	space = "luminance",
+	map,
+	children,
+}: EdgeDetectProps) {
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
-			const result = applyEdgeDetect(target, kernel)
+			const result = applyEdgeDetect(target, kernel, space)
 
 			if (mapPixels !== undefined) {
 				return mixBlend(target, result, mapPixels)
@@ -63,7 +82,7 @@ export function EdgeDetect({ kernel = "sobel", map, children }: EdgeDetectProps)
 
 			return result
 		},
-		[kernel],
+		[kernel, space],
 	)
 
 	return (

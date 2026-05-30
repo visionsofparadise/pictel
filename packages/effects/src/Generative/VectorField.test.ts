@@ -65,6 +65,47 @@ describe("buildVectorField", () => {
 		expect(corner.b).toBeLessThan(40)
 	})
 
+	describe("magnitude=bump", () => {
+		it("exact center pixel emits the degenerate neutral 128,128,0", () => {
+			const onCenter = 3.5 / 8
+			const center = at(
+				buildVectorField(8, 8, "radial", {
+					magnitude: "bump",
+					centerX: onCenter,
+					centerY: onCenter,
+				}),
+				3,
+				3,
+			)
+			expect([center.r, center.g, center.b]).toEqual([128, 128, 0])
+		})
+
+		it("B peaks (~255) near r=0.5", () => {
+			// 11×11 field, center at (5,5). Corner (10,10) is at maxRadius;
+			// pixel (8,8) sits ≈ halfway out — r ≈ 0.5 → 4·0.5·0.5 = 1.
+			const field = buildVectorField(11, 11, "radial", { magnitude: "bump" })
+			const midRadius = at(field, 8, 8)
+			expect(midRadius.b).toBeGreaterThan(240)
+		})
+
+		it("B decays past the mid-radius peak toward the corner", () => {
+			const field = buildVectorField(11, 11, "radial", { magnitude: "bump" })
+			const midRadius = at(field, 8, 8)
+			const corner = at(field, 0, 0)
+			expect(corner.b).toBeLessThan(midRadius.b)
+			expect(corner.b).toBeLessThan(128)
+		})
+
+		it("B is small near the center (r ≈ 0.1 → ~92)", () => {
+			// 21×21 field; corner radius from center (10,10) is ~14.14;
+			// pixel (11,11) has distance ~1.41 → r ≈ 0.1 → 4·0.1·0.9·255 ≈ 92.
+			const field = buildVectorField(21, 21, "radial", { magnitude: "bump" })
+			const nearCenter = at(field, 11, 11)
+			expect(nearCenter.b).toBeGreaterThan(60)
+			expect(nearCenter.b).toBeLessThan(130)
+		})
+	})
+
 	it("radial/tangential center pixel is neutral 128,128,0", () => {
 		// Sample center of pixel (3,3) on an 8px axis is 3.5; placing the field
 		// center exactly there (3.5/8) makes distance 0 → the degenerate path.

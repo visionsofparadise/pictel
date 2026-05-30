@@ -1,0 +1,9 @@
+{
+	"slug": "fisheye-lens",
+	"title": "Fisheye Lens",
+	"sources": [
+		"city-overview"
+	],
+	"created": "2026-05-30",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/fisheye-lens.png"
+}

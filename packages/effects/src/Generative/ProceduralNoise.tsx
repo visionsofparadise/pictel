@@ -12,20 +12,23 @@ export function fbm(
 	noise2D: (x: number, y: number) => number,
 	x: number,
 	y: number,
-	scale: number,
+	scaleX: number,
+	scaleY: number,
 	octaves: number,
 	persistence: number,
 ): number {
 	let value = 0
 	let amplitude = 1
-	let frequency = scale
+	let frequencyX = scaleX
+	let frequencyY = scaleY
 	let maxAmplitude = 0
 
 	for (let octave = 0; octave < octaves; octave++) {
-		value += noise2D(x * frequency, y * frequency) * amplitude
+		value += noise2D(x * frequencyX, y * frequencyY) * amplitude
 		maxAmplitude += amplitude
 		amplitude *= persistence
-		frequency *= 2
+		frequencyX *= 2
+		frequencyY *= 2
 	}
 
 	return (value / maxAmplitude + 1) / 2
@@ -37,6 +40,8 @@ interface ProceduralNoiseProps {
 	type: "simplex" | "perlin"
 	seed: number
 	scale?: number
+	scaleX?: number
+	scaleY?: number
 	octaves?: number
 	persistence?: number
 	tint?: [number, number, number]
@@ -53,7 +58,9 @@ interface ProceduralNoiseProps {
  * - `height` — Output height in pixels. Required.
  * - `type` — Noise algorithm. `"simplex"` or `"perlin"` (uses simplex with seed offset).
  * - `seed` — Random seed for reproducible patterns.
- * - `scale` — Frequency scale. Smaller values produce larger features. Default 0.01.
+ * - `scale` — Frequency scale (shorthand applied to both axes when `scaleX`/`scaleY` are unset). Smaller values produce larger features. Default 0.01.
+ * - `scaleX` — Horizontal frequency scale. Default: equal to `scale`. Supply with `scaleY` to produce anisotropic noise (e.g. fine pore lines along one axis, coarse banding along the other).
+ * - `scaleY` — Vertical frequency scale. Default: equal to `scale`.
  * - `octaves` — Number of noise layers for fBm detail. Default 1.
  * - `persistence` — Amplitude falloff per octave. Default 0.5.
  * - `tint` — RGB tint [r, g, b] (0-255). Default: grayscale.
@@ -67,10 +74,14 @@ export function ProceduralNoise({
 	type,
 	seed,
 	scale = 0.01,
+	scaleX,
+	scaleY,
 	octaves = 1,
 	persistence = 0.5,
 	tint,
 }: ProceduralNoiseProps) {
+	const effectiveScaleX = scaleX ?? scale
+	const effectiveScaleY = scaleY ?? scale
 	// Content key, not tuple identity — inline `tint` literals would otherwise re-acquire pending every render.
 	const tintKey = tint ? tint.join(",") : ""
 
@@ -92,7 +103,7 @@ export function ProceduralNoise({
 
 			for (let y = 0; y < height; y++) {
 				for (let x = 0; x < width; x++) {
-					const value = fbm(noise2D, x, y, scale, octaves, persistence)
+					const value = fbm(noise2D, x, y, effectiveScaleX, effectiveScaleY, octaves, persistence)
 					const offset = (y * width + x) * 4
 
 					if (tint) {
@@ -112,7 +123,7 @@ export function ProceduralNoise({
 
 			context.putImageData(imageData, 0, 0)
 		},
-		[width, height, type, seed, scale, octaves, persistence, tintKey],
+		[width, height, type, seed, effectiveScaleX, effectiveScaleY, octaves, persistence, tintKey],
 	)
 
 	return <RasterSource width={width} height={height} draw={draw} />

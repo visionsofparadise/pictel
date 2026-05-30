@@ -11,6 +11,9 @@
     "142443dd04e1f9e8ac64615917e946eaf46b4929624482114813415c87251b6e",
     "ce54e17d081fc7eeebc32e7404563b86efdc65ab88738de557fa72a06f44f78e"
   ],
+  "fisheye-lens": [
+    "882fafa90d1d6a1b32804d30478371d8654b0e09efc76eac6e2bc84c15da1d16"
+  ],
   "generative-poster": [
     "43044f91723c7fda628d4b90d0b47a3655ff6b7dc40b4a31d577f2c5fb9c46e5"
   ],
@@ -46,5 +49,11 @@
   ],
   "twirl-distortion": [
     "ffc96257fcd92174e7c6b93ad21b9c96a3e9803052c299869fa1f6c73469b3a7"
+  ],
+  "watercolor": [
+    "29a113109c728ff0f3c7775f596fa06fb93f99ebfa8daa5c83f4d73c89fb062f"
+  ],
+  "wood-grain": [
+    "58b99a14550bc7a81a17eab4063cbe52f1c6e702cd1e607aa9815df77eedc257"
   ]
 }

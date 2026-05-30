@@ -118,3 +118,55 @@ describe("applyEdgeDetect", () => {
 		}
 	})
 })
+
+function equiluminantHueEdge(size: number, alpha = 255): ImageData {
+	// Left half mid-grey (64,64,64), right half equiluminant red (214,0,0).
+	// BT.601 luminance: 0.299*214 ≈ 64, matching grey 64. Luminance Sobel
+	// sees zero gradient; colour Sobel sees a strong channel-distance edge.
+	const data = new Uint8ClampedArray(size * size * 4)
+	const mid = size / 2
+	for (let y = 0; y < size; y++) {
+		for (let x = 0; x < size; x++) {
+			const i = (y * size + x) * 4
+			if (x < mid) {
+				data[i] = 64
+				data[i + 1] = 64
+				data[i + 2] = 64
+			} else {
+				data[i] = 214
+				data[i + 1] = 0
+				data[i + 2] = 0
+			}
+			data[i + 3] = alpha
+		}
+	}
+	return new ImageData(data, size, size)
+}
+
+describe("applyEdgeDetect space=color", () => {
+	it("space=luminance default matches the omitted-arg default", () => {
+		const input = verticalEdge(16)
+		const omitted = applyEdgeDetect(input, "sobel")
+		const explicit = applyEdgeDetect(input, "sobel", "luminance")
+		expect(explicit.data).toEqual(omitted.data)
+	})
+
+	it("on equiluminant hue boundary: luminance ≈ 0, color is strong", () => {
+		const size = 16
+		const input = equiluminantHueEdge(size)
+		const lumResult = applyEdgeDetect(input, "sobel", "luminance")
+		const colorResult = applyEdgeDetect(input, "sobel", "color")
+
+		for (let y = 2; y < size - 2; y++) {
+			const lumLeft = lumResult.data[(y * size + 7) * 4]!
+			const lumRight = lumResult.data[(y * size + 8) * 4]!
+			expect(lumLeft).toBeLessThanOrEqual(1)
+			expect(lumRight).toBeLessThanOrEqual(1)
+
+			const colorLeft = colorResult.data[(y * size + 7) * 4]!
+			const colorRight = colorResult.data[(y * size + 8) * 4]!
+			expect(colorLeft).toBeGreaterThan(40)
+			expect(colorRight).toBeGreaterThan(40)
+		}
+	})
+})

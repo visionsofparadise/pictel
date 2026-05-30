@@ -1,0 +1,9 @@
+{
+	"slug": "watercolor",
+	"title": "Watercolor",
+	"sources": [
+		"golden-hour-portrait"
+	],
+	"created": "2026-05-30",
+	"output": "https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/watercolor.png"
+}

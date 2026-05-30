@@ -2,7 +2,7 @@ import { useCallback } from "react"
 import { RasterSource } from "pictel"
 
 type VectorFieldPattern = "linear" | "radial" | "tangential"
-type MagnitudeProfile = "constant" | "linear" | "falloff"
+type MagnitudeProfile = "constant" | "linear" | "falloff" | "bump"
 
 interface VectorFieldOptions {
 	angle?: number
@@ -65,7 +65,9 @@ export function buildVectorField(
 					? radiusNorm
 					: magnitude === "falloff"
 						? 1 - radiusNorm
-						: 1
+						: magnitude === "bump"
+							? 4 * radiusNorm * (1 - radiusNorm)
+							: 1
 
 			if (degenerate) {
 				data[px] = 128
@@ -105,7 +107,9 @@ export function buildVectorField(
  * - `centerY` — Vertical center as a fraction of height, for `radial`/`tangential`. Default 0.5.
  * - `magnitude` — B-channel profile over corner-normalized radius `r∈[0,1]`:
  *   `"constant"` (1 everywhere, default), `"linear"` (`r`, grows outward),
- *   `"falloff"` (`1−r`, decays outward — bounds a twirl so corners stay put).
+ *   `"falloff"` (`1−r`, decays outward — bounds a twirl so corners stay put),
+ *   `"bump"` (`4·r·(1−r)`, tent peaking at r=0.5 — bounds a centred bulge so radial
+ *   unit-direction integrates through the origin).
  *
  * @param props
  * @category Generative

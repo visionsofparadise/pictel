@@ -4,7 +4,7 @@ A portrait with a warm analog light-leak burning into the lower-left corner — 
 
 **Before**
 
-![](https://pictel-demos.s3.us-east-1.amazonaws.com/sources/golden-hour-portrait.jpg)
+![](https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg)
 
 **After**
 

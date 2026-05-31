@@ -15,7 +15,7 @@ export default function WoodblockPrint() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Multiply
-				apply={<Image src={PAPER_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />}
+				apply={<Image src={PAPER_URL} width={W} height={H} fit="cover" />}
 			>
 				<Duotone dark={INK} light={RICE_PAPER}>
 					<Hatch
@@ -23,7 +23,7 @@ export default function WoodblockPrint() {
 						angles={[PI / 4, -PI / 4, 0]}
 						spacing={[8, 10, 14]}
 					>
-						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 					</Hatch>
 				</Duotone>
 			</Multiply>

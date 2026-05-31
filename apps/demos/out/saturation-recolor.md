@@ -38,7 +38,7 @@ export default function SaturationRecolor() {
 					/>
 				}
 			>
-				<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" />
 			</Saturation>
 		</Canvas>
 	);

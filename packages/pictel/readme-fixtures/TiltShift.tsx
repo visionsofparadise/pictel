@@ -19,7 +19,7 @@ export const TiltShiftComposition = (
 						<Brightness amount={2}>
 							<Contrast amount={0.35}>
 								<DepthMap>
-									<Image src={CITY_OVERVIEW_URL} width={1024} height={683} fit="cover" crossOrigin="anonymous" />
+									<Image src={CITY_OVERVIEW_URL} width={1024} height={683} fit="cover" />
 								</DepthMap>
 							</Contrast>
 						</Brightness>
@@ -28,7 +28,7 @@ export const TiltShiftComposition = (
 			>
 				<Saturate amount={1.1}>
 					<Contrast amount={1.1}>
-						<Image src={CITY_OVERVIEW_URL} width={1024} height={683} fit="cover" crossOrigin="anonymous" />
+						<Image src={CITY_OVERVIEW_URL} width={1024} height={683} fit="cover" />
 					</Contrast>
 				</Saturate>
 			</Blur>

@@ -18,7 +18,7 @@ export default function Cinestill() {
 			<Bloom threshold={0.55} radius={28} intensity={1.15}>
 				<ColorGrade saturation={1.05} contrast={1.08} temperature={0.05}>
 					<ChannelMixer matrix={RED_BIAS_HIGHLIGHTS}>
-						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 					</ChannelMixer>
 				</ColorGrade>
 			</Bloom>

@@ -19,6 +19,6 @@ export const risographSourceUrl = PORTRAIT_URL;
 
 export const RisographComposition = (
 	<Quantize palette={RISO_PALETTE} dither="bayer-8">
-		<Image src={PORTRAIT_URL} width={WIDTH} height={HEIGHT} fit="cover" crossOrigin="anonymous" />
+		<Image src={PORTRAIT_URL} width={WIDTH} height={HEIGHT} fit="cover" />
 	</Quantize>
 );

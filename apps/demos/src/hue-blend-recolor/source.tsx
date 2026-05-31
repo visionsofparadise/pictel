@@ -1,4 +1,4 @@
-import { ConicGradient, Hue } from "@pictel/effects";
+import { ConicGradient, Recolor } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
 const PORTRAIT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg";
@@ -9,8 +9,8 @@ const H = 1024;
 export default function HueBlendRecolor() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
-			<Hue
-				apply={
+			<Recolor
+				source={
 					<ConicGradient
 						width={W}
 						height={H}
@@ -26,8 +26,8 @@ export default function HueBlendRecolor() {
 					/>
 				}
 			>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
-			</Hue>
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
+			</Recolor>
 		</Canvas>
 	);
 }

@@ -24,7 +24,7 @@ export default function ColorBurnShadows() {
 					/>
 				}
 			>
-				<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" />
 			</ColorBurn>
 		</Canvas>
 	);

@@ -26,22 +26,22 @@ export default function Dithering() {
 		<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, imageRendering: "pixelated" }}>
 			<Canvas mode="display" dimensions={{ width: SIZE, height: SIZE }}>
 				<Quantize palette={MAC_BW} dither="atkinson">
-					<Image src={HEADSHOT_URL} width={SIZE} height={SIZE} fit="cover" crossOrigin="anonymous" />
+					<Image src={HEADSHOT_URL} width={SIZE} height={SIZE} fit="cover" />
 				</Quantize>
 			</Canvas>
 			<Canvas mode="display" dimensions={{ width: SIZE, height: SIZE }}>
 				<Quantize palette={GAMEBOY} dither="floyd-steinberg">
-					<Image src={HEADSHOT_URL} width={SIZE} height={SIZE} fit="cover" crossOrigin="anonymous" />
+					<Image src={HEADSHOT_URL} width={SIZE} height={SIZE} fit="cover" />
 				</Quantize>
 			</Canvas>
 			<Canvas mode="display" dimensions={{ width: SIZE, height: SIZE }}>
 				<Quantize count={16} dither="bayer-4">
-					<Image src={HEADSHOT_URL} width={SIZE} height={SIZE} fit="cover" crossOrigin="anonymous" />
+					<Image src={HEADSHOT_URL} width={SIZE} height={SIZE} fit="cover" />
 				</Quantize>
 			</Canvas>
 			<Canvas mode="display" dimensions={{ width: SIZE, height: SIZE }}>
 				<Quantize count={32} dither="floyd-steinberg">
-					<Image src={HEADSHOT_URL} width={SIZE} height={SIZE} fit="cover" crossOrigin="anonymous" />
+					<Image src={HEADSHOT_URL} width={SIZE} height={SIZE} fit="cover" />
 				</Quantize>
 			</Canvas>
 		</div>

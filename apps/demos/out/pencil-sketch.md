@@ -23,14 +23,14 @@ const canvasH = 1024;
 export default function PencilSketch() {
 	return (
 		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>
-			<Multiply apply={<Image src={PENCIL_TEXTURE_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />}>
+			<Multiply apply={<Image src={PENCIL_TEXTURE_URL} width={canvasW} height={canvasH} fit="cover" />}>
 				<ColorDodge
 					apply={
 						<Clip>
 							<Blur radius={20}>
 								<Invert>
 									<Grayscale>
-										<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+										<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" />
 									</Grayscale>
 								</Invert>
 							</Blur>
@@ -38,7 +38,7 @@ export default function PencilSketch() {
 					}
 				>
 					<Grayscale>
-						<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+						<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" />
 					</Grayscale>
 				</ColorDodge>
 			</Multiply>

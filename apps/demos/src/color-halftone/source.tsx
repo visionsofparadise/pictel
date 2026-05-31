@@ -10,7 +10,7 @@ export default function ColorHalftone() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Halftone dotSize={12} colorMode="cmyk">
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</Halftone>
 		</Canvas>
 	);

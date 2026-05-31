@@ -17,7 +17,7 @@ export default function Velvia() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<ColorGrade contrast={1.22} saturation={1.55} temperature={0.02} tint={-0.02}>
 				<ChannelMixer matrix={VELVIA_MIX}>
-					<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" />
 				</ChannelMixer>
 			</ColorGrade>
 		</Canvas>

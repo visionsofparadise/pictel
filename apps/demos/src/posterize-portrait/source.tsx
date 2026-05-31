@@ -11,7 +11,7 @@ export default function PosterizePortrait() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Saturate amount={1.45} mode="parameter">
 				<Posterize levels={5}>
-					<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 				</Posterize>
 			</Saturate>
 		</Canvas>

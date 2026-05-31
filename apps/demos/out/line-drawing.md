@@ -31,7 +31,6 @@ export default function LineDrawing() {
 								width={canvasW}
 								height={canvasH}
 								fit="cover"
-								crossOrigin="anonymous"
 							/>
 						</Grayscale>
 					</Blur>

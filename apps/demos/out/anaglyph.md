@@ -35,10 +35,10 @@ const KEEP_CYAN: Array<Array<number>> = [
 export default function Anaglyph() {
 	const depth = (
 		<DepthMap>
-			<Image src={CITY_OVERVIEW_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+			<Image src={CITY_OVERVIEW_URL} width={canvasW} height={canvasH} fit="cover" />
 		</DepthMap>
 	);
-	const photo = <Image src={CITY_OVERVIEW_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />;
+	const photo = <Image src={CITY_OVERVIEW_URL} width={canvasW} height={canvasH} fit="cover" />;
 
 	return (
 		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>

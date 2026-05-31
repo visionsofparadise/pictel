@@ -26,7 +26,7 @@ export default function MonochromaticTint() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Duotone dark={SHADOW} light={HIGHLIGHT}>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</Duotone>
 		</Canvas>
 	);

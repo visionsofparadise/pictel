@@ -24,7 +24,7 @@ export default function LetterpressPrint() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Multiply
 				apply={
-					<Image src={PAPER_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={PAPER_URL} width={W} height={H} fit="cover" />
 				}
 			>
 				<svg width={W} height={H} xmlns="http://www.w3.org/2000/svg">

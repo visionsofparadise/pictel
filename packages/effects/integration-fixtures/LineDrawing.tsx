@@ -17,9 +17,7 @@ export default function LineDrawing() {
 								src={PHOTO_URL}
 								width={canvasW}
 								height={canvasH}
-								fit="cover"
-								crossOrigin="anonymous"
-							/>
+								fit="cover"							/>
 						</Grayscale>
 					</Blur>
 				</ShockFilter>

@@ -25,11 +25,11 @@ export default function SoftFocus() {
 			<Screen
 				apply={
 					<Blur radius={28}>
-						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 					</Blur>
 				}
 			>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</Screen>
 		</Canvas>
 	);

@@ -24,7 +24,7 @@ export default function HueShift() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Saturate amount={1.4} mode="parameter">
 				<HueRotate angle={140} mode="parameter">
-					<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" />
 				</HueRotate>
 			</Saturate>
 		</Canvas>

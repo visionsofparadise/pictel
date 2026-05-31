@@ -11,7 +11,7 @@ A studio portrait drawn inward by a darkened frame — the edges fade into a war
 ![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/vignette.png)
 
 ```tsx
-import { Multiply, RadialGradient } from "@pictel/effects";
+import { Vignette } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
 const HEADSHOT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg";
@@ -19,25 +19,12 @@ const HEADSHOT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/he
 const W = 1024;
 const H = 1024;
 
-export default function Vignette() {
+export default function VignetteDemo() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
-			<Multiply
-				apply={
-					<RadialGradient
-						width={W}
-						height={H}
-						radius={0.75}
-						stops={[
-							{ color: "rgba(255, 255, 255, 1)", position: 0 },
-							{ color: "rgba(255, 255, 255, 1)", position: 0.4 },
-							{ color: "rgba(40, 25, 15, 1)", position: 1 },
-						]}
-					/>
-				}
-			>
-				<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
-			</Multiply>
+			<Vignette color="rgba(40, 25, 15, 1)" radius={0.75} softness={0.4}>
+				<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" />
+			</Vignette>
 		</Canvas>
 	);
 }

@@ -11,7 +11,7 @@ A portrait smeared along the structural lines of its own form — every patch of
 ![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/flow-streaked.png)
 
 ```tsx
-import { Direction, LIC } from "@pictel/effects";
+import { FlowBlur } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
 const PORTRAIT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/golden-hour-portrait.jpg";
@@ -22,18 +22,9 @@ const H = 1536;
 export default function FlowStreaked() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
-			<LIC
-				length={40}
-				stepSize={1.2}
-				uniformStep
-				map={
-					<Direction mode="structure">
-						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
-					</Direction>
-				}
-			>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
-			</LIC>
+			<FlowBlur length={48}>
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
+			</FlowBlur>
 		</Canvas>
 	);
 }

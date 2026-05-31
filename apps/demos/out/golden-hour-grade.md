@@ -23,7 +23,7 @@ export default function GoldenHourGrade() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<ColorGrade brightness={1.05} contrast={1.15} saturation={1.25} temperature={1.4} tint={0.15}>
-				<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={CITY_URL} width={W} height={H} fit="cover" />
 			</ColorGrade>
 		</Canvas>
 	);

@@ -10,7 +10,7 @@ export default function Moonlit() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<ColorGrade brightness={0.6} contrast={1.25} saturation={0.45} temperature={-1.2} tint={-0.15}>
-				<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" />
 			</ColorGrade>
 		</Canvas>
 	);

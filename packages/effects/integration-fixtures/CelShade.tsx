@@ -13,7 +13,7 @@ export default function CelShade() {
 				apply={
 					<Threshold threshold={140}>
 						<Outline sigma={2.6} k={1.6} epsilon={0.005} phi={200}>
-							<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+							<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" />
 						</Outline>
 					</Threshold>
 				}
@@ -21,7 +21,7 @@ export default function CelShade() {
 				<Saturate amount={1.5}>
 					<LuminanceBands bands={3}>
 						<Bilateral spatialSigma={4} colorSigma={45}>
-							<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+							<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" />
 						</Bilateral>
 					</LuminanceBands>
 				</Saturate>

@@ -39,7 +39,7 @@ export default function OldPhoto() {
 				<Grain intensity={22} seed={4127}>
 					<Contrast amount={1.25} mode="parameter">
 						<Sepia amount={1}>
-							<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+							<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" />
 						</Sepia>
 					</Contrast>
 				</Grain>

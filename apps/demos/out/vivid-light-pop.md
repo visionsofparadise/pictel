@@ -36,7 +36,7 @@ export default function VividLightPop() {
 					/>
 				}
 			>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</VividLight>
 		</Canvas>
 	);

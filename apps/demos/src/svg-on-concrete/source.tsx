@@ -19,7 +19,7 @@ export default function SvgOnConcrete() {
 					<DisplacementMap
 						scaleX={6}
 						scaleY={6}
-						map={<Image src={WALL_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />}
+						map={<Image src={WALL_URL} width={canvasW} height={canvasH} fit="cover" />}
 					>
 						<div style={{ position: "relative", width: `${String(canvasW)}px`, height: `${String(canvasH)}px` }}>
 							<div
@@ -37,7 +37,7 @@ export default function SvgOnConcrete() {
 					</DisplacementMap>
 				}
 			>
-				<Image src={WALL_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+				<Image src={WALL_URL} width={canvasW} height={canvasH} fit="cover" />
 			</Overlay>
 		</Canvas>
 	);

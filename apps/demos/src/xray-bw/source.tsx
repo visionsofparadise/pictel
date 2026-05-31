@@ -12,7 +12,7 @@ export default function XrayBw() {
 			<Contrast amount={1.45} mode="parameter">
 				<Invert>
 					<Grayscale>
-						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 					</Grayscale>
 				</Invert>
 			</Contrast>

@@ -15,7 +15,6 @@ export default function Glow() {
 					width={canvasW}
 					height={canvasH}
 					fit="cover"
-					crossOrigin="anonymous"
 				/>
 			</Bloom>
 		</Canvas>

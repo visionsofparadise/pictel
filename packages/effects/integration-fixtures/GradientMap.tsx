@@ -17,7 +17,7 @@ export default function GradientMapFixture() {
 					{ color: "#f7ecd0", position: 1 },
 				]}
 			>
-				<Image src={PORTRAIT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={canvasW} height={canvasH} fit="cover" />
 			</GradientMap>
 		</Canvas>
 	);

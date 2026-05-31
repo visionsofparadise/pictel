@@ -17,7 +17,7 @@ export default function RisographPrint() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Quantize palette={RISO_PALETTE} dither="bayer-8">
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</Quantize>
 		</Canvas>
 	);

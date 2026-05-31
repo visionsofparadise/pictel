@@ -40,7 +40,7 @@ export default function Lomo() {
 			>
 				<Grain intensity={9} seed={3344}>
 					<ColorGrade contrast={1.32} saturation={1.6} temperature={-0.08} tint={-0.06} brightness={1.02}>
-						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 					</ColorGrade>
 				</Grain>
 			</Multiply>

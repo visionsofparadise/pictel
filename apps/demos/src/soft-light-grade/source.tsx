@@ -23,7 +23,7 @@ export default function SoftLightGrade() {
 					/>
 				}
 			>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</SoftLight>
 		</Canvas>
 	);

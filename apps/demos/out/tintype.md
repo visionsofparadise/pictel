@@ -40,7 +40,7 @@ export default function Tintype() {
 			>
 				<Grain intensity={22} seed={1859}>
 					<Duotone dark={[28, 22, 16]} light={[232, 214, 178]}>
-						<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+						<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" />
 					</Duotone>
 				</Grain>
 			</Multiply>

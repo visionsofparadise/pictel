@@ -152,3 +152,10 @@ export { applyThreshold, applyMappedThreshold } from "./Effects/Threshold";
 
 export { mixBlend } from "./Effects/utils/mix-blend";
 export { padImageData } from "./Effects/utils/pad-image-data";
+
+export { FlowBlur } from "./Aliases/FlowBlur";
+export { MotionBlur } from "./Aliases/MotionBlur";
+export { Recolor } from "./Aliases/Recolor";
+export { SwirlBlur } from "./Aliases/SwirlBlur";
+export { Vignette } from "./Aliases/Vignette";
+export { ZoomBlur } from "./Aliases/ZoomBlur";

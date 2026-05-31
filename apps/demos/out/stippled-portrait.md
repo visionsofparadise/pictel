@@ -25,7 +25,7 @@ export default function StippledPortrait() {
 			<Halftone dotSize={5} angle={0} colorMode="luminance" dotColor={[12, 12, 12]}>
 				<Contrast amount={1.25} mode="parameter">
 					<Grayscale>
-						<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+						<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" />
 					</Grayscale>
 				</Contrast>
 			</Halftone>

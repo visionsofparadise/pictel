@@ -24,7 +24,7 @@ const canvasH = 1024;
 export default function HolographicFoil() {
 	const subject = (
 		<RemoveBackground>
-			<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+			<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" />
 		</RemoveBackground>
 	);
 
@@ -38,7 +38,7 @@ export default function HolographicFoil() {
 						</Grayscale>
 					}
 				>
-					<Image src={FOIL_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+					<Image src={FOIL_URL} width={canvasW} height={canvasH} fit="cover" />
 				</HardLight>
 			</Mask>
 		</Canvas>

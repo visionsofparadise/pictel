@@ -9,7 +9,7 @@ const canvasH = 512;
 export default function Watercolor() {
 	const wash = (
 		<Bilateral spatialSigma={11} colorSigma={32}>
-			<Image src={PORTRAIT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+			<Image src={PORTRAIT_URL} width={canvasW} height={canvasH} fit="cover" />
 		</Bilateral>
 	);
 

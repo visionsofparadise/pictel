@@ -23,7 +23,7 @@ export default function FadeToColor() {
 	return (
 		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>
 			<div style={{ position: "relative", width: `${String(canvasW)}px`, height: `${String(canvasH)}px`, backgroundColor: "#f4ece1" }}>
-				<Image src={PORTRAIT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={canvasW} height={canvasH} fit="cover" />
 				<div style={{ position: "absolute", inset: 0 }}>
 					<LinearGradient
 						width={canvasW}

@@ -23,7 +23,7 @@ export default function LinearLightPop() {
 					/>
 				}
 			>
-				<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={CITY_URL} width={W} height={H} fit="cover" />
 			</LinearLight>
 		</Canvas>
 	);

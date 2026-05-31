@@ -31,7 +31,7 @@ export const NightVisionComposition = (
 		>
 			<Duotone dark={DARK_GREEN} light={PHOSPHOR_GREEN}>
 				<Contrast amount={1.35} mode="parameter">
-					<Image src={LANDSCAPE_URL} width={WIDTH} height={HEIGHT} fit="cover" crossOrigin="anonymous" />
+					<Image src={LANDSCAPE_URL} width={WIDTH} height={HEIGHT} fit="cover" />
 				</Contrast>
 			</Duotone>
 		</Multiply>

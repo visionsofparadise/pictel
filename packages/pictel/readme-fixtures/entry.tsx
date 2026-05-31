@@ -15,7 +15,6 @@ export default function ReadmeEntry() {
 					width={oilPaintingDimensions.width}
 					height={oilPaintingDimensions.height}
 					fit="cover"
-					crossOrigin="anonymous"
 				/>
 			</Canvas>
 			<Canvas name="oil-painting-after" dimensions={oilPaintingDimensions}>
@@ -27,7 +26,6 @@ export default function ReadmeEntry() {
 					width={popArtDimensions.width}
 					height={popArtDimensions.height}
 					fit="cover"
-					crossOrigin="anonymous"
 				/>
 			</Canvas>
 			<Canvas name="pop-art-after" dimensions={popArtDimensions}>
@@ -39,7 +37,6 @@ export default function ReadmeEntry() {
 					width={tiltShiftDimensions.width}
 					height={tiltShiftDimensions.height}
 					fit="cover"
-					crossOrigin="anonymous"
 				/>
 			</Canvas>
 			<Canvas name="tilt-shift-after" dimensions={tiltShiftDimensions}>
@@ -51,7 +48,6 @@ export default function ReadmeEntry() {
 					width={banknoteDimensions.width}
 					height={banknoteDimensions.height}
 					fit="cover"
-					crossOrigin="anonymous"
 				/>
 			</Canvas>
 			<Canvas name="banknote-after" dimensions={banknoteDimensions} style={{ backgroundColor: banknoteBackground }}>
@@ -63,7 +59,6 @@ export default function ReadmeEntry() {
 					width={nightVisionDimensions.width}
 					height={nightVisionDimensions.height}
 					fit="cover"
-					crossOrigin="anonymous"
 				/>
 			</Canvas>
 			<Canvas name="night-vision-after" dimensions={nightVisionDimensions}>
@@ -75,7 +70,6 @@ export default function ReadmeEntry() {
 					width={risographDimensions.width}
 					height={risographDimensions.height}
 					fit="cover"
-					crossOrigin="anonymous"
 				/>
 			</Canvas>
 			<Canvas name="risograph-after" dimensions={risographDimensions}>

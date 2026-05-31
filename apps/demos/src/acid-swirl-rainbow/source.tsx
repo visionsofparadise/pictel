@@ -1,4 +1,4 @@
-import { ColorGrade, GradientMap, LIC, ProceduralNoise, VectorField } from "@pictel/effects";
+import { ColorGrade, GradientMap, ProceduralNoise, SwirlBlur } from "@pictel/effects";
 import { Canvas } from "pictel";
 
 const W = 1280;
@@ -19,13 +19,9 @@ export default function AcidSwirlRainbow() {
 				]}
 			>
 				<ColorGrade contrast={20}>
-					<LIC
-						length={20}
-						stepSize={1}
-						map={<VectorField width={W} height={H} pattern="tangential" />}
-					>
+					<SwirlBlur length={20}>
 						<ProceduralNoise width={W} height={H} type="simplex" seed={7} scale={4} octaves={4} />
-					</LIC>
+					</SwirlBlur>
 				</ColorGrade>
 			</GradientMap>
 		</Canvas>

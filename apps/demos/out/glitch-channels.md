@@ -30,7 +30,7 @@ export default function GlitchChannels() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Contrast amount={1.18} mode="parameter">
 				<ChannelMixer matrix={GLITCH_MATRIX}>
-					<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={CITY_URL} width={W} height={H} fit="cover" />
 				</ChannelMixer>
 			</Contrast>
 		</Canvas>

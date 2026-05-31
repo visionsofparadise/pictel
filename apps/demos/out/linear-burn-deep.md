@@ -38,7 +38,7 @@ export default function LinearBurnDeep() {
 					/>
 				}
 			>
-				<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={CITY_URL} width={W} height={H} fit="cover" />
 			</LinearBurn>
 		</Canvas>
 	);

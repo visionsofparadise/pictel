@@ -10,7 +10,7 @@ export default function SkinSmooth() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Bilateral spatialSigma={8} colorSigma={42}>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</Bilateral>
 		</Canvas>
 	);

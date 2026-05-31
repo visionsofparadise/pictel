@@ -11,7 +11,7 @@ export default function ChromaticGlow() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Bloom threshold={0.55} radius={28} intensity={3.5}>
 				<Saturate amount={1.85} mode="parameter">
-					<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={CITY_URL} width={W} height={H} fit="cover" />
 				</Saturate>
 			</Bloom>
 		</Canvas>

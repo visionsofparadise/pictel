@@ -24,7 +24,7 @@ export default function SoftPastel() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<ColorGrade brightness={1.1} contrast={0.85} saturation={0.7} temperature={0.05} tint={0.04}>
 				<Bilateral spatialSigma={5} colorSigma={45}>
-					<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 				</Bilateral>
 			</ColorGrade>
 		</Canvas>

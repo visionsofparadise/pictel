@@ -18,7 +18,7 @@ export const banknoteBackground = `rgb(${String(CREAM[0])}, ${String(CREAM[1])},
 
 const subject = (
 	<RemoveBackground>
-		<Image src={HEADSHOT_URL} width={WIDTH} height={HEIGHT} fit="cover" crossOrigin="anonymous" />
+		<Image src={HEADSHOT_URL} width={WIDTH} height={HEIGHT} fit="cover" />
 	</RemoveBackground>
 );
 

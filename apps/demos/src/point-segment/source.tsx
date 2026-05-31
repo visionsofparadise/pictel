@@ -25,11 +25,11 @@ export default function PointSegment() {
 						source="luminance"
 						map={
 							<Sam2 points={[{ x: Math.round(W / 2), y: Math.round(H * 0.35) }]}>
-								<Image src={PORTRAIT_URL} width={W} height={H} fit="contain" crossOrigin="anonymous" />
+								<Image src={PORTRAIT_URL} width={W} height={H} fit="contain" />
 							</Sam2>
 						}
 					>
-						<Image src={PORTRAIT_URL} width={W} height={H} fit="contain" crossOrigin="anonymous" />
+						<Image src={PORTRAIT_URL} width={W} height={H} fit="contain" />
 					</Mask>
 				</div>
 			</div>

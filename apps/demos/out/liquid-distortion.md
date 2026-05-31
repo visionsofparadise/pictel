@@ -27,7 +27,7 @@ export default function LiquidDistortion() {
 				scaleY={70}
 				map={<ProceduralNoise width={W} height={H} type="simplex" seed={1729} scale={0.008} octaves={2} />}
 			>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</DisplacementMap>
 		</Canvas>
 	);

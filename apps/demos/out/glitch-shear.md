@@ -27,7 +27,7 @@ export default function GlitchShear() {
 				scaleY={0}
 				map={<ProceduralNoise width={W} height={H} type="simplex" seed={3271} scale={3} octaves={2} />}
 			>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</DisplacementMap>
 		</Canvas>
 	);

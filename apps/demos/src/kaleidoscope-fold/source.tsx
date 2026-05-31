@@ -11,15 +11,15 @@ export default function KaleidoscopeFold() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<div style={{ display: "grid", gridTemplateColumns: `${HALF_W}px ${HALF_W}px`, gridTemplateRows: `${HALF_H}px ${HALF_H}px`, width: W, height: H }}>
-				<Image src={CITY_URL} width={HALF_W} height={HALF_H} fit="cover" crossOrigin="anonymous" />
+				<Image src={CITY_URL} width={HALF_W} height={HALF_H} fit="cover" />
 				<div style={{ transform: "scaleX(-1)", width: HALF_W, height: HALF_H }}>
-					<Image src={CITY_URL} width={HALF_W} height={HALF_H} fit="cover" crossOrigin="anonymous" />
+					<Image src={CITY_URL} width={HALF_W} height={HALF_H} fit="cover" />
 				</div>
 				<div style={{ transform: "scaleY(-1)", width: HALF_W, height: HALF_H }}>
-					<Image src={CITY_URL} width={HALF_W} height={HALF_H} fit="cover" crossOrigin="anonymous" />
+					<Image src={CITY_URL} width={HALF_W} height={HALF_H} fit="cover" />
 				</div>
 				<div style={{ transform: "scale(-1, -1)", width: HALF_W, height: HALF_H }}>
-					<Image src={CITY_URL} width={HALF_W} height={HALF_H} fit="cover" crossOrigin="anonymous" />
+					<Image src={CITY_URL} width={HALF_W} height={HALF_H} fit="cover" />
 				</div>
 			</div>
 		</Canvas>

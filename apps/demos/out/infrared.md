@@ -30,7 +30,7 @@ export default function Infrared() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Saturate amount={1.4} mode="parameter">
 				<ChannelMixer matrix={IR_MATRIX}>
-					<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" />
 				</ChannelMixer>
 			</Saturate>
 		</Canvas>

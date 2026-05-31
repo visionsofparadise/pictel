@@ -41,7 +41,6 @@ export default function VintagePolaroid() {
 								width={PHOTO_W - 72}
 								height={PHOTO_H - 72}
 								fit="cover"
-								crossOrigin="anonymous"
 							/>
 						</ColorGrade>
 					</Grain>

@@ -25,7 +25,7 @@ export default function DarkerColorMask() {
 					/>
 				}
 			>
-				<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" />
 			</DarkerColor>
 		</Canvas>
 	);

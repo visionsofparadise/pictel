@@ -15,7 +15,7 @@ const LEAK_OFFSET_RIGHT = -Math.round(canvasW * 0.06);
 export default function DamagedFilm() {
 	return (
 		<Canvas mode="display" dimensions={{ width: canvasW, height: canvasH }}>
-			<Screen apply={<Image src={DEGRADED_FILM_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />}>
+			<Screen apply={<Image src={DEGRADED_FILM_URL} width={canvasW} height={canvasH} fit="cover" />}>
 				<Lighten
 					opacity={0.6}
 					apply={
@@ -27,12 +27,12 @@ export default function DamagedFilm() {
 									right: `${String(LEAK_OFFSET_RIGHT)}px`,
 								}}
 							>
-								<Image src={LIGHT_LEAK_URL} width={LEAK_W} height={LEAK_H} fit="cover" crossOrigin="anonymous" />
+								<Image src={LIGHT_LEAK_URL} width={LEAK_W} height={LEAK_H} fit="cover" />
 							</div>
 						</div>
 					}
 				>
-					<Image src={LANDSCAPE_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+					<Image src={LANDSCAPE_URL} width={canvasW} height={canvasH} fit="cover" />
 				</Lighten>
 			</Screen>
 		</Canvas>

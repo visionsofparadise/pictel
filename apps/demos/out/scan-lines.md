@@ -37,7 +37,7 @@ export default function ScanLines() {
 				}
 			>
 				<ColorGrade brightness={0.95} contrast={1.1} saturation={1.5} temperature={-0.3} tint={-0.2}>
-					<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={CITY_URL} width={W} height={H} fit="cover" />
 				</ColorGrade>
 			</Multiply>
 		</Canvas>

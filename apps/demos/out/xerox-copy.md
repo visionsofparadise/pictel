@@ -26,7 +26,7 @@ export default function XeroxCopy() {
 				<Threshold threshold={130}>
 					<Contrast amount={1.6} mode="parameter">
 						<Grayscale>
-							<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+							<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 						</Grayscale>
 					</Contrast>
 				</Threshold>

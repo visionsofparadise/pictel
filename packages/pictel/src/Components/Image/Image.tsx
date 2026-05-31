@@ -26,18 +26,18 @@ interface ImageProps {
  * - `width` — Required. Output width in pixels. Sets the canvas backing buffer and the CSS box.
  * - `height` — Required. Output height in pixels.
  * - `fit` — How the decoded source maps into the output box. Semantics match CSS `object-fit`: `"cover"` fills the box and crops overflow; `"contain"` fits inside the box and letterboxes with transparency; `"fill"` stretches to the exact box; `"none"` draws at intrinsic size, centered, clipping overflow. Defaults to `"cover"`.
- * - `crossOrigin` — CORS mode for cross-origin sources. One of `"anonymous"` or `"use-credentials"`. Defaults to unset (no CORS).
+ * - `crossOrigin` — CORS mode for cross-origin sources. One of `"anonymous"` or `"use-credentials"`. Defaults to `"anonymous"` — pictel reads pixels from every image, which requires CORS-clean fetches.
  *
  * @param props
  * @category Raster Source
  */
-export function Image({ src, width, height, fit = "cover", crossOrigin }: ImageProps) {
+export function Image({ src, width, height, fit = "cover", crossOrigin = "anonymous" }: ImageProps) {
 	const draw = useCallback(
 		async (canvas: HTMLCanvasElement, signal: AbortSignal) => {
 			// `window.Image` — the exported `Image` component shadows the global constructor in this module.
 			const img = new window.Image();
 
-			if (crossOrigin) img.crossOrigin = crossOrigin;
+			img.crossOrigin = crossOrigin;
 
 			img.src = src;
 

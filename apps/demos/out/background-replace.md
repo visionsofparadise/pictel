@@ -38,7 +38,7 @@ export default function BackgroundReplace() {
 					<Clip>
 						<DropShadow offsetX={0} offsetY={20} blurRadius={30} color="#000000">
 							<RemoveBackground>
-								<Image src={PORTRAIT_URL} width={canvasW} height={canvasH} fit="contain" crossOrigin="anonymous" />
+								<Image src={PORTRAIT_URL} width={canvasW} height={canvasH} fit="contain" />
 							</RemoveBackground>
 						</DropShadow>
 					</Clip>

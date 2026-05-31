@@ -27,7 +27,7 @@ export default function DisposableCamera() {
 			>
 				<Grain intensity={32} seed={2099}>
 					<ColorGrade contrast={1.12} saturation={1.08} temperature={0.12} tint={0.04} brightness={1.04}>
-						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+						<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 					</ColorGrade>
 				</Grain>
 			</Multiply>

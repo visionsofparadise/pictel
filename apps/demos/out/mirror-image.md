@@ -23,9 +23,9 @@ export default function MirrorImage() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<div style={{ display: "flex", width: W, height: H }}>
-				<Image src={CITY_URL} width={HALF} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={CITY_URL} width={HALF} height={H} fit="cover" />
 				<div style={{ transform: "scaleX(-1)", width: HALF, height: H }}>
-					<Image src={CITY_URL} width={HALF} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={CITY_URL} width={HALF} height={H} fit="cover" />
 				</div>
 			</div>
 		</Canvas>

@@ -23,7 +23,7 @@ export default function BloomPortrait() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Bloom threshold={0.6} radius={40} intensity={1.4}>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</Bloom>
 		</Canvas>
 	);

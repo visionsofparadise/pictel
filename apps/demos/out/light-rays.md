@@ -53,7 +53,7 @@ export default function LightRays() {
 					/>
 				}
 			>
-				<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={CITY_URL} width={W} height={H} fit="cover" />
 			</Screen>
 		</Canvas>
 	);

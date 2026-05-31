@@ -11,9 +11,9 @@ export default function PaperOverlay() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Overlay
-				apply={<Image src={PAPER_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />}
+				apply={<Image src={PAPER_URL} width={W} height={H} fit="cover" />}
 			>
-				<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" />
 			</Overlay>
 		</Canvas>
 	);

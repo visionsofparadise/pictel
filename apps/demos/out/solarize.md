@@ -29,7 +29,7 @@ export default function Solarize() {
 					{ color: "#f4efe2", position: 1 },
 				]}
 			>
-				<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" />
 			</GradientMap>
 		</Canvas>
 	);

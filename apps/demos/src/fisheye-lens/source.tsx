@@ -15,7 +15,7 @@ export default function FisheyeLens() {
 				scaleY={-120}
 				map={<VectorField pattern="radial" magnitude="bump" width={W} height={H} />}
 			>
-				<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={CITY_URL} width={W} height={H} fit="cover" />
 			</DisplacementMap>
 		</Canvas>
 	);

@@ -25,10 +25,10 @@ export default function LuminosityTrace() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Luminosity
 				apply={
-					<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 				}
 			>
-				<Image src={TEXTURE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={TEXTURE_URL} width={W} height={H} fit="cover" />
 			</Luminosity>
 		</Canvas>
 	);

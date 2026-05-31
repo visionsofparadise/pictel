@@ -24,7 +24,7 @@ export default function SteelEngraving() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Engrave spacing={5} angle={0} relief={3} crossHatch={true}>
 				<Brightness amount={1.2} mode="parameter">
-					<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" />
 				</Brightness>
 			</Engrave>
 		</Canvas>

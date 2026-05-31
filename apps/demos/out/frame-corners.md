@@ -35,7 +35,6 @@ export default function FrameCorners() {
 							width={W - MARGIN * 2}
 							height={H - MARGIN * 2}
 							fit="cover"
-							crossOrigin="anonymous"
 						/>
 					</ColorGrade>
 				</div>

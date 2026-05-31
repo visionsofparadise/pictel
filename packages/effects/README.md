@@ -1400,6 +1400,173 @@ be visually readable — it renders as red/green static.
 
 `Element`
 
+## Aliases
+
+### FlowBlur()
+
+> **FlowBlur**(`props`): `Element`
+
+Defined in: Aliases/FlowBlur.tsx:23
+
+Wraps `LIC` over a `Direction mode="structure"` derived from children —
+streaks follow the image's own structure.
+
+The structure field is Sobel-derived from the same children that get smeared,
+so streamlines align with the image's contours. `stepSize` is baked at 1 and
+`uniformStep` is on.
+
+- `length` — Streak length in pixels per direction. Default 20.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `FlowBlurProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
+### MotionBlur()
+
+> **MotionBlur**(`props`): `Element`
+
+Defined in: Aliases/MotionBlur.tsx:25
+
+Wraps `LIC` over a linear `VectorField` — directional motion blur.
+
+Streamlines run at a constant angle across the frame, so children smear in a
+single direction. `stepSize` is baked at 1; `length` reads as pixels of streak
+per direction.
+
+- `angle` — Direction of the smear in degrees. 0 is left-to-right. Default 0.
+- `length` — Streak length in pixels per direction. Default 20.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `MotionBlurProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
+### Recolor()
+
+> **Recolor**(`props`): `Element`
+
+Defined in: Aliases/Recolor.tsx:21
+
+Wraps `Hue` blend — children take the hue of `source`, preserving their own
+saturation and luminosity.
+
+`source` is any `ReactNode` carrying the hue reference (typically a
+`LinearGradient`, `ConicGradient`, or `Image`).
+
+- `source` — Layer whose hue replaces the children's hue. Required.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `RecolorProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
+### SwirlBlur()
+
+> **SwirlBlur**(`props`): `Element`
+
+Defined in: Aliases/SwirlBlur.tsx:27
+
+Wraps `LIC` over a tangential `VectorField` — streaks rotate around a centre.
+
+Streamlines follow circular arcs around `(centerX, centerY)`, producing a
+vortex-like smear. `stepSize` is baked at 1 and `uniformStep` is on, so all
+pixels integrate the same arc length regardless of distance from the centre.
+
+- `centerX` — Horizontal centre as a fraction of width. Default 0.5.
+- `centerY` — Vertical centre as a fraction of height. Default 0.5.
+- `length` — Streak length in pixels per direction. Default 20.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `SwirlBlurProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
+### Vignette()
+
+> **Vignette**(`props`): `Element`
+
+Defined in: Aliases/Vignette.tsx:28
+
+Wraps `Multiply` of children by a `RadialGradient` from inner white to outer
+`color` — vignette.
+
+The radial gradient runs `[white at 0, white at softness, color at 1]` so the
+centre is untouched and the edges darken (or tint) toward `color`.
+
+- `color` — Outer colour the edges multiply toward. Default `"rgba(0, 0, 0, 1)"`.
+- `radius` — Gradient radius as a fraction of the smaller dimension. Default 0.75.
+- `softness` — Inner radius below which no darkening occurs, as a position on the
+  gradient (0–1). Default 0.4.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `VignetteProps` | - |
+
+#### Returns
+
+`Element`
+
+***
+
+### ZoomBlur()
+
+> **ZoomBlur**(`props`): `Element`
+
+Defined in: Aliases/ZoomBlur.tsx:29
+
+Wraps `LIC` over a radial `VectorField` with linear magnitude — zoom blur from
+a focal point.
+
+Streamlines radiate outward from `(centerX, centerY)` and lengthen with
+radius, producing sharp pixels at the centre and long streaks toward the
+edges. `stepSize` is baked at 1; `length` reads as pixels of streak per
+direction at maximum magnitude.
+
+- `centerX` — Horizontal focal point as a fraction of width. Default 0.5.
+- `centerY` — Vertical focal point as a fraction of height. Default 0.5.
+- `length` — Streak length in steps per direction. Default 20.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `props` | `ZoomBlurProps` | - |
+
+#### Returns
+
+`Element`
+
 ## Blend Modes
 
 ### Color()

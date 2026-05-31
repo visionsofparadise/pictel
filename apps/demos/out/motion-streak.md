@@ -11,7 +11,7 @@ The whole cityscape smeared along one axis, as if the frame were captured mid-pa
 ![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/motion-streak.png)
 
 ```tsx
-import { LIC, VectorField } from "@pictel/effects";
+import { MotionBlur } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
 const CITY_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/city-overview.jpg";
@@ -22,14 +22,9 @@ const H = 853;
 export default function MotionStreak() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
-			<LIC
-				length={34}
-				stepSize={1.4}
-				uniformStep
-				map={<VectorField pattern="linear" angle={8} width={W} height={H} />}
-			>
-				<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
-			</LIC>
+			<MotionBlur angle={8} length={48}>
+				<Image src={CITY_URL} width={W} height={H} fit="cover" />
+			</MotionBlur>
 		</Canvas>
 	);
 }

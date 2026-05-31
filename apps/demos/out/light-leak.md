@@ -38,7 +38,7 @@ export default function LightLeak() {
 					/>
 				}
 			>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</Screen>
 		</Canvas>
 	);

@@ -19,11 +19,11 @@ export const OilPaintingComposition = (
 			uniformStep
 			map={
 				<Direction mode="structure">
-					<Image src={HEADSHOT_URL} width={640} height={640} fit="cover" crossOrigin="anonymous" />
+					<Image src={HEADSHOT_URL} width={640} height={640} fit="cover" />
 				</Direction>
 			}
 		>
-			<Image src={HEADSHOT_URL} width={640} height={640} fit="cover" crossOrigin="anonymous" />
+			<Image src={HEADSHOT_URL} width={640} height={640} fit="cover" />
 		</Hatch>
 	</Duotone>
 );

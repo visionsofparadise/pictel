@@ -11,7 +11,7 @@ export default function SharpenClarity() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<ColorGrade contrast={1.12} saturation={1.2}>
 				<Sharpen amount={1.6}>
-					<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={CITY_URL} width={W} height={H} fit="cover" />
 				</Sharpen>
 			</ColorGrade>
 		</Canvas>

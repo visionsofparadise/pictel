@@ -12,7 +12,7 @@ const canvasH = 512;
 export default function Banknote() {
 	const subject = (
 		<RemoveBackground>
-			<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+			<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" />
 		</RemoveBackground>
 	);
 

@@ -11,7 +11,7 @@ A portrait whose hue is replaced spatially by a rainbow conic gradient — the o
 ![](https://pictel-demos.s3.us-east-1.amazonaws.com/outputs/hue-blend-recolor.png)
 
 ```tsx
-import { ConicGradient, Hue } from "@pictel/effects";
+import { ConicGradient, Recolor } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
 const PORTRAIT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg";
@@ -22,8 +22,8 @@ const H = 1024;
 export default function HueBlendRecolor() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
-			<Hue
-				apply={
+			<Recolor
+				source={
 					<ConicGradient
 						width={W}
 						height={H}
@@ -39,8 +39,8 @@ export default function HueBlendRecolor() {
 					/>
 				}
 			>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
-			</Hue>
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
+			</Recolor>
 		</Canvas>
 	);
 }

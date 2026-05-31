@@ -30,7 +30,7 @@ export default function Kodachrome() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<ColorGrade contrast={1.18} saturation={1.35} temperature={0.08} tint={-0.04} brightness={0.98}>
 				<ChannelMixer matrix={KODACHROME_MIX}>
-					<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" />
 				</ChannelMixer>
 			</ColorGrade>
 		</Canvas>

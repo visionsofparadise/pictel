@@ -24,9 +24,9 @@ export default function DoubleExposure() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Lighten
-				apply={<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />}
+				apply={<Image src={CITY_URL} width={W} height={H} fit="cover" />}
 			>
-				<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={HEADSHOT_URL} width={W} height={H} fit="cover" />
 			</Lighten>
 		</Canvas>
 	);

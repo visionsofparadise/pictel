@@ -47,7 +47,6 @@ export default function TransparentText() {
 							width={W}
 							height={H}
 							fit="cover"
-							crossOrigin="anonymous"
 						/>
 					</Mask>
 				</div>

@@ -11,7 +11,7 @@ export default function LuminanceBandPoster() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Saturate amount={1.4} mode="parameter">
 				<LuminanceBands bands={5}>
-					<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 				</LuminanceBands>
 			</Saturate>
 		</Canvas>

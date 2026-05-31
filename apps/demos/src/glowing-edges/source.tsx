@@ -19,7 +19,7 @@ export default function GlowingEdges() {
 				]}
 			>
 				<EdgeDetect kernel="scharr">
-					<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={CITY_URL} width={W} height={H} fit="cover" />
 				</EdgeDetect>
 			</GradientMap>
 		</Canvas>

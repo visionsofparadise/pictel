@@ -30,7 +30,7 @@ export default function GradientMapDemo() {
 					{ color: "#f7ecd0", position: 1 },
 				]}
 			>
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</GradientMap>
 		</Canvas>
 	);

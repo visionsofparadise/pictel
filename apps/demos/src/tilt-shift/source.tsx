@@ -16,7 +16,7 @@ export default function TiltShift() {
 							<Brightness amount={2}>
 								<Contrast amount={0.35}>
 									<DepthMap>
-										<Image src={CITY_URL} width={1024} height={683} fit="cover" crossOrigin="anonymous" />
+										<Image src={CITY_URL} width={1024} height={683} fit="cover" />
 									</DepthMap>
 								</Contrast>
 							</Brightness>
@@ -25,7 +25,7 @@ export default function TiltShift() {
 				>
 					<Saturate amount={1.1}>
 						<Contrast amount={1.1}>
-							<Image src={CITY_URL} width={1024} height={683} fit="cover" crossOrigin="anonymous" />
+							<Image src={CITY_URL} width={1024} height={683} fit="cover" />
 						</Contrast>
 					</Saturate>
 				</Blur>

@@ -15,7 +15,7 @@ export default function TwirlDistortion() {
 				scaleY={110}
 				map={<VectorField pattern="tangential" magnitude="falloff" width={canvasW} height={canvasH} />}
 			>
-				<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+				<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" />
 			</DisplacementMap>
 		</Canvas>
 	);

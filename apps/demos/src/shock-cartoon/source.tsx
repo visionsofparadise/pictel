@@ -11,7 +11,7 @@ export default function ShockCartoon() {
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Saturate amount={1.35} mode="parameter">
 				<ShockFilter iterations={12} strength={0.9}>
-					<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 				</ShockFilter>
 			</Saturate>
 		</Canvas>

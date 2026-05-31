@@ -70,9 +70,7 @@ export default function OilPainting() {
 								src={headshot}
 								width={640}
 								height={640}
-								fit="cover"
-								crossOrigin="anonymous"
-							/>
+								fit="cover"							/>
 						</Direction>
 					}
 				>
@@ -81,7 +79,6 @@ export default function OilPainting() {
 						width={640}
 						height={640}
 						fit="cover"
-						crossOrigin="anonymous"
 					/>
 				</Hatch>
 			</Duotone>
@@ -120,9 +117,7 @@ export default function PopArt() {
 								src={photo}
 								width={640}
 								height={960}
-								fit="cover"
-								crossOrigin="anonymous"
-							/>
+								fit="cover"							/>
 						</Outline>
 					</Threshold>
 				}
@@ -137,9 +132,7 @@ export default function PopArt() {
 								src={photo}
 								width={640}
 								height={960}
-								fit="cover"
-								crossOrigin="anonymous"
-							/>
+								fit="cover"							/>
 						</Saturate>
 					</Contrast>
 				</Halftone>
@@ -181,7 +174,6 @@ export default function TiltShift() {
 											width={1024}
 											height={683}
 											fit="cover"
-											crossOrigin="anonymous"
 										/>
 									</DepthMap>
 								</Contrast>
@@ -195,9 +187,7 @@ export default function TiltShift() {
 								src={cityPhoto}
 								width={1024}
 								height={683}
-								fit="cover"
-								crossOrigin="anonymous"
-							/>
+								fit="cover"							/>
 						</Contrast>
 					</Saturate>
 				</Blur>
@@ -236,7 +226,7 @@ const canvasH = 512;
 export default function Banknote() {
 	const subject = (
 		<RemoveBackground>
-			<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" crossOrigin="anonymous" />
+			<Image src={HEADSHOT_URL} width={canvasW} height={canvasH} fit="cover" />
 		</RemoveBackground>
 	);
 
@@ -300,7 +290,7 @@ export default function NightVision() {
 				>
 					<Duotone dark={DARK_GREEN} light={PHOSPHOR_GREEN}>
 						<Contrast amount={1.35} mode="parameter">
-							<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+							<Image src={LANDSCAPE_URL} width={W} height={H} fit="cover" />
 						</Contrast>
 					</Duotone>
 				</Multiply>
@@ -336,7 +326,7 @@ export default function RisographPrint() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<Quantize palette={RISO_PALETTE} dither="bayer-8">
-				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={PORTRAIT_URL} width={W} height={H} fit="cover" />
 			</Quantize>
 		</Canvas>
 	);

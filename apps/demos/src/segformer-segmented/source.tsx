@@ -10,7 +10,7 @@ export default function SegformerSegmented() {
 	return (
 		<Canvas mode="display" dimensions={{ width: W, height: H }}>
 			<SegFormer>
-				<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+				<Image src={CITY_URL} width={W} height={H} fit="cover" />
 			</SegFormer>
 		</Canvas>
 	);

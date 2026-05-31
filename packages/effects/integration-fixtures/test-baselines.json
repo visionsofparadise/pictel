@@ -14,6 +14,9 @@
   "fisheye-lens": [
     "882fafa90d1d6a1b32804d30478371d8654b0e09efc76eac6e2bc84c15da1d16"
   ],
+  "flow-blur-alias": [
+    "400e8ee65c963ee3d7cd6a2223451ee96db5c743d492487230176b7d9f7530f0"
+  ],
   "generative-poster": [
     "43044f91723c7fda628d4b90d0b47a3655ff6b7dc40b4a31d577f2c5fb9c46e5"
   ],
@@ -29,8 +32,11 @@
   "lut-grade": [
     "e01701007f07d35b8ec59b36770f8da7b4107f211ebda5a4467163a42e0d6cc0"
   ],
+  "motion-blur-alias": [
+    "546806a89b55e90437fc6b745231ca7c3d7fa66de8d057200832483c2ab3d204"
+  ],
   "motion-streak": [
-    "5212dbb94f513ecb065ae2b6d2eb4ec152b22a5e35dba4d7eb5064f63b87ab21"
+    "932b77cc0970f2f50886819a406fab5f32b93738fa0dedbf53acbc67da53b872"
   ],
   "oil-painting": [
     "4da3ddbe5d6f4c61c970e07d1972d2c6a4320f58716c57ffbb387564d387ea54"
@@ -42,18 +48,30 @@
     "0162c82aab5c66e527107ce4e54e8f024ac66dbd2c7cb2a8e957067b4ad8186e"
   ],
   "radial-zoom-blur": [
-    "7bd7b4f361fd8265b61aa186c497eab09f3ca4895129685813934d4448630335"
+    "4f565a276b5e0156cbe7a3db79e5727256e48e82601d29dc7d54342540e7175c"
+  ],
+  "recolor-alias": [
+    "0d7ef54485f88f9a6d13a262bfeb1b4b473664180b51bac35777db97f5775e46"
   ],
   "svg-on-concrete": [
-    "9b7f2d2d6b842c9596722f2d9e398fc3363015e41f3e816dd553774168277c4b"
+    "3ecab11a140f7f54ce2e85cd84eb4d5f6107cf844d38ac2325e4163aac2aa675"
+  ],
+  "swirl-blur-alias": [
+    "43abf7d6bc7b7e5b36059cc4c2fadac4d55a6ba81a0409ae3d3f15856e25720f"
   ],
   "twirl-distortion": [
     "ffc96257fcd92174e7c6b93ad21b9c96a3e9803052c299869fa1f6c73469b3a7"
+  ],
+  "vignette-alias": [
+    "723f708f4f20e75121f8fe725018cd49994accd62b921e2549dd20dd21590d5c"
   ],
   "watercolor": [
     "29a113109c728ff0f3c7775f596fa06fb93f99ebfa8daa5c83f4d73c89fb062f"
   ],
   "wood-grain": [
     "58b99a14550bc7a81a17eab4063cbe52f1c6e702cd1e607aa9815df77eedc257"
+  ],
+  "zoom-blur-alias": [
+    "f5f746909fd198f43bed6388444ecf250a12f6f2f599e2215e602a2231bc43a2"
   ]
 }

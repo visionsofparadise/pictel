@@ -10,7 +10,7 @@ export default function PopArt() {
 				apply={
 					<Threshold threshold={140}>
 						<Outline sigma={2.4} k={1.6} epsilon={0.005} phi={200}>
-							<Image src={PHOTO_URL} width={640} height={960} fit="cover" crossOrigin="anonymous" />
+							<Image src={PHOTO_URL} width={640} height={960} fit="cover" />
 						</Outline>
 					</Threshold>
 				}
@@ -18,7 +18,7 @@ export default function PopArt() {
 				<Halftone colorMode="color" dotSize={10}>
 					<Contrast amount={1.35}>
 						<Saturate amount={2.4}>
-							<Image src={PHOTO_URL} width={640} height={960} fit="cover" crossOrigin="anonymous" />
+							<Image src={PHOTO_URL} width={640} height={960} fit="cover" />
 						</Saturate>
 					</Contrast>
 				</Halftone>

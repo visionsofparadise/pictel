@@ -40,7 +40,7 @@ export default function SubtractArt() {
 						/>
 					}
 				>
-					<Image src={CITY_URL} width={W} height={H} fit="cover" crossOrigin="anonymous" />
+					<Image src={CITY_URL} width={W} height={H} fit="cover" />
 				</Subtract>
 			</ColorGrade>
 		</Canvas>

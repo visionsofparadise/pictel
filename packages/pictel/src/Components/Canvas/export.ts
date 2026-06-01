@@ -65,7 +65,7 @@ export async function exportCanvas(options: ExportOptions): Promise<void> {
 		const mimeType = `image/${options.format}` as const;
 		const blob = await canvasToBlob(captured, mimeType, options.format === "png" ? undefined : options.quality);
 
-		triggerDownload(blob, `${options.canvasName}.${options.format}`);
+		await saveBlob(blob, `${options.canvasName}.${options.format}`, options.format);
 	} catch (error) {
 		if (error instanceof ExportError) {
 			throw error;
@@ -116,14 +116,16 @@ function waitForReady(iframe: HTMLIFrameElement): Promise<void> {
 
 			if (!doc?.documentElement) return false;
 
-			if (doc.querySelector("[data-pictel-canvas][data-pictel-pending]") === null) {
-				cleanup();
-				resolve();
+			const canvas = doc.querySelector(CANVAS_SELECTOR);
 
-				return true;
-			}
+			if (canvas === null) return false;
 
-			return false;
+			if (canvas.hasAttribute("data-pictel-pending")) return false;
+
+			cleanup();
+			resolve();
+
+			return true;
 		}
 
 		const doc = iframe.contentDocument;
@@ -171,7 +173,43 @@ function canvasToBlob(canvas: HTMLCanvasElement, mimeType: string, quality: numb
 	});
 }
 
-function triggerDownload(blob: Blob, filename: string): void {
+interface FileSystemWritableFileStream {
+	write(data: Blob): Promise<void>;
+	close(): Promise<void>;
+}
+
+interface FileSystemFileHandle {
+	createWritable(): Promise<FileSystemWritableFileStream>;
+}
+
+interface SaveFilePickerOptions {
+	suggestedName?: string;
+	types?: Array<{ description?: string; accept: Record<string, Array<string>> }>;
+}
+
+type ShowSaveFilePicker = (options?: SaveFilePickerOptions) => Promise<FileSystemFileHandle>;
+
+async function saveBlob(blob: Blob, filename: string, format: ExportOptions["format"]): Promise<void> {
+	const showSaveFilePicker = (window as Window & { showSaveFilePicker?: ShowSaveFilePicker }).showSaveFilePicker;
+
+	if (typeof showSaveFilePicker === "function") {
+		try {
+			const handle = await showSaveFilePicker({
+				suggestedName: filename,
+				types: [{ description: `${format.toUpperCase()} image`, accept: { [`image/${format}`]: [`.${format}`] } }],
+			});
+			const writable = await handle.createWritable();
+			await writable.write(blob);
+			await writable.close();
+
+			return;
+		} catch (error) {
+			if (error instanceof DOMException && error.name === "AbortError") return;
+
+			throw error;
+		}
+	}
+
 	const objectUrl = URL.createObjectURL(blob);
 	const anchor = document.createElement("a");
 	anchor.href = objectUrl;

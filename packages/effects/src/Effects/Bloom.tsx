@@ -84,6 +84,7 @@ interface BloomProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -94,6 +95,7 @@ interface BloomProps {
  * - `radius` — Glow blur radius in pixels. Larger values spread the glow further. Default 16.
  * - `intensity` — Glow strength multiplier. Default 1.
  * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
@@ -105,7 +107,11 @@ export function Bloom({
 	mode = "parameter",
 	map,
 	children,
+	version,
 }: BloomProps) {
+	const internal = `bloom@1+t=${threshold}+r=${radius}+i=${intensity}+m=${mode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -124,7 +130,7 @@ export function Bloom({
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

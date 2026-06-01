@@ -142,6 +142,7 @@ interface CubeLUTProps {
 	src: string
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -149,11 +150,15 @@ interface CubeLUTProps {
  * applies trilinear-interpolated color transformation.
  *
  * - `src` — URL to a .cube LUT file.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function CubeLUT({ src, map, children }: CubeLUTProps) {
+export function CubeLUT({ src, map, children, version }: CubeLUTProps) {
+	const internal = `cubeLUT@1+u=${src}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const [lutData, setLutData] = useState<{ lut: Float32Array; size: number } | null>(null)
 
 	useEffect(() => {
@@ -187,7 +192,7 @@ export function CubeLUT({ src, map, children }: CubeLUTProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

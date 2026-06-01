@@ -32,17 +32,22 @@ interface InvertProps {
 	amount?: number
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
  * Inverts pixel colors.
  *
  * - `amount` — Inversion amount. 0 is unchanged, 1 is fully inverted. Default 1.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Invert({ amount = 1, map, children }: InvertProps) {
+export function Invert({ amount = 1, map, children, version }: InvertProps) {
+	const internal = `invert@1+a=${amount}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			const result = applyInvert(target, amount)
@@ -57,7 +62,7 @@ export function Invert({ amount = 1, map, children }: InvertProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

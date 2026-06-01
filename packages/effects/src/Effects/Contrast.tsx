@@ -52,17 +52,22 @@ interface ContrastProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
  * Adjusts pixel contrast by scaling deviation from mid-gray.
  *
  * - `amount` — Contrast multiplier. 1 is unchanged, 0 is flat gray, greater than 1 increases contrast.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Contrast({ amount = 1, mode = "mix", map, children }: ContrastProps) {
+export function Contrast({ amount = 1, mode = "mix", map, children, version }: ContrastProps) {
+	const internal = `contrast@1+a=${amount}+m=${mode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -81,7 +86,7 @@ export function Contrast({ amount = 1, mode = "mix", map, children }: ContrastPr
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

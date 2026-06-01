@@ -50,17 +50,22 @@ interface ThresholdProps {
 	threshold: number
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
  * Converts each pixel to pure black or white based on a luminance threshold.
  *
  * - `threshold` — Luminance threshold (0-255). Pixels at or above become white.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Threshold({ threshold, map, children }: ThresholdProps) {
+export function Threshold({ threshold, map, children, version }: ThresholdProps) {
+	const internal = `threshold@1+t=${threshold}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -73,7 +78,7 @@ export function Threshold({ threshold, map, children }: ThresholdProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

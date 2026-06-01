@@ -12,6 +12,7 @@ export default defineConfig({
     test: {
         globals: true,
         include: ["src/**/*.integration.test.ts", "src/**/*.integration.test.tsx"],
+        setupFiles: ["./src/test-setup/clear-cache.ts"],
         passWithNoTests: true,
         browser: {
             enabled: true,

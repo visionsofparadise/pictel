@@ -24,6 +24,7 @@ interface RemoveBackgroundProps {
 	model?: string
 	revision?: string
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -31,6 +32,7 @@ interface RemoveBackgroundProps {
  *
  * - `model` — Hugging Face model ID for background removal. Defaults to `onnx-community/BEN2-ONNX`.
  * - `revision` — Pinned model revision hash. Defaults to the commit the package ships against. Override alongside `model` when swapping models.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Segmentation
@@ -39,7 +41,11 @@ export function RemoveBackground({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
 	children,
+	version,
 }: RemoveBackgroundProps) {
+	const internal = `removeBackground@1+m=${model}+r=${revision}+b=webgpu`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const subscription = useMemo(
 		() => {
 			const sub = subscribePipeline(TASK, model, revision)
@@ -63,7 +69,7 @@ export function RemoveBackground({
 	)
 
 	return (
-		<RasterEffect effect={effect}>
+		<RasterEffect effect={effect} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

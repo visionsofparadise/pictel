@@ -116,6 +116,7 @@ interface LuminanceBandsProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -126,12 +127,16 @@ interface LuminanceBandsProps {
  * - `bands` — Number of discrete brightness tiers. Minimum 2.
  * - `thresholds` — Optional explicit tier boundaries (length = `bands - 1`, ascending values in `0..255`). Defaults to equal spacing.
  * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function LuminanceBands({ bands, thresholds, mode, map, children }: LuminanceBandsProps) {
+export function LuminanceBands({ bands, thresholds, mode, map, children, version }: LuminanceBandsProps) {
 	const resolvedMode = mode ?? "parameter"
+
+	const internal = `luminanceBands@1+b=${bands}+t=${thresholds ? JSON.stringify(thresholds) : "_"}+m=${resolvedMode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
 
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
@@ -151,7 +156,7 @@ export function LuminanceBands({ bands, thresholds, mode, map, children }: Lumin
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

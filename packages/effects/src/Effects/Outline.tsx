@@ -102,6 +102,7 @@ interface OutlineProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -114,6 +115,7 @@ interface OutlineProps {
  * - `epsilon` — Outline threshold in `[-1, 1]`. Default 0 — uniform regions stay white and only the dark side of edges gets drawn. Negative values thicken strokes; positive values darken low-luminance regions toward sketchy output.
  * - `phi` — Edge sharpness. Higher is more binary; lower is softer. Default 200.
  * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
@@ -126,7 +128,11 @@ export function Outline({
 	mode = "parameter",
 	map,
 	children,
+	version,
 }: OutlineProps) {
+	const internal = `outline@1+s=${sigma}+k=${kappa}+e=${epsilon}+p=${phi}+m=${mode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -145,7 +151,7 @@ export function Outline({
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

@@ -56,6 +56,7 @@ export function applyColorGrade(pixels: ImageData, adjustments: ColorGradeAdjust
 interface ColorGradeProps extends ColorGradeAdjustments {
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -66,6 +67,7 @@ interface ColorGradeProps extends ColorGradeAdjustments {
  * - `saturation` — Saturation multiplier. Default 1.
  * - `temperature` — Warm/cool shift. Positive warms (adds red, removes blue), negative cools.
  * - `tint` — Green/magenta shift. Positive adds magenta, negative adds green.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
@@ -78,7 +80,11 @@ export function ColorGrade({
 	tint,
 	map,
 	children,
+	version,
 }: ColorGradeProps) {
+	const internal = `colorGrade@1+b=${brightness}+c=${contrast}+s=${saturation}+t=${temperature}+n=${tint}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			const result = applyColorGrade(target, { brightness, contrast, saturation, temperature, tint })
@@ -93,7 +99,7 @@ export function ColorGrade({
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

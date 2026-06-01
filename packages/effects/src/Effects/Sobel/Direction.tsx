@@ -141,6 +141,7 @@ interface DirectionProps {
 	space?: "luminance" | "color"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -163,6 +164,7 @@ interface DirectionProps {
  *   gradient direction with colour-distance magnitude. `space="color"` is
  *   honoured only for `mode="gradient"` — `mode="structure"` always uses
  *   luminance regardless of `space`.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
@@ -173,7 +175,11 @@ export function Direction({
 	space = "luminance",
 	map,
 	children,
+	version,
 }: DirectionProps) {
+	const internal = `direction@1+k=${kernel}+m=${mode}+s=${space}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			const result =
@@ -191,7 +197,7 @@ export function Direction({
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

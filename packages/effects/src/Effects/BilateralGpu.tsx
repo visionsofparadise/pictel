@@ -33,6 +33,11 @@ interface BilateralGpuProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	/**
+	 * Optional cache-bust handle. Composed with this effect's internal version;
+	 * bumping invalidates the cached output for this subtree.
+	 */
+	version?: string
 }
 
 export function BilateralGpu({
@@ -41,6 +46,7 @@ export function BilateralGpu({
 	mode = "parameter",
 	map,
 	children,
+	version,
 }: BilateralGpuProps) {
 	const effect = useCallback<RasterEffectCallback>(
 		async (target, _apply, mapPixels) => {
@@ -59,8 +65,11 @@ export function BilateralGpu({
 		[spatialSigma, colorSigma, mode],
 	)
 
+	const internalVersion = `bilateral@1+gpu+ss=${spatialSigma}+cs=${colorSigma}+m=${mode}`
+	const composedVersion = version === undefined ? internalVersion : `${internalVersion}+${version}`
+
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

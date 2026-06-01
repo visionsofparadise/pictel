@@ -106,6 +106,7 @@ interface ImageLUTProps {
 	size: number
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -113,11 +114,15 @@ interface ImageLUTProps {
  *
  * - `src` — URL to the LUT image.
  * - `size` — Grid dimension of the LUT (e.g., 16 for a 16x16x16 LUT).
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function ImageLUT({ src, size, map, children }: ImageLUTProps) {
+export function ImageLUT({ src, size, map, children, version }: ImageLUTProps) {
+	const internal = `imageLUT@1+u=${src}+s=${size}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const [lutImage, setLutImage] = useState<ImageData | null>(null)
 
 	useEffect(() => {
@@ -162,7 +167,7 @@ export function ImageLUT({ src, size, map, children }: ImageLUTProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

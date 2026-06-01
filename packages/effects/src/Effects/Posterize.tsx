@@ -51,17 +51,22 @@ interface PosterizeProps {
 	levels: number
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
  * Reduces color depth to a fixed number of levels per channel, creating a poster-like flat color effect.
  *
  * - `levels` — Number of discrete color levels per channel. Minimum 2.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Posterize({ levels, map, children }: PosterizeProps) {
+export function Posterize({ levels, map, children, version }: PosterizeProps) {
+	const internal = `posterize@1+l=${levels}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -74,7 +79,7 @@ export function Posterize({ levels, map, children }: PosterizeProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

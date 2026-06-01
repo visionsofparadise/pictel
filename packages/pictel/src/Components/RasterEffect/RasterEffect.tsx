@@ -2,10 +2,33 @@ import { useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, 
 import { createPortal } from "react-dom";
 import { useCanvasContext } from "../../context/canvas";
 import { RasterEffectContext, createRegistry, useRasterEffectContext } from "../../context/raster-effect";
+import { getEffectCache } from "../../effect-cache/effect-cache";
+import { hashImageData } from "../../effect-cache/hash-pixels";
 import { normalizeResult, type EffectResult } from "../utils/raster";
 import { createRasterEffectError } from "./Error";
 import { captureWrapper } from "./utils/capture";
 import { getOwnImages } from "./utils/scope";
+
+// Tracks which (effect, version) pairs we've already warned about for the
+// non-zero-overflow cache-skip. Per the v1 design doc carve-out, the cache
+// entry shape stores output pixels only; effects that bleed (Blur, DropShadow,
+// Bloom, Outline, Hatch/LIC with map-driven kernels) skip the cache write and
+// log once.
+const overflowSkipLogged = new WeakMap<RasterEffectCallback, Set<string>>();
+
+function logOverflowSkipOnce(effect: RasterEffectCallback, version: string): void {
+	let versions = overflowSkipLogged.get(effect);
+
+	if (versions === undefined) {
+		versions = new Set();
+		overflowSkipLogged.set(effect, versions);
+	}
+
+	if (versions.has(version)) return;
+
+	versions.add(version);
+	console.warn(`pictel effect cache: skipping cache write for effect with non-zero overflow (version=${version})`);
+}
 
 type ImageLoadState = "loaded" | "loading";
 
@@ -119,6 +142,7 @@ interface RasterEffectProps {
 	children: ReactNode;
 	apply?: ReactNode;
 	map?: ReactNode;
+	version?: string;
 }
 
 interface Snapshot {
@@ -150,11 +174,12 @@ interface Lifecycle {
  * - `children` — Required. The base layer the effect operates on. Rendered live in the layout, then replaced by the output canvas once the effect resolves.
  * - `apply` — Optional overlay layer for blend-style effects. Captured in parallel with children and passed to `effect` as the second argument. Renders offscreen — not visible in the live composition.
  * - `map` — Optional parameter map for map-driven effects (displacement fields, depth, segmentation masks). Captured in parallel with children and passed to `effect` as the third argument. Renders offscreen — not visible in the live composition.
+ * - `version` — Optional cache key. When set, the captured input pixels are hashed and combined with this string to look up a previously-computed output in the IndexedDB-backed effect cache; on hit, the cached pixels are used and `effect` is not called. On miss, `effect` runs and its output is written back. When undefined, the cache is bypassed entirely — no hashing, no lookup, no write. Standard effects in `@pictel/effects` and `@pictel/ml` accept a `version?: string` prop and compose it with their internal version; pass `version` at any layer to force invalidation downward. The cache trusts the version string: when authoring a custom effect, bump its internal version whenever `apply` changes in a way that affects output pixels. Effects that return non-zero `EffectResult.overflow` (`Blur`, `DropShadow`, `Bloom`, `Outline`, certain `Hatch` / `LIC` configurations) skip the cache write in v1 — the entry shape stores output pixels only — with a one-time `console.warn` per `(effect, version)` pair. See [design-effect-output-cache](https://github.com/visionsofparadise/planner/blob/main/projects/code/pictel/design-effect-output-cache.md).
  *
  * @param props
  * @category RasterEffect
  */
-export function RasterEffect({ effect, children, apply, map }: RasterEffectProps) {
+export function RasterEffect({ effect, children, apply, map, version }: RasterEffectProps) {
 	const id = useId();
 	const childrenSlotRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -210,6 +235,7 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 
 		const controller = new AbortController();
 		const { signal } = controller;
+		const cache = getEffectCache();
 
 		const unsubscribe = selfRegistry.subscribe(() => {
 			if (signal.aborted) return;
@@ -258,9 +284,27 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 		}
 
 		let snapshotWasNullForInvalidate = false;
+		let executeInFlight = false;
+		let rerunQueued = false;
+		// True from the moment an execute either starts (in-flight) or
+		// completes successfully (set a snapshot). Stays true until
+		// `invalidate()` clears it. Used to suppress spurious `gate()` calls
+		// that fire after the snapshot is already current — most importantly
+		// the ResizeObserver's initial-entry delivery, which lands after the
+		// first execute completes and would otherwise re-run the effect a
+		// second time on a clean first mount.
+		let snapshotIsCurrent = false;
 
 		function invalidate(): void {
 			if (signal.aborted) return;
+
+			// Real invalidation — the in-flight or completed result is now
+			// stale. If something is in flight, queue a rerun for when it
+			// finishes; either way, the current snapshot (if any) is no
+			// longer authoritative.
+			if (executeInFlight) rerunQueued = true;
+
+			snapshotIsCurrent = false;
 
 			if (snapshotWasNullForInvalidate) return;
 
@@ -268,6 +312,8 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 
 			setSnapshot(null);
 		}
+
+		const imagesWithListeners = new WeakSet<HTMLImageElement>();
 
 		function gate(): void {
 			if (signal.aborted || !childrenSlot) return;
@@ -278,6 +324,9 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 
 			if (unloaded.length > 0) {
 				for (const img of unloaded) {
+					if (imagesWithListeners.has(img)) continue;
+
+					imagesWithListeners.add(img);
 					img.addEventListener(
 						"load",
 						() => {
@@ -304,6 +353,19 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 
 			if (childrenW === 0 && childrenH === 0) return;
 
+			// Spurious gate during an in-flight execute (ResizeObserver initial
+			// entry, layout-driven resize while we're capturing, etc.) — no
+			// real invalidation, no rerun. invalidate() is the only path that
+			// queues a rerun for after the in-flight execute.
+			if (executeInFlight) return;
+
+			// The snapshot already reflects the latest inputs — this gate
+			// call has no real invalidation behind it (most often the
+			// ResizeObserver initial-entry delivery that lands after the
+			// first execute already completed). Skip it; another execute
+			// with the same inputs would just produce the same pixels.
+			if (snapshotIsCurrent) return;
+
 			const wasPending = pendingRef.current;
 			pendingRef.current = true;
 
@@ -311,7 +373,19 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 
 			setSlotSize({ width: childrenW, height: childrenH });
 
-			void Promise.resolve().then(() => execute(childrenW, childrenH));
+			executeInFlight = true;
+			void Promise.resolve().then(async () => {
+				try {
+					await execute(childrenW, childrenH);
+				} finally {
+					executeInFlight = false;
+
+					if (rerunQueued && !signal.aborted) {
+						rerunQueued = false;
+						gate();
+					}
+				}
+			});
 		}
 
 		async function execute(contentW: number, contentH: number): Promise<void> {
@@ -331,25 +405,72 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (signal.aborted) return;
 
-				const rawResult = await effect(targetPixels, applyPixels, mapPixels);
+				let pixels: ImageData;
+				let overflow: { top: number; right: number; bottom: number; left: number };
+				let pixelsFromCache = false;
 
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (signal.aborted) return;
+				if (version !== undefined) {
+					const cacheKey = {
+						targetHash: hashImageData(targetPixels),
+						applyHash: applyPixels === undefined ? null : hashImageData(applyPixels),
+						mapHash: mapPixels === undefined ? null : hashImageData(mapPixels),
+						version,
+					};
 
-				const { pixels, overflow } = normalizeResult(rawResult);
+					const cached = await cache.get(cacheKey);
+
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (signal.aborted) return;
+
+					if (cached !== null) {
+						pixels = cached;
+						overflow = { top: 0, right: 0, bottom: 0, left: 0 };
+						pixelsFromCache = true;
+					} else {
+						const rawResult = await effect(targetPixels, applyPixels, mapPixels);
+
+						// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+						if (signal.aborted) return;
+
+						const normalized = normalizeResult(rawResult);
+						pixels = normalized.pixels;
+						overflow = normalized.overflow;
+
+						const hasOverflow = overflow.top !== 0 || overflow.right !== 0 || overflow.bottom !== 0 || overflow.left !== 0;
+
+						if (hasOverflow) {
+							logOverflowSkipOnce(effect, version);
+						} else {
+							void cache.put(cacheKey, pixels);
+						}
+					}
+				} else {
+					const rawResult = await effect(targetPixels, applyPixels, mapPixels);
+
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (signal.aborted) return;
+
+					const normalized = normalizeResult(rawResult);
+					pixels = normalized.pixels;
+					overflow = normalized.overflow;
+				}
 
 				// Release captured framework-owned buffers back to the pool. Skip
 				// any buffer the effect returned as its result — that one is now
 				// the snapshot's `pixels` and remains live. User-allocated
 				// ImageData returned from effect callbacks is user-owned by
-				// contract and is not released by the framework.
-				if (targetPixels !== pixels) imageDataPool.release(targetPixels);
+				// contract and is not released by the framework. On cache HIT,
+				// `pixels` was freshly-allocated by the cache (its buffer was
+				// sliced) so it is not pool-owned — all three captured buffers
+				// are released unconditionally.
+				if (pixelsFromCache || targetPixels !== pixels) imageDataPool.release(targetPixels);
 
-				if (applyPixels !== undefined && applyPixels !== pixels) imageDataPool.release(applyPixels);
+				if (applyPixels !== undefined && (pixelsFromCache || applyPixels !== pixels)) imageDataPool.release(applyPixels);
 
-				if (mapPixels !== undefined && mapPixels !== pixels) imageDataPool.release(mapPixels);
+				if (mapPixels !== undefined && (pixelsFromCache || mapPixels !== pixels)) imageDataPool.release(mapPixels);
 
 				snapshotWasNullForInvalidate = false;
+				snapshotIsCurrent = true;
 
 				setSnapshot({
 					bufW: pixels.width,
@@ -473,7 +594,7 @@ export function RasterEffect({ effect, children, apply, map }: RasterEffectProps
 			lifecycleRef.current?.dispose();
 			lifecycleRef.current = null;
 		};
-	}, [id, effect, hasApply, hasMap, applySlot, mapSlot, captureDimensions, reportError, parent, selfRegistry, imageDataPool]);
+	}, [id, effect, version, hasApply, hasMap, applySlot, mapSlot, captureDimensions, reportError, parent, selfRegistry, imageDataPool]);
 
 	const lastSeenSnapshotRef = useRef<Snapshot | null>(null);
 

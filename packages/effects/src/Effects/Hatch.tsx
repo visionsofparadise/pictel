@@ -196,6 +196,7 @@ interface HatchProps {
 	uniformStep?: boolean
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -215,6 +216,7 @@ interface HatchProps {
  * - `stepSize` — Field-aligned step size in pixels. Default 1.0.
  * - `uniformStep` — Field-aligned mode: integrate at a constant step length, ignoring the field's magnitude channel. Default false. Set true when the map is a smooth field (e.g. a depth gradient) so the lines actually follow it.
  * - `map` — Optional direction field as JSX. When provided, switches to field-aligned mode and the hatching follows the field.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
@@ -228,6 +230,7 @@ export function Hatch({
 	uniformStep = false,
 	map,
 	children,
+	version,
 }: HatchProps) {
 	if (bands < 2) {
 		throw new Error(`Hatch: bands must be >= 2 (got ${String(bands)})`)
@@ -247,6 +250,9 @@ export function Hatch({
 
 	const resolvedAngles = angles ?? (bands === DEFAULT_BANDS ? DEFAULT_ANGLES : undefined)
 
+	const internal = `hatch@1+b=${bands}+a=${resolvedAngles ? JSON.stringify(resolvedAngles) : "_"}+s=${JSON.stringify(spacing)}+l=${length}+t=${stepSize}+u=${uniformStep}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -265,7 +271,7 @@ export function Hatch({
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

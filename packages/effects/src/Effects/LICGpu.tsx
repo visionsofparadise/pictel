@@ -8,6 +8,11 @@ interface LICGpuProps {
 	uniformStep?: boolean
 	map: ReactNode
 	children: ReactNode
+	/**
+	 * Optional cache-bust handle. Composed with this effect's internal version;
+	 * bumping invalidates the cached output for this subtree.
+	 */
+	version?: string
 }
 
 /**
@@ -32,6 +37,7 @@ export function LICGpu({
 	uniformStep = false,
 	map,
 	children,
+	version,
 }: LICGpuProps) {
 	const effect = useCallback<RasterEffectCallback>(
 		async (target, _apply, mapPixels) => {
@@ -44,8 +50,11 @@ export function LICGpu({
 		[length, stepSize, uniformStep],
 	)
 
+	const internalVersion = `lic@1+gpu+l=${length}+s=${stepSize}+u=${uniformStep}`
+	const composedVersion = version === undefined ? internalVersion : `${internalVersion}+${version}`
+
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

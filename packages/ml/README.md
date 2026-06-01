@@ -60,12 +60,13 @@ ML components are `RasterEffect`s — they process their children and output pix
 
 > **RemoveBackground**(`props`): `Element`
 
-Defined in: [Components/RemoveBackground.tsx:38](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/RemoveBackground.tsx#L38)
+Defined in: [Components/RemoveBackground.tsx:40](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/RemoveBackground.tsx#L40)
 
 Removes the background from the child content — the subject keeps its color, everything else becomes transparent. Stack over any background (gradient, image, solid color) for cutout compositions. Requires WebGPU.
 
 - `model` — Hugging Face model ID for background removal. Defaults to `onnx-community/BEN2-ONNX`.
 - `revision` — Pinned model revision hash. Defaults to the commit the package ships against. Override alongside `model` when swapping models.
+- `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
 
 #### Parameters
 
@@ -83,7 +84,7 @@ Removes the background from the child content — the subject keeps its color, e
 
 > **Sam2**(`props`): `Element`
 
-Defined in: [Components/Sam2.tsx:152](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Sam2.tsx#L152)
+Defined in: [Components/Sam2.tsx:154](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Sam2.tsx#L154)
 
 Point-prompted segmentation — drop one or more `points` on what you want segmented and SAM2 returns a white-on-black mask of that region. Use `negativePoints` to carve regions out of the result. Reach for this over `SegFormer` when you want to target a specific subject rather than label everything. Pass through a downstream effect's `map` prop to confine that effect to the masked region. Requires WebGPU.
 
@@ -91,6 +92,7 @@ Point-prompted segmentation — drop one or more `points` on what you want segme
 - `negativePoints` — Negative point prompts in pixel coordinates indicating regions to exclude from the result. Defaults to `[]`.
 - `model` — Hugging Face model ID for SAM2. Defaults to `onnx-community/sam2-hiera-tiny-ONNX`.
 - `revision` — Pinned model revision. Defaults to `main`. Override alongside `model` when swapping models.
+- `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
 
 #### Parameters
 
@@ -108,12 +110,13 @@ Point-prompted segmentation — drop one or more `points` on what you want segme
 
 > **SegFormer**(`props`): `Element`
 
-Defined in: [Components/SegFormer.tsx:78](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/SegFormer.tsx#L78)
+Defined in: [Components/SegFormer.tsx:80](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/SegFormer.tsx#L80)
 
 Automatic semantic segmentation — labels every region of the child content and outputs a color-coded segment map (each detected class gets a deterministic palette color). Reach for this when you want every object segmented without prompting; use `Sam2` instead when you need to target a specific region by clicking points. Pass through a downstream effect's `map` prop to drive per-segment effects. Requires WebGPU.
 
 - `model` — Hugging Face model ID for semantic segmentation. Defaults to `Xenova/segformer-b0-finetuned-ade-512-512`.
 - `revision` — Pinned model revision. Defaults to `main`. Override alongside `model` when swapping models.
+- `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
 
 #### Parameters
 
@@ -151,12 +154,13 @@ Discriminated union component that delegates to [Sam2](#sam2) or [SegFormer](#se
 
 > **Upscale**(`props`): `Element`
 
-Defined in: [Components/Upscale.tsx:36](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Upscale.tsx#L36)
+Defined in: [Components/Upscale.tsx:38](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/Upscale.tsx#L38)
 
 Upscales child content to higher resolution — the default model doubles each dimension. The canvas backing buffer grows; the rendered surface keeps the original layout footprint so upscaled pixels read as added detail rather than added size. Requires WebGPU.
 
 - `model` — Hugging Face model ID for super-resolution. Defaults to `Xenova/swin2SR-classical-sr-x2-64` (2×).
 - `revision` — Pinned model revision hash. Defaults to the commit the package ships against. Override alongside `model` when swapping models.
+- `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
 
 #### Parameters
 
@@ -174,12 +178,13 @@ Upscales child content to higher resolution — the default model doubles each d
 
 > **DepthMap**(`props`): `Element`
 
-Defined in: [Components/DepthMap.tsx:37](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/DepthMap.tsx#L37)
+Defined in: [Components/DepthMap.tsx:39](https://github.com/visionsofparadise/pictel/blob/main/packages/ml/src/Components/DepthMap.tsx#L39)
 
 Produces a grayscale depth map of the child content — nearer surfaces brighter, farther surfaces darker. Pass through a downstream effect's `map` prop to drive depth-based effects (variable-radius blur, depth-cued color grading, parallax displacement). Requires WebGPU.
 
 - `model` — Hugging Face model ID for depth estimation. Defaults to `onnx-community/depth-anything-v2-small`.
 - `revision` — Pinned model revision hash. Defaults to the commit the package ships against. Override alongside `model` when swapping models.
+- `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
 
 #### Parameters
 

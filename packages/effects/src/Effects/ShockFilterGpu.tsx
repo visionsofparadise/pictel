@@ -10,6 +10,11 @@ interface ShockFilterGpuProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	/**
+	 * Optional cache-bust handle. Composed with this effect's internal version;
+	 * bumping invalidates the cached output for this subtree.
+	 */
+	version?: string
 }
 
 /**
@@ -28,6 +33,7 @@ export function ShockFilterGpu({
 	mode = "parameter",
 	map,
 	children,
+	version,
 }: ShockFilterGpuProps) {
 	const effect = useCallback<RasterEffectCallback>(
 		async (target, _apply, mapPixels) => {
@@ -46,8 +52,11 @@ export function ShockFilterGpu({
 		[iterations, strength, mode],
 	)
 
+	const internalVersion = `shockFilter@1+gpu+i=${iterations}+s=${strength}+m=${mode}`
+	const composedVersion = version === undefined ? internalVersion : `${internalVersion}+${version}`
+
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

@@ -19,3 +19,5 @@ export { useParams } from "./hooks/useParams";
 export { useSearchParam } from "./hooks/useSearchParam";
 export { DEFAULT_MODE, MODES, type Mode } from "./hooks/useMode";
 export { staticFile } from "./utils/staticFile";
+export { clearEffectCache, createEffectCache, getEffectCache, type CacheKeyParts, type CreateEffectCacheOptions, type EffectCache } from "./effect-cache/effect-cache";
+export { hashCanvasPixels, hashImageData } from "./effect-cache/hash-pixels";

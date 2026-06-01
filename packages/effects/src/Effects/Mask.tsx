@@ -38,6 +38,7 @@ interface MaskProps {
 	map: ReactNode
 	source?: MaskSource
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -53,11 +54,15 @@ interface MaskProps {
  * Requires a `map`; without one the effect throws.
  *
  * - `source` — `"alpha"` (default) reads the map's alpha channel; `"luminance"` reads its brightness (white keeps, black drops).
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Mask({ map, source = "alpha", children }: MaskProps) {
+export function Mask({ map, source = "alpha", children, version }: MaskProps) {
+	const internal = `mask@1+s=${source}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels === undefined) {
@@ -70,7 +75,7 @@ export function Mask({ map, source = "alpha", children }: MaskProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

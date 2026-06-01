@@ -23,6 +23,7 @@ interface DepthMapProps {
 	model?: string
 	revision?: string
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -30,6 +31,7 @@ interface DepthMapProps {
  *
  * - `model` — Hugging Face model ID for depth estimation. Defaults to `onnx-community/depth-anything-v2-small`.
  * - `revision` — Pinned model revision hash. Defaults to the commit the package ships against. Override alongside `model` when swapping models.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Analysis
@@ -38,7 +40,11 @@ export function DepthMap({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
 	children,
+	version,
 }: DepthMapProps) {
+	const internal = `depthMap@1+m=${model}+r=${revision}+b=webgpu`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const subscription = useMemo(
 		() => {
 			const sub = subscribePipeline(TASK, model, revision)
@@ -62,7 +68,7 @@ export function DepthMap({
 	)
 
 	return (
-		<RasterEffect effect={effect}>
+		<RasterEffect effect={effect} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

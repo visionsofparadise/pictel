@@ -52,17 +52,22 @@ interface OpacityProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
  * Adjusts pixel opacity by scaling the alpha channel.
  *
  * - `amount` — Opacity multiplier. 1 is unchanged, 0 is fully transparent. Default 1.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Opacity({ amount = 1, mode = "mix", map, children }: OpacityProps) {
+export function Opacity({ amount = 1, mode = "mix", map, children, version }: OpacityProps) {
+	const internal = `opacity@1+a=${amount}+m=${mode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -81,7 +86,7 @@ export function Opacity({ amount = 1, mode = "mix", map, children }: OpacityProp
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

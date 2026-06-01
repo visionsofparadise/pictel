@@ -17,6 +17,11 @@ interface OverlayProps {
 	apply: ReactNode
 	opacity?: number
 	children: ReactNode
+	/**
+	 * Optional cache-bust handle. Composed with this blend mode's internal version;
+	 * bumping invalidates the cached output for this subtree.
+	 */
+	version?: string
 }
 
 /**
@@ -26,7 +31,7 @@ interface OverlayProps {
  * @param props
  * @category Blend Modes
  */
-export function Overlay({ apply, opacity = 1, children }: OverlayProps) {
+export function Overlay({ apply, opacity = 1, children, version }: OverlayProps) {
 	/* eslint-disable @typescript-eslint/no-non-null-assertion */
 	const effectCallback = useCallback<RasterEffectCallback>(
 		(target, applyPixels) => {
@@ -38,8 +43,11 @@ export function Overlay({ apply, opacity = 1, children }: OverlayProps) {
 	)
 	/* eslint-enable @typescript-eslint/no-non-null-assertion */
 
+	const internalVersion = `overlay@1+o=${opacity}`
+	const composedVersion = version === undefined ? internalVersion : `${internalVersion}+${version}`
+
 	return (
-		<RasterEffect effect={effectCallback} apply={apply}>
+		<RasterEffect effect={effectCallback} apply={apply} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

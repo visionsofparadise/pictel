@@ -64,6 +64,7 @@ interface SegFormerProps {
 	model?: string
 	revision?: string
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -71,6 +72,7 @@ interface SegFormerProps {
  *
  * - `model` — Hugging Face model ID for semantic segmentation. Defaults to `Xenova/segformer-b0-finetuned-ade-512-512`.
  * - `revision` — Pinned model revision. Defaults to `main`. Override alongside `model` when swapping models.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Segmentation
@@ -79,7 +81,11 @@ export function SegFormer({
 	model = DEFAULT_MODEL,
 	revision = DEFAULT_REVISION,
 	children,
+	version,
 }: SegFormerProps) {
+	const internal = `segFormer@1+m=${model}+r=${revision}+b=webgpu`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const subscription = useMemo(
 		() => {
 			const sub = subscribePipeline(TASK, model, revision)
@@ -103,7 +109,7 @@ export function SegFormer({
 	)
 
 	return (
-		<RasterEffect effect={effect}>
+		<RasterEffect effect={effect} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

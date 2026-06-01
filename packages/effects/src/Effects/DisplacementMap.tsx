@@ -48,6 +48,7 @@ interface DisplacementMapProps {
 	useMagnitude?: boolean
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -60,6 +61,7 @@ interface DisplacementMapProps {
  *   (`B/255`), letting `DisplacementMap` consume a Direction-encoded field (e.g.
  *   `VectorField`) that carries unit direction in R/G and magnitude in B. Default
  *   false, which ignores B and treats R/G as the full displacement vector.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
@@ -70,7 +72,11 @@ export function DisplacementMap({
 	useMagnitude = false,
 	map,
 	children,
+	version,
 }: DisplacementMapProps) {
+	const internal = `displacementMap@1+x=${scaleX}+y=${scaleY}+u=${useMagnitude}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -83,7 +89,7 @@ export function DisplacementMap({
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

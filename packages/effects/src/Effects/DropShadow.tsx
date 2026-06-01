@@ -118,6 +118,7 @@ interface DropShadowProps {
 	color: string
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -127,11 +128,15 @@ interface DropShadowProps {
  * - `offsetY` — Vertical shadow offset in pixels.
  * - `blurRadius` — Shadow blur radius in pixels.
  * - `color` — Shadow color as hex (`#rgb`, `#rrggbb`, `#rrggbbaa`) or `rgb()`/`rgba()`.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function DropShadow({ offsetX, offsetY, blurRadius, color, map, children }: DropShadowProps) {
+export function DropShadow({ offsetX, offsetY, blurRadius, color, map, children, version }: DropShadowProps) {
+	const internal = `dropShadow@1+x=${offsetX}+y=${offsetY}+r=${blurRadius}+c=${color}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			const result = applyDropShadow(target, offsetX, offsetY, blurRadius, color)
@@ -150,7 +155,7 @@ export function DropShadow({ offsetX, offsetY, blurRadius, color, map, children 
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

@@ -6,6 +6,11 @@ import { applyBlurGpu } from "./applyBlurGpu"
 interface BlurGpuProps {
 	radius: number
 	children: ReactNode
+	/**
+	 * Optional cache-bust handle. Composed with this effect's internal version;
+	 * bumping invalidates the cached output for this subtree.
+	 */
+	version?: string
 }
 
 /**
@@ -23,11 +28,18 @@ interface BlurGpuProps {
  * @param props
  * @category Effects
  */
-export function BlurGpu({ radius, children }: BlurGpuProps) {
+export function BlurGpu({ radius, children, version }: BlurGpuProps) {
 	const effect = useCallback<RasterEffectCallback>(
 		async (target) => applyBlurGpu(target, radius),
 		[radius],
 	)
 
-	return <RasterEffect effect={effect}>{children}</RasterEffect>
+	const internalVersion = `blur@1+gpu+r=${radius}`
+	const composedVersion = version === undefined ? internalVersion : `${internalVersion}+${version}`
+
+	return (
+		<RasterEffect effect={effect} version={composedVersion}>
+			{children}
+		</RasterEffect>
+	)
 }

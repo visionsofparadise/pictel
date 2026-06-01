@@ -13,6 +13,11 @@ interface PinLightProps {
 	apply: ReactNode
 	opacity?: number
 	children: ReactNode
+	/**
+	 * Optional cache-bust handle. Composed with this blend mode's internal version;
+	 * bumping invalidates the cached output for this subtree.
+	 */
+	version?: string
 }
 
 /**
@@ -22,7 +27,7 @@ interface PinLightProps {
  * @param props
  * @category Blend Modes
  */
-export function PinLight({ apply, opacity = 1, children }: PinLightProps) {
+export function PinLight({ apply, opacity = 1, children, version }: PinLightProps) {
 	/* eslint-disable @typescript-eslint/no-non-null-assertion */
 	const effectCallback = useCallback<RasterEffectCallback>(
 		(target, applyPixels) => {
@@ -34,8 +39,11 @@ export function PinLight({ apply, opacity = 1, children }: PinLightProps) {
 	)
 	/* eslint-enable @typescript-eslint/no-non-null-assertion */
 
+	const internalVersion = `pinLight@1+o=${opacity}`
+	const composedVersion = version === undefined ? internalVersion : `${internalVersion}+${version}`
+
 	return (
-		<RasterEffect effect={effectCallback} apply={apply}>
+		<RasterEffect effect={effectCallback} apply={apply} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

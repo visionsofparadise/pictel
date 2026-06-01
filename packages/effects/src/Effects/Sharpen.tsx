@@ -87,17 +87,22 @@ interface SharpenProps {
 	amount: number
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
  * Sharpens the image by enhancing edges against their immediate neighbors.
  *
  * - `amount` — Sharpening strength. Higher values produce more aggressive edge enhancement.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Sharpen({ amount, map, children }: SharpenProps) {
+export function Sharpen({ amount, map, children, version }: SharpenProps) {
+	const internal = `sharpen@1+a=${amount}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -110,7 +115,7 @@ export function Sharpen({ amount, map, children }: SharpenProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

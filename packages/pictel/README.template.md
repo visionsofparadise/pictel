@@ -333,4 +333,21 @@ export default function RisographPrint() {
 }
 ```
 
+## Effect output cache
+
+Pictel keeps an IndexedDB-backed cache of effect outputs, keyed by the input pixels plus a version string. When inputs are byte-identical to a prior run and the version is unchanged, the cached pixels are rehydrated and the effect's `apply` callback is not called. The cache persists across HMR cycles and full page refreshes — ML effects (`RemoveBackground`, `DepthMap`, ...) benefit most, but every effect that publishes a version participates.
+
+Every standard effect in `@pictel/effects` and `@pictel/ml` accepts an optional `version?: string` prop and composes it with an internal version that captures its own props. Caching is on by default; bumping `version` at any layer invalidates that node and everything its output feeds into.
+
+```tsx
+import { Canvas, Image } from "pictel";
+import { RemoveBackground } from "@pictel/ml";
+
+<RemoveBackground version="v2">
+	<Image src="/portrait.jpg" width={1024} height={1024} fit="cover" />
+</RemoveBackground>;
+```
+
+Effects that produce bleed (`Blur`, `DropShadow`, `Bloom`, `Outline`, certain `Hatch` / `LIC` configurations) skip the cache write in v1 — the entry shape stores output pixels only. See [design-effect-output-cache](https://github.com/visionsofparadise/planner/blob/main/projects/code/pictel/design-effect-output-cache.md) for the full contract and rejected alternatives.
+
 API reference below — generated from JSDoc on the source.

@@ -218,6 +218,7 @@ interface LICProps {
 	uniformStep?: boolean
 	map: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -232,6 +233,7 @@ interface LICProps {
  * - `stepSize` — Step size in pixels per integration step. Default 1.
  * - `uniformStep` — Walk at a constant step length, ignoring the field's magnitude channel. Default false — step length scales with magnitude, which suits visualizing the field but can stall on smooth fields. Set true to follow a smooth field (e.g. a depth gradient) at full distance.
  * - `map` — Required. Vector field as JSX (typically a `Direction`-style encoding).
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
@@ -242,7 +244,11 @@ export function LIC({
 	uniformStep = false,
 	map,
 	children,
+	version,
 }: LICProps) {
+	const internal = `lic@1+l=${length}+t=${stepSize}+u=${uniformStep}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels === undefined) {
@@ -255,7 +261,7 @@ export function LIC({
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

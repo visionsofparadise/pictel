@@ -31,6 +31,7 @@ interface GrainProps {
 	seed: number
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -38,11 +39,15 @@ interface GrainProps {
  *
  * - `intensity` — Maximum noise amplitude in pixel values (0-255 range).
  * - `seed` — Random seed for reproducible grain patterns.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Grain({ intensity, seed, map, children }: GrainProps) {
+export function Grain({ intensity, seed, map, children, version }: GrainProps) {
+	const internal = `grain@1+i=${intensity}+s=${seed}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			const result = applyGrain(target, intensity, seed)
@@ -57,7 +62,7 @@ export function Grain({ intensity, seed, map, children }: GrainProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

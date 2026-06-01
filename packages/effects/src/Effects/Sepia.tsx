@@ -34,17 +34,22 @@ interface SepiaProps {
 	amount?: number
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
  * Applies a warm sepia tone effect.
  *
  * - `amount` — Sepia intensity. 0 is unchanged, 1 is fully sepia. Default 1.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Sepia({ amount = 1, map, children }: SepiaProps) {
+export function Sepia({ amount = 1, map, children, version }: SepiaProps) {
+	const internal = `sepia@1+a=${amount}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			const result = applySepia(target, amount)
@@ -59,7 +64,7 @@ export function Sepia({ amount = 1, map, children }: SepiaProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

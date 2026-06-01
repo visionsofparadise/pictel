@@ -167,6 +167,7 @@ interface HalftoneProps {
 	dotColor?: [number, number, number]
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -187,11 +188,15 @@ interface HalftoneProps {
  * - `angle` — Rotation of the dot grid in degrees (`"luminance"` / `"color"` modes only). Default 0.
  * - `colorMode` — `"luminance"` (default), `"cmyk"`, or `"color"`.
  * - `dotColor` — Ink color `[r, g, b]` for the `"luminance"` screen. Default black `[0, 0, 0]`.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Halftone({ dotSize, angle, colorMode = "luminance", dotColor = [0, 0, 0], map, children }: HalftoneProps) {
+export function Halftone({ dotSize, angle, colorMode = "luminance", dotColor = [0, 0, 0], map, children, version }: HalftoneProps) {
+	const internal = `halftone@1+d=${dotSize}+a=${angle}+m=${colorMode}+c=${JSON.stringify(dotColor)}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			const result = applyHalftone(target, dotSize, angle, colorMode, dotColor)
@@ -206,7 +211,7 @@ export function Halftone({ dotSize, angle, colorMode = "luminance", dotColor = [
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

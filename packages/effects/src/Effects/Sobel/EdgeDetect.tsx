@@ -47,6 +47,7 @@ interface EdgeDetectProps {
 	space?: "luminance" | "color"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -62,6 +63,7 @@ interface EdgeDetectProps {
  *   R, G, B independently and combines per-pixel as `√(Σ_channel(gxC²+gyC²))`
  *   — the true colour-distance gradient. Use `"color"` when boundary detection
  *   must respect hue changes (e.g. asymmetric watercolour rim effects).
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
@@ -71,7 +73,11 @@ export function EdgeDetect({
 	space = "luminance",
 	map,
 	children,
+	version,
 }: EdgeDetectProps) {
+	const internal = `edgeDetect@1+k=${kernel}+s=${space}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			const result = applyEdgeDetect(target, kernel, space)
@@ -86,7 +92,7 @@ export function EdgeDetect({
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

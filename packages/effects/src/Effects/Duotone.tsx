@@ -32,6 +32,7 @@ interface DuotoneProps {
 	light: [number, number, number]
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -39,11 +40,15 @@ interface DuotoneProps {
  *
  * - `dark` — RGB triple [r, g, b] (0-255) for shadow tones.
  * - `light` — RGB triple [r, g, b] (0-255) for highlight tones.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Duotone({ dark, light, map, children }: DuotoneProps) {
+export function Duotone({ dark, light, map, children, version }: DuotoneProps) {
+	const internal = `duotone@1+d=${JSON.stringify(dark)}+l=${JSON.stringify(light)}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			const result = applyDuotone(target, dark, light)
@@ -58,7 +63,7 @@ export function Duotone({ dark, light, map, children }: DuotoneProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

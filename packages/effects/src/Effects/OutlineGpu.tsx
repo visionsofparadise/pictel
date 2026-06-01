@@ -12,6 +12,11 @@ interface OutlineGpuProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	/**
+	 * Optional cache-bust handle. Composed with this effect's internal version;
+	 * bumping invalidates the cached output for this subtree.
+	 */
+	version?: string
 }
 
 /**
@@ -29,6 +34,7 @@ export function OutlineGpu({
 	mode = "parameter",
 	map,
 	children,
+	version,
 }: OutlineGpuProps) {
 	const effect = useCallback<RasterEffectCallback>(
 		async (target, _apply, mapPixels) => {
@@ -47,8 +53,11 @@ export function OutlineGpu({
 		[sigma, kappa, epsilon, phi, mode],
 	)
 
+	const internalVersion = `outline@1+gpu+s=${sigma}+k=${kappa}+e=${epsilon}+p=${phi}+m=${mode}`
+	const composedVersion = version === undefined ? internalVersion : `${internalVersion}+${version}`
+
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

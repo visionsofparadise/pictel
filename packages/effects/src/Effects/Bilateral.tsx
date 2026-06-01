@@ -131,6 +131,7 @@ interface BilateralProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -141,6 +142,7 @@ interface BilateralProps {
  * - `spatialSigma` — Spatial radius in pixels. Sensible values are 2–6.
  * - `colorSigma` — Color tolerance in 0–255 units. Larger values bridge more across edges.
  * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
@@ -151,7 +153,11 @@ export function Bilateral({
 	mode = "parameter",
 	map,
 	children,
+	version,
 }: BilateralProps) {
+	const internal = `bilateral@1+s=${spatialSigma}+c=${colorSigma}+m=${mode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -170,7 +176,7 @@ export function Bilateral({
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

@@ -30,17 +30,22 @@ interface GrayscaleProps {
 	amount?: number
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
  * Desaturates pixels toward perceptual grayscale.
  *
  * - `amount` — Desaturation amount. 0 is unchanged, 1 is fully grayscale. Default 1.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Grayscale({ amount = 1, map, children }: GrayscaleProps) {
+export function Grayscale({ amount = 1, map, children, version }: GrayscaleProps) {
+	const internal = `grayscale@1+a=${amount}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			const result = applyGrayscale(target, amount)
@@ -55,7 +60,7 @@ export function Grayscale({ amount = 1, map, children }: GrayscaleProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

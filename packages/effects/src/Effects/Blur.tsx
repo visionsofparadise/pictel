@@ -278,6 +278,7 @@ interface BlurProps {
 	mode?: "parameter" | "mix";
 	map?: ReactNode;
 	children: ReactNode;
+	version?: string;
 }
 
 /**
@@ -285,11 +286,15 @@ interface BlurProps {
  *
  * - `radius` — Blur radius in pixels. With a map, radius scales per-pixel by map luminance.
  * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Blur({ radius, mode = "parameter", map, children }: BlurProps) {
+export function Blur({ radius, mode = "parameter", map, children, version }: BlurProps) {
+	const internal = `blur@1+r=${radius}+m=${mode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -311,7 +316,7 @@ export function Blur({ radius, mode = "parameter", map, children }: BlurProps) {
 	);
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	);

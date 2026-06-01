@@ -53,17 +53,22 @@ interface SaturateProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
  * Adjusts color saturation by interpolating between grayscale and the original color.
  *
  * - `amount` — Saturation multiplier. 0 is grayscale, 1 is unchanged, greater than 1 oversaturates. Default 1.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Saturate({ amount = 1, mode = "mix", map, children }: SaturateProps) {
+export function Saturate({ amount = 1, mode = "mix", map, children, version }: SaturateProps) {
+	const internal = `saturate@1+a=${amount}+m=${mode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -82,7 +87,7 @@ export function Saturate({ amount = 1, mode = "mix", map, children }: SaturatePr
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

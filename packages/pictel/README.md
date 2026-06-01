@@ -333,6 +333,23 @@ export default function RisographPrint() {
 }
 ```
 
+## Effect output cache
+
+Pictel keeps an IndexedDB-backed cache of effect outputs, keyed by the input pixels plus a version string. When inputs are byte-identical to a prior run and the version is unchanged, the cached pixels are rehydrated and the effect's `apply` callback is not called. The cache persists across HMR cycles and full page refreshes — ML effects (`RemoveBackground`, `DepthMap`, ...) benefit most, but every effect that publishes a version participates.
+
+Every standard effect in `@pictel/effects` and `@pictel/ml` accepts an optional `version?: string` prop and composes it with an internal version that captures its own props. Caching is on by default; bumping `version` at any layer invalidates that node and everything its output feeds into.
+
+```tsx
+import { Canvas, Image } from "pictel";
+import { RemoveBackground } from "@pictel/ml";
+
+<RemoveBackground version="v2">
+	<Image src="/portrait.jpg" width={1024} height={1024} fit="cover" />
+</RemoveBackground>;
+```
+
+Effects that produce bleed (`Blur`, `DropShadow`, `Bloom`, `Outline`, certain `Hatch` / `LIC` configurations) skip the cache write in v1 — the entry shape stores output pixels only. See [design-effect-output-cache](https://github.com/visionsofparadise/planner/blob/main/projects/code/pictel/design-effect-output-cache.md) for the full contract and rejected alternatives.
+
 API reference below — generated from JSDoc on the source.
 
 ## Layout
@@ -453,7 +470,7 @@ to crop it back to content size, wrap the result in `Clip` (or any
 
 > **RasterEffect**(`props`): `Element`
 
-Defined in: [Components/RasterEffect/RasterEffect.tsx:157](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L157)
+Defined in: [Components/RasterEffect/RasterEffect.tsx:182](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/Components/RasterEffect/RasterEffect.tsx#L182)
 
 The primitive every effect, blend, and map-driven component is built on. Captures
 its children as pixels, hands them to an `effect` callback, and renders the result
@@ -468,6 +485,7 @@ or modulation map (`map`), and returns transformed `ImageData`.
 - `children` — Required. The base layer the effect operates on. Rendered live in the layout, then replaced by the output canvas once the effect resolves.
 - `apply` — Optional overlay layer for blend-style effects. Captured in parallel with children and passed to `effect` as the second argument. Renders offscreen — not visible in the live composition.
 - `map` — Optional parameter map for map-driven effects (displacement fields, depth, segmentation masks). Captured in parallel with children and passed to `effect` as the third argument. Renders offscreen — not visible in the live composition.
+- `version` — Optional cache key. When set, the captured input pixels are hashed and combined with this string to look up a previously-computed output in the IndexedDB-backed effect cache; on hit, the cached pixels are used and `effect` is not called. On miss, `effect` runs and its output is written back. When undefined, the cache is bypassed entirely — no hashing, no lookup, no write. Standard effects in `@pictel/effects` and `@pictel/ml` accept a `version?: string` prop and compose it with their internal version; pass `version` at any layer to force invalidation downward. The cache trusts the version string: when authoring a custom effect, bump its internal version whenever `apply` changes in a way that affects output pixels. Effects that return non-zero `EffectResult.overflow` (`Blur`, `DropShadow`, `Bloom`, `Outline`, certain `Hatch` / `LIC` configurations) skip the cache write in v1 — the entry shape stores output pixels only — with a one-time `console.warn` per `(effect, version)` pair. See [design-effect-output-cache](https://github.com/visionsofparadise/planner/blob/main/projects/code/pictel/design-effect-output-cache.md).
 
 #### Parameters
 
@@ -510,6 +528,37 @@ styled `<div>` if you need to position or style it — the API is closed
 #### Returns
 
 `Element`
+
+## Other
+
+### clearEffectCache()
+
+> **clearEffectCache**(): `Promise`\<`void`\>
+
+Defined in: effect-cache/effect-cache.ts:310
+
+Wipes the IndexedDB-backed effect-output cache. Useful when an effect's
+algorithm changed but its `version` wasn't bumped (a bug — file an issue).
+Returns a promise that resolves when the cache is empty.
+
+#### Returns
+
+`Promise`\<`void`\>
+
+***
+
+### getEffectCache()
+
+> **getEffectCache**(): `EffectCache`
+
+Defined in: effect-cache/effect-cache.ts:299
+
+Returns the singleton effect-output cache. Pictel's `RasterEffect` calls this
+internally; consumers rarely need it directly.
+
+#### Returns
+
+`EffectCache`
 
 ## Raster Source
 

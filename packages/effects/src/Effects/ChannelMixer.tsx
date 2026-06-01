@@ -29,6 +29,7 @@ interface ChannelMixerProps {
 	matrix: Array<Array<number>>
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -36,11 +37,15 @@ interface ChannelMixerProps {
  * weighted sum of the input channels.
  *
  * - `matrix` — 3x3 array where `matrix[outChannel][inChannel]` is the weight. Stabilize with `useMemo`.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function ChannelMixer({ matrix, map, children }: ChannelMixerProps) {
+export function ChannelMixer({ matrix, map, children, version }: ChannelMixerProps) {
+	const internal = `channelMixer@1+x=${JSON.stringify(matrix)}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			const result = applyChannelMix(target, matrix)
@@ -55,7 +60,7 @@ export function ChannelMixer({ matrix, map, children }: ChannelMixerProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

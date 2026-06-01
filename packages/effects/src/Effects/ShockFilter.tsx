@@ -142,6 +142,7 @@ interface ShockFilterProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -153,6 +154,7 @@ interface ShockFilterProps {
  * - `iterations` — Number of passes. Default 8.
  * - `strength` — Per-iteration step size, clamped to ≤ 1. Default 1.
  * - `mode` — `"parameter"` (default) applies the effect directly; `"mix"` blends via map luminance.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
@@ -163,7 +165,11 @@ export function ShockFilter({
 	mode = "parameter",
 	map,
 	children,
+	version,
 }: ShockFilterProps) {
+	const internal = `shockFilter@1+i=${iterations}+s=${strength}+m=${mode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -182,7 +188,7 @@ export function ShockFilter({
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

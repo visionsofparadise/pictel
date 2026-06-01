@@ -84,6 +84,7 @@ interface GradientMapProps {
 	stops: Array<GradientStop>
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -97,12 +98,16 @@ interface GradientMapProps {
  * - `stops` — Array of color stops with `color` (any CSS color the library parses) and
  *   `position` (0-1). Sorted by position; luminance below the first / above the last stop
  *   clamps to that stop's color.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function GradientMap({ stops, map, children }: GradientMapProps) {
+export function GradientMap({ stops, map, children, version }: GradientMapProps) {
 	const stopsKey = stops.map((stop) => `${stop.color}@${String(stop.position)}`).join("|")
+
+	const internal = `gradientMap@1+s=${stopsKey}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
 
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
@@ -119,7 +124,7 @@ export function GradientMap({ stops, map, children }: GradientMapProps) {
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

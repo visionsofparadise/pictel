@@ -52,17 +52,22 @@ interface BrightnessProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
  * Adjusts pixel brightness by multiplying RGB channels.
  *
  * - `amount` — Brightness multiplier. 1 is unchanged, 0 is black, greater than 1 brightens.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Brightness({ amount = 1, mode = "mix", map, children }: BrightnessProps) {
+export function Brightness({ amount = 1, mode = "mix", map, children, version }: BrightnessProps) {
+	const internal = `brightness@1+a=${amount}+m=${mode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -81,7 +86,7 @@ export function Brightness({ amount = 1, mode = "mix", map, children }: Brightne
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

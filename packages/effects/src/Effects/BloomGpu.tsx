@@ -11,6 +11,11 @@ interface BloomGpuProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	/**
+	 * Optional cache-bust handle. Composed with this effect's internal version;
+	 * bumping invalidates the cached output for this subtree.
+	 */
+	version?: string
 }
 
 /**
@@ -27,6 +32,7 @@ export function BloomGpu({
 	mode = "parameter",
 	map,
 	children,
+	version,
 }: BloomGpuProps) {
 	const effect = useCallback<RasterEffectCallback>(
 		async (target, _apply, mapPixels) => {
@@ -45,8 +51,11 @@ export function BloomGpu({
 		[threshold, radius, intensity, mode],
 	)
 
+	const internalVersion = `bloom@1+gpu+t=${threshold}+r=${radius}+i=${intensity}+m=${mode}`
+	const composedVersion = version === undefined ? internalVersion : `${internalVersion}+${version}`
+
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

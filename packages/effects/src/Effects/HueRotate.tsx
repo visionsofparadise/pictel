@@ -52,17 +52,22 @@ interface HueRotateProps {
 	mode?: "parameter" | "mix"
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
  * Rotates the hue of each pixel in HSL color space.
  *
  * - `angle` — Hue rotation in degrees. 180 inverts all colors; 360 returns to original.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function HueRotate({ angle, mode = "mix", map, children }: HueRotateProps) {
+export function HueRotate({ angle, mode = "mix", map, children, version }: HueRotateProps) {
+	const internal = `hueRotate@1+a=${angle}+m=${mode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
 			if (mapPixels !== undefined) {
@@ -81,7 +86,7 @@ export function HueRotate({ angle, mode = "mix", map, children }: HueRotateProps
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

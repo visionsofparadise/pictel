@@ -72,6 +72,7 @@ interface EngraveProps {
 	relief?: number
 	crossHatch?: boolean
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -88,6 +89,7 @@ interface EngraveProps {
  * - `angle` — Line orientation in radians. Default 0 (horizontal).
  * - `relief` — Pixels the lines bow with tone. Default 0 (straight).
  * - `crossHatch` — Cross-hatch the darkest tones. Default true.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
@@ -98,11 +100,15 @@ export function Engrave({
 	relief = 0,
 	crossHatch = true,
 	children,
+	version,
 }: EngraveProps) {
+	const internal = `engrave@1+s=${spacing}+a=${angle}+r=${relief}+c=${crossHatch}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const effect = useCallback<RasterEffectCallback>(
 		(target) => applyEngrave(target, spacing, angle, relief, crossHatch),
 		[spacing, angle, relief, crossHatch],
 	)
 
-	return <RasterEffect effect={effect}>{children}</RasterEffect>
+	return <RasterEffect effect={effect} version={composedVersion}>{children}</RasterEffect>
 }

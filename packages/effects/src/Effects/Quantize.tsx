@@ -383,6 +383,7 @@ export interface QuantizeProps {
 	dither?: DitherMode
 	map?: ReactNode
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -394,11 +395,12 @@ export interface QuantizeProps {
  * - `palette` — Fixed palette. Mutually exclusive with `count`.
  * - `count` — Auto-derive a palette of this size from the source. Mutually exclusive with `palette`.
  * - `dither` — Dithering style. `"none"` (default) is flat nearest-color mapping; `"floyd-steinberg"` is the sharp classic GIF look; `"atkinson"` is the Mac System 1 look; `"bayer-4"` and `"bayer-8"` produce a deterministic ordered crosshatch.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Effects
  */
-export function Quantize({ palette, count, dither, map, children }: QuantizeProps) {
+export function Quantize({ palette, count, dither, map, children, version }: QuantizeProps) {
 	if (palette !== undefined && count !== undefined) {
 		throw new Error(
 			"Quantize: `palette` and `count` are mutually exclusive — supply one or the other, not both.",
@@ -412,6 +414,9 @@ export function Quantize({ palette, count, dither, map, children }: QuantizeProp
 	}
 
 	const ditherMode = dither ?? "none"
+
+	const internal = `quantize@1+p=${palette ? JSON.stringify(palette) : "_"}+n=${count ?? "_"}+d=${ditherMode}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
 
 	const effect = useCallback<RasterEffectCallback>(
 		(target, _apply, mapPixels) => {
@@ -427,7 +432,7 @@ export function Quantize({ palette, count, dither, map, children }: QuantizeProp
 	)
 
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

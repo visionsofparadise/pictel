@@ -12,6 +12,11 @@ interface DropShadowGpuProps {
 	color: string
 	map?: ReactNode
 	children: ReactNode
+	/**
+	 * Optional cache-bust handle. Composed with this effect's internal version;
+	 * bumping invalidates the cached output for this subtree.
+	 */
+	version?: string
 }
 
 /**
@@ -28,6 +33,7 @@ export function DropShadowGpu({
 	color,
 	map,
 	children,
+	version,
 }: DropShadowGpuProps) {
 	const effect = useCallback<RasterEffectCallback>(
 		async (target, _apply, mapPixels) => {
@@ -46,8 +52,11 @@ export function DropShadowGpu({
 		[offsetX, offsetY, blurRadius, color],
 	)
 
+	const internalVersion = `dropShadow@1+gpu+x=${offsetX}+y=${offsetY}+b=${blurRadius}+c=${color}`
+	const composedVersion = version === undefined ? internalVersion : `${internalVersion}+${version}`
+
 	return (
-		<RasterEffect effect={effect} map={map}>
+		<RasterEffect effect={effect} map={map} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

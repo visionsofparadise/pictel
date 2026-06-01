@@ -136,6 +136,7 @@ interface Sam2Props {
 	points?: Array<Point>
 	negativePoints?: Array<Point>
 	children: ReactNode
+	version?: string
 }
 
 /**
@@ -145,6 +146,7 @@ interface Sam2Props {
  * - `negativePoints` — Negative point prompts in pixel coordinates indicating regions to exclude from the result. Defaults to `[]`.
  * - `model` — Hugging Face model ID for SAM2. Defaults to `onnx-community/sam2-hiera-tiny-ONNX`.
  * - `revision` — Pinned model revision. Defaults to `main`. Override alongside `model` when swapping models.
+ * - `version` — Optional cache-bust handle. Composed with this effect's internal version; bumping invalidates the cached output for this subtree.
  *
  * @param props
  * @category Segmentation
@@ -155,7 +157,11 @@ export function Sam2({
 	points = [],
 	negativePoints = [],
 	children,
+	version,
 }: Sam2Props) {
+	const internal = `sam2@1+m=${model}+r=${revision}+b=webgpu+p=${JSON.stringify(points)}+n=${JSON.stringify(negativePoints)}`
+	const composedVersion = version === undefined ? internal : `${internal}+${version}`
+
 	const subscription = useMemo(
 		() => {
 			const sub = subscribeSam2(model, revision)
@@ -180,7 +186,7 @@ export function Sam2({
 	)
 
 	return (
-		<RasterEffect effect={effect}>
+		<RasterEffect effect={effect} version={composedVersion}>
 			{children}
 		</RasterEffect>
 	)

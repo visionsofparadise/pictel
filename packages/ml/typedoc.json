@@ -4,6 +4,7 @@
   "tsconfig": "./tsconfig.json",
   "plugin": ["typedoc-plugin-markdown"],
   "gitRevision": "main",
+  "gitRemote": "origin",
   "readme": "./README.template.md",
   "out": ".",
   "cleanOutputDir": false,

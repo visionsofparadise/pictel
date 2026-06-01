@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { createEffectCache, type CacheKeyParts } from "./effect-cache";
 
 let createdDatabases: Array<string> = [];
@@ -123,6 +123,241 @@ describe("EffectCache (IndexedDB)", () => {
 		expect(await cache.get(key({ targetHash: 1 }))).toBeNull();
 		expect(await cache.get(key({ targetHash: 2 }))).not.toBeNull();
 		expect(await cache.get(key({ targetHash: 3 }))).not.toBeNull();
+	});
+
+	test("rejects entries exceeding maxEntryBytes at the write boundary", async () => {
+		// 16x16 RGBA = 1024 bytes; cap at 500 forces rejection.
+		const cache = createEffectCache({ dbName: uniqueDbName("size-cap-reject"), maxEntryBytes: 500 });
+		const oversized = makePixels(16, 16, () => 9);
+
+		await cache.put(key(), oversized);
+
+		expect(await cache.get(key())).toBeNull();
+	});
+
+	test("logs the size-cap warning once per version across repeated oversized puts", async () => {
+		const cache = createEffectCache({ dbName: uniqueDbName("size-cap-log"), maxEntryBytes: 500 });
+		const oversized = makePixels(16, 16, () => 9);
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+		try {
+			await cache.put(key({ version: "alpha" }), oversized);
+			await cache.put(key({ version: "alpha", targetHash: 2 }), oversized);
+			await cache.put(key({ version: "beta" }), oversized);
+
+			const sizeCapMessages = warnSpy.mock.calls
+				.map((args) => String(args[0] ?? ""))
+				.filter((message) => message.includes("skipping cache write for entry exceeding maxEntryBytes"));
+
+			expect(sizeCapMessages.length).toBe(2);
+			expect(sizeCapMessages.some((m) => m.includes("version=alpha"))).toBe(true);
+			expect(sizeCapMessages.some((m) => m.includes("version=beta"))).toBe(true);
+		} finally {
+			warnSpy.mockRestore();
+		}
+	});
+
+	test("entries below maxEntryBytes cache normally with the cap configured", async () => {
+		const cache = createEffectCache({ dbName: uniqueDbName("size-cap-pass"), maxEntryBytes: 4096 });
+		const fits = makePixels(16, 16, () => 5);
+
+		await cache.put(key(), fits);
+
+		const result = await cache.get(key());
+
+		expect(result).not.toBeNull();
+		expect(Array.from(result?.data ?? [])).toEqual(Array.from(fits.data));
+	});
+
+	test("get returns the entry while expiresAt is in the future and updates lastAccess", async () => {
+		const clock = { now: 1000 };
+		const cache = createEffectCache({
+			dbName: uniqueDbName("ttl-future"),
+			ttlMs: 1000,
+			nowFn: () => clock.now,
+		});
+		const pixels = makePixels(4, 4, () => 11);
+
+		await cache.put(key(), pixels);
+
+		clock.now = 1500;
+
+		const result = await cache.get(key());
+
+		expect(result).not.toBeNull();
+		expect(Array.from(result?.data ?? [])).toEqual(Array.from(pixels.data));
+	});
+
+	test("get treats expired entries as misses and deletes them inline", async () => {
+		const clock = { now: 1000 };
+		const dbName = uniqueDbName("ttl-expired");
+		const cache = createEffectCache({
+			dbName,
+			ttlMs: 1000,
+			nowFn: () => clock.now,
+		});
+		const pixels = makePixels(4, 4, () => 22);
+
+		await cache.put(key(), pixels);
+
+		clock.now = 5000;
+
+		expect(await cache.get(key())).toBeNull();
+
+		const directRecord = await new Promise<unknown>((resolve, reject) => {
+			const openRequest = indexedDB.open(dbName);
+			openRequest.onsuccess = () => {
+				const database = openRequest.result;
+				const transaction = database.transaction("entries", "readonly");
+				const store = transaction.objectStore("entries");
+				const getRequest = store.getAll();
+				getRequest.onsuccess = () => {
+					database.close();
+					resolve(getRequest.result);
+				};
+				getRequest.onerror = () => {
+					database.close();
+					reject(getRequest.error ?? new Error("getAll failed"));
+				};
+			};
+			openRequest.onerror = () => {
+				reject(openRequest.error ?? new Error("open failed"));
+			};
+		});
+
+		expect(directRecord).toEqual([]);
+	});
+
+	test("expired-entry eviction decrements totalBytes so room is reclaimed for new writes", async () => {
+		const clock = { now: 1000 };
+		const cache = createEffectCache({
+			dbName: uniqueDbName("ttl-meta"),
+			maxBytes: 2048,
+			ttlMs: 100_000,
+			nowFn: () => clock.now,
+		});
+		// Two 1024-byte entries fill the cap exactly. Without the meta
+		// decrement, writing entry C after A's lazy expiry would push the
+		// total over the cap and evict B via LRU. Clock advances between
+		// A's expiry (101_000) and B's expiry (150_000) so only A is
+		// collected.
+		const a = makePixels(16, 16, () => 1);
+		const b = makePixels(16, 16, () => 2);
+		const c = makePixels(16, 16, () => 3);
+
+		await cache.put(key({ targetHash: 1 }), a);
+		clock.now = 50_000;
+		await cache.put(key({ targetHash: 2 }), b);
+
+		clock.now = 110_000;
+
+		expect(await cache.get(key({ targetHash: 1 }))).toBeNull();
+
+		clock.now = 120_000;
+		await cache.put(key({ targetHash: 3 }), c);
+
+		expect(await cache.get(key({ targetHash: 2 }))).not.toBeNull();
+		expect(await cache.get(key({ targetHash: 3 }))).not.toBeNull();
+	});
+
+	test("ttlMs Infinity writes no expiresAt and entries survive regardless of clock", async () => {
+		const clock = { now: 1000 };
+		const dbName = uniqueDbName("ttl-infinity");
+		const cache = createEffectCache({
+			dbName,
+			ttlMs: Infinity,
+			nowFn: () => clock.now,
+		});
+		const pixels = makePixels(4, 4, () => 33);
+
+		await cache.put(key(), pixels);
+
+		clock.now = Number.MAX_SAFE_INTEGER;
+
+		const result = await cache.get(key());
+
+		expect(result).not.toBeNull();
+		expect(Array.from(result?.data ?? [])).toEqual(Array.from(pixels.data));
+
+		const stored = await new Promise<{ expiresAt?: number } | null>((resolve, reject) => {
+			const openRequest = indexedDB.open(dbName);
+			openRequest.onsuccess = () => {
+				const database = openRequest.result;
+				const transaction = database.transaction("entries", "readonly");
+				const store = transaction.objectStore("entries");
+				const getRequest = store.getAll();
+				getRequest.onsuccess = () => {
+					database.close();
+					const records = getRequest.result as Array<{ expiresAt?: number }>;
+					resolve(records[0] ?? null);
+				};
+				getRequest.onerror = () => {
+					database.close();
+					reject(getRequest.error ?? new Error("getAll failed"));
+				};
+			};
+			openRequest.onerror = () => {
+				reject(openRequest.error ?? new Error("open failed"));
+			};
+		});
+
+		expect(stored).not.toBeNull();
+		expect(stored?.expiresAt).toBeUndefined();
+	});
+
+	test("legacy entries without expiresAt read back successfully", async () => {
+		const dbName = uniqueDbName("ttl-legacy");
+		// Create the DB shape the cache expects, then insert a v1-style record
+		// with no `expiresAt` field — simulating an entry written before the
+		// TTL feature shipped.
+		await new Promise<void>((resolve, reject) => {
+			const openRequest = indexedDB.open(dbName, 1);
+			openRequest.onupgradeneeded = () => {
+				const database = openRequest.result;
+				const entries = database.createObjectStore("entries", { keyPath: "key" });
+				entries.createIndex("by-last-access", "lastAccess");
+				database.createObjectStore("meta", { keyPath: "id" });
+			};
+			openRequest.onsuccess = () => {
+				const database = openRequest.result;
+				const transaction = database.transaction(["entries", "meta"], "readwrite");
+				const buffer = new Uint8ClampedArray(4 * 4 * 4).fill(77).buffer;
+				transaction.objectStore("entries").put({
+					key: "1:_:_:legacy@1",
+					width: 4,
+					height: 4,
+					buffer,
+					bytes: buffer.byteLength,
+					lastAccess: 1000,
+				});
+				transaction.objectStore("meta").put({ id: "totals", totalBytes: buffer.byteLength });
+				transaction.oncomplete = () => {
+					database.close();
+					resolve();
+				};
+				transaction.onerror = () => {
+					database.close();
+					reject(transaction.error ?? new Error("legacy insert failed"));
+				};
+			};
+			openRequest.onerror = () => {
+				reject(openRequest.error ?? new Error("legacy open failed"));
+			};
+		});
+
+		const clock = { now: Number.MAX_SAFE_INTEGER };
+		const cache = createEffectCache({
+			dbName,
+			ttlMs: 1000,
+			nowFn: () => clock.now,
+		});
+
+		const result = await cache.get(key({ version: "legacy@1" }));
+
+		expect(result).not.toBeNull();
+		expect(result?.width).toBe(4);
+		expect(result?.height).toBe(4);
+		expect(Array.from(result?.data ?? []).every((value) => value === 77)).toBe(true);
 	});
 
 	test("falls back to a no-op cache when open() rejects", async () => {

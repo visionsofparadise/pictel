@@ -348,6 +348,8 @@ import { RemoveBackground } from "@pictel/ml";
 </RemoveBackground>;
 ```
 
+Entries are bounded by a per-entry size cap (50 MB default — rejects pathologically large outputs at write) and a TTL (24 h default — expired entries are treated as misses on read and deleted inline). Both are configurable on `createEffectCache`; pass `ttlMs: Infinity` to disable expiry.
+
 Effects that produce bleed (`Blur`, `DropShadow`, `Bloom`, `Outline`, certain `Hatch` / `LIC` configurations) skip the cache write in v1 — the entry shape stores output pixels only. See [design-effect-output-cache](https://github.com/visionsofparadise/planner/blob/main/projects/code/pictel/design-effect-output-cache.md) for the full contract and rejected alternatives.
 
 API reference below — generated from JSDoc on the source.
@@ -535,7 +537,7 @@ styled `<div>` if you need to position or style it — the API is closed
 
 > **clearEffectCache**(): `Promise`\<`void`\>
 
-Defined in: effect-cache/effect-cache.ts:310
+Defined in: [effect-cache/effect-cache.ts:365](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/effect-cache/effect-cache.ts#L365)
 
 Wipes the IndexedDB-backed effect-output cache. Useful when an effect's
 algorithm changed but its `version` wasn't bumped (a bug — file an issue).
@@ -551,7 +553,7 @@ Returns a promise that resolves when the cache is empty.
 
 > **getEffectCache**(): `EffectCache`
 
-Defined in: effect-cache/effect-cache.ts:299
+Defined in: [effect-cache/effect-cache.ts:354](https://github.com/visionsofparadise/pictel/blob/main/packages/pictel/src/effect-cache/effect-cache.ts#L354)
 
 Returns the singleton effect-output cache. Pictel's `RasterEffect` calls this
 internally; consumers rarely need it directly.

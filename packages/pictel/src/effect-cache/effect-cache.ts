@@ -14,6 +14,25 @@ export interface EffectCache {
 export interface CreateEffectCacheOptions {
 	dbName?: string;
 	maxBytes?: number;
+	/**
+	 * Maximum bytes for a single cache entry. Entries above this threshold are
+	 * rejected at write with a one-time `console.warn` per version. Default
+	 * 50 MB (fits a 4K RGBA composition; rejects 8K and larger). Configure
+	 * higher if you genuinely cache larger outputs.
+	 */
+	maxEntryBytes?: number;
+	/**
+	 * Time-to-live for cache entries, in milliseconds. Entries past their
+	 * expiry are treated as misses on read and deleted inline. Default 24 h.
+	 * Pass `Infinity` to disable expiry. Captured at write time — changing
+	 * `ttlMs` does not retroactively rescope existing entries.
+	 */
+	ttlMs?: number;
+	/**
+	 * Clock function for TTL evaluation. Default `Date.now`. Test-only —
+	 * production callers omit.
+	 */
+	nowFn?: () => number;
 }
 
 interface EntryRecord {
@@ -23,6 +42,7 @@ interface EntryRecord {
 	buffer: ArrayBuffer;
 	bytes: number;
 	lastAccess: number;
+	expiresAt?: number;
 }
 
 interface MetaRecord {
@@ -36,6 +56,8 @@ const META_KEY = "totals";
 const LAST_ACCESS_INDEX = "by-last-access";
 const DEFAULT_DB_NAME = "pictel-effect-cache";
 const DEFAULT_MAX_BYTES = 200 * 1024 * 1024;
+const DEFAULT_MAX_ENTRY_BYTES = 50 * 1024 * 1024;
+const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000;
 
 function serializeKey(parts: CacheKeyParts): string {
 	const apply = parts.applyHash === null ? "_" : parts.applyHash.toString(16);
@@ -128,6 +150,9 @@ async function readTotalBytes(database: IDBDatabase): Promise<number> {
 export function createEffectCache(options: CreateEffectCacheOptions = {}): EffectCache {
 	const dbName = options.dbName ?? DEFAULT_DB_NAME;
 	const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES;
+	const maxEntryBytes = options.maxEntryBytes ?? DEFAULT_MAX_ENTRY_BYTES;
+	const ttlMs = options.ttlMs ?? DEFAULT_TTL_MS;
+	const nowFn = options.nowFn ?? Date.now;
 
 	if (typeof indexedDB === "undefined") {
 		console.warn("pictel effect cache: IndexedDB unavailable; effects will run uncached");
@@ -137,6 +162,7 @@ export function createEffectCache(options: CreateEffectCacheOptions = {}): Effec
 
 	let databasePromise: Promise<IDBDatabase> | null = null;
 	let unavailable = false;
+	const sizeRejectLoggedVersions = new Set<string>();
 
 	async function getDatabase(): Promise<IDBDatabase | null> {
 		if (unavailable) return null;
@@ -203,8 +229,9 @@ export function createEffectCache(options: CreateEffectCacheOptions = {}): Effec
 		const serialized = serializeKey(key);
 
 		try {
-			const transaction = database.transaction(ENTRY_STORE, "readwrite");
+			const transaction = database.transaction([ENTRY_STORE, META_STORE], "readwrite");
 			const store = transaction.objectStore(ENTRY_STORE);
+			const meta = transaction.objectStore(META_STORE);
 			const record = (await requestToPromise(store.get(serialized) as IDBRequest<EntryRecord | undefined>)) ?? null;
 
 			if (record === null) {
@@ -213,7 +240,20 @@ export function createEffectCache(options: CreateEffectCacheOptions = {}): Effec
 				return null;
 			}
 
-			record.lastAccess = Date.now();
+			if (record.expiresAt !== undefined && nowFn() >= record.expiresAt) {
+				store.delete(serialized);
+
+				const metaRecord = (await requestToPromise(meta.get(META_KEY) as IDBRequest<MetaRecord | undefined>)) ?? { id: META_KEY, totalBytes: 0 };
+				const nextTotal = Math.max(0, metaRecord.totalBytes - record.bytes);
+
+				meta.put({ id: META_KEY, totalBytes: nextTotal } satisfies MetaRecord);
+
+				await transactionToPromise(transaction);
+
+				return null;
+			}
+
+			record.lastAccess = nowFn();
 			store.put(record);
 
 			await transactionToPromise(transaction);
@@ -235,14 +275,29 @@ export function createEffectCache(options: CreateEffectCacheOptions = {}): Effec
 		const sourceBuffer = value.data.buffer;
 		const sourceOffset = value.data.byteOffset;
 		const sourceLength = value.data.byteLength;
+		const bytes = sourceLength;
+
+		if (bytes > maxEntryBytes) {
+			if (!sizeRejectLoggedVersions.has(key.version)) {
+				sizeRejectLoggedVersions.add(key.version);
+				console.warn(
+					`pictel effect cache: skipping cache write for entry exceeding maxEntryBytes (bytes=${bytes}, max=${maxEntryBytes}, version=${key.version})`,
+				);
+			}
+
+			return;
+		}
+
 		const buffer = sourceBuffer.slice(sourceOffset, sourceOffset + sourceLength);
+		const now = nowFn();
 		const record: EntryRecord = {
 			key: serialized,
 			width: value.width,
 			height: value.height,
 			buffer,
 			bytes: buffer.byteLength,
-			lastAccess: Date.now(),
+			lastAccess: now,
+			...(ttlMs === Infinity ? {} : { expiresAt: now + ttlMs }),
 		};
 
 		try {

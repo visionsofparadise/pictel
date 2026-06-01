@@ -348,6 +348,8 @@ import { RemoveBackground } from "@pictel/ml";
 </RemoveBackground>;
 ```
 
+Entries are bounded by a per-entry size cap (50 MB default — rejects pathologically large outputs at write) and a TTL (24 h default — expired entries are treated as misses on read and deleted inline). Both are configurable on `createEffectCache`; pass `ttlMs: Infinity` to disable expiry.
+
 Effects that produce bleed (`Blur`, `DropShadow`, `Bloom`, `Outline`, certain `Hatch` / `LIC` configurations) skip the cache write in v1 — the entry shape stores output pixels only. See [design-effect-output-cache](https://github.com/visionsofparadise/planner/blob/main/projects/code/pictel/design-effect-output-cache.md) for the full contract and rejected alternatives.
 
 API reference below — generated from JSDoc on the source.

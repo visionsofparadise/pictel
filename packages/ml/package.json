@@ -24,7 +24,7 @@
   },
   "scripts": {
     "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
-    "unit": "vitest run",
+    "unit": "vitest run --project unit",
     "build": "tsup",
     "docs": "typedoc"
   },
@@ -43,6 +43,6 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tsup": "latest",
-    "vitest": "latest"
+    "vitest": "^4.1.4"
   }
 }

@@ -11,6 +11,8 @@
     "check": "turbo check",
     "lint": "turbo lint",
     "unit": "turbo unit",
+    "integration": "turbo integration",
+    "integration:heavy": "turbo integration:heavy",
     "build": "turbo build",
     "docs": "turbo run docs"
   },

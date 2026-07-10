@@ -24,8 +24,8 @@
   },
   "scripts": {
     "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
-    "integration": "vitest run --config vitest.integration.config.ts",
-    "unit": "vitest run",
+    "integration": "vitest run --project integration",
+    "unit": "vitest run --project unit",
     "build": "tsup",
     "docs": "typedoc",
     "render:readme": "tsx scripts/render-readme.ts"
@@ -51,6 +51,6 @@
     "simplex-noise": "latest",
     "tsup": "latest",
     "tsx": "^4.20.3",
-    "vitest": "latest"
+    "vitest": "^4.1.4"
   }
 }

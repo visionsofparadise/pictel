@@ -25,6 +25,7 @@
   "scripts": {
     "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
     "unit": "vitest run --project unit",
+    "integration:heavy": "vitest run --project heavy",
     "build": "tsup",
     "docs": "typedoc"
   },

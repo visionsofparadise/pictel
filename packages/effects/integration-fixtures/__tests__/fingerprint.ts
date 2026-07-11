@@ -2,6 +2,7 @@
 import baselinesText from "../test-baselines.json?raw";
  
 import gradientMapReferenceUrl from "../references/gradient-map.png";
+import celShadeReferenceUrl from "../references/cel-shade.png";
 
 type BaselineMap = Record<string, Array<string>>;
 
@@ -9,12 +10,13 @@ const baselines = JSON.parse(baselinesText) as BaselineMap;
 
 const updateMode = (import.meta.env as Record<string, string | undefined>).PICTEL_UPDATE_BASELINES === "1";
 
-const TOLERANCE_SLUGS = new Set(["gradient-map"]);
+const TOLERANCE_SLUGS = new Set(["gradient-map", "cel-shade"]);
 const TOLERANCE_EPSILON = 8;
 const TOLERANCE_THRESHOLD = 500;
 
 const toleranceReferenceUrls: Record<string, string> = {
 	"gradient-map": gradientMapReferenceUrl,
+	"cel-shade": celShadeReferenceUrl,
 };
 
 const REGENERATE_HINT =

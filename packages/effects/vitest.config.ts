@@ -31,6 +31,7 @@ export default defineConfig({
                     globals: true,
                     include: ["integration-fixtures/*.integration.test.tsx"],
                     testTimeout: 90000,
+                    fileParallelism: false,
                     browser: {
                         enabled: true,
                         provider: playwright(),

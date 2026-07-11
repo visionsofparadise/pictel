@@ -3,6 +3,7 @@ import baselinesText from "../test-baselines.json?raw";
  
 import gradientMapReferenceUrl from "../references/gradient-map.png";
 import celShadeReferenceUrl from "../references/cel-shade.png";
+import popArtReferenceUrl from "../references/pop-art.png";
 
 type BaselineMap = Record<string, Array<string>>;
 
@@ -10,21 +11,24 @@ const baselines = JSON.parse(baselinesText) as BaselineMap;
 
 const updateMode = (import.meta.env as Record<string, string | undefined>).PICTEL_UPDATE_BASELINES === "1";
 
-const TOLERANCE_SLUGS = new Set(["gradient-map", "cel-shade"]);
+const TOLERANCE_SLUGS = new Set(["gradient-map", "cel-shade", "pop-art"]);
 const TOLERANCE_EPSILON = 8;
 // Per-slug max count of pixels allowed to differ beyond epsilon. Sized per fixture:
-// gradient-map is a smooth luminance→gradient map (cross-platform delta ~0). cel-shade is
-// a Bilateral+LuminanceBands+Outline pipeline whose quantization boundaries shift ~1000 edge
-// pixels across GPU/OS render backends, while any real regression re-bands the whole image
-// (~262k px) — so a threshold in the wide gap between the two separates noise from regressions.
+// gradient-map is a smooth luminance→gradient map (cross-platform delta ~0). cel-shade and
+// pop-art are Threshold+Outline quantization pipelines whose boundary pixels shift across
+// GPU/OS render backends (cel-shade ~1067 px on linux), while any real regression restructures
+// the whole image (cel-shade bands → 262k px, pop-art halftone → 305k px) — so a threshold in
+// the wide gap between the cross-platform noise and the regression floor separates the two.
 const TOLERANCE_THRESHOLDS: Record<string, number> = {
 	"gradient-map": 500,
 	"cel-shade": 5000,
+	"pop-art": 8000,
 };
 
 const toleranceReferenceUrls: Record<string, string> = {
 	"gradient-map": gradientMapReferenceUrl,
 	"cel-shade": celShadeReferenceUrl,
+	"pop-art": popArtReferenceUrl,
 };
 
 const REGENERATE_HINT =

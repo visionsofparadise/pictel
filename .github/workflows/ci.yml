@@ -63,8 +63,9 @@ jobs:
 
   integration:
     # Browser (playwright chromium) + puppeteer integration sets: pictel (8
-    # fixtures), effects (23 fixtures + gradient-map tolerance), cli (1 puppeteer
-    # render via its own bundled chromium). ml has no integration set. Runs on
+    # fixtures), effects (24 fixtures run serially; 21 exact-hash + 3 tolerance
+    # goldens for the quantization-amplifier pipelines), cli (1 puppeteer render
+    # via its own bundled chromium). ml has no integration set. Runs on
     # push/PR/dispatch. The effects set serves ~28 MB of fixture assets fetched
     # from S3 (cached by manifest hash) same-origin.
     runs-on: ubuntu-latest
@@ -155,4 +156,4 @@ jobs:
           name: effects-baselines
           path: |
             packages/effects/integration-fixtures/test-baselines.json
-            packages/effects/integration-fixtures/references/gradient-map.png
+            packages/effects/integration-fixtures/references/*.png

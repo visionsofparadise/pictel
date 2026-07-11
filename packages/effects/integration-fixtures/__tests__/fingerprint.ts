@@ -12,7 +12,15 @@ const updateMode = (import.meta.env as Record<string, string | undefined>).PICTE
 
 const TOLERANCE_SLUGS = new Set(["gradient-map", "cel-shade"]);
 const TOLERANCE_EPSILON = 8;
-const TOLERANCE_THRESHOLD = 500;
+// Per-slug max count of pixels allowed to differ beyond epsilon. Sized per fixture:
+// gradient-map is a smooth luminance→gradient map (cross-platform delta ~0). cel-shade is
+// a Bilateral+LuminanceBands+Outline pipeline whose quantization boundaries shift ~1000 edge
+// pixels across GPU/OS render backends, while any real regression re-bands the whole image
+// (~262k px) — so a threshold in the wide gap between the two separates noise from regressions.
+const TOLERANCE_THRESHOLDS: Record<string, number> = {
+	"gradient-map": 500,
+	"cel-shade": 5000,
+};
 
 const toleranceReferenceUrls: Record<string, string> = {
 	"gradient-map": gradientMapReferenceUrl,
@@ -141,11 +149,12 @@ async function expectMatchesReference(container: HTMLElement, slug: string): Pro
 	}
 
 	const differing = countDifferingPixels(actual, reference, TOLERANCE_EPSILON);
+	const threshold = TOLERANCE_THRESHOLDS[slug] ?? 500;
 
-	if (differing > TOLERANCE_THRESHOLD) {
+	if (differing > threshold) {
 		throw new Error(
 			`Reference mismatch for "${slug}": ${String(differing)} pixel(s) differ beyond epsilon ${String(TOLERANCE_EPSILON)} ` +
-				`(threshold ${String(TOLERANCE_THRESHOLD)}). ${CHROMIUM_VARIANCE_HINT} To regenerate: ${REGENERATE_HINT}`,
+				`(threshold ${String(threshold)}). ${CHROMIUM_VARIANCE_HINT} To regenerate: ${REGENERATE_HINT}`,
 		);
 	}
 }

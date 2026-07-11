@@ -25,9 +25,16 @@ on:
       - "packages/ml/**"
       - "packages/cli/**"
   workflow_dispatch:
+    inputs:
+      update_baselines:
+        description: "Regenerate effects fingerprint baselines and upload them as artifacts (does not run the normal heavy assertions)"
+        type: boolean
+        default: false
 
 jobs:
-  pictel:
+  checks:
+    # check -> unit -> build -> docs drift. The unit set is pure, so no browser
+    # or fixture provisioning. Runs on push/PR/dispatch.
     runs-on: ubuntu-latest
 
     steps:
@@ -53,3 +60,99 @@ jobs:
         run: |
           npx turbo run docs --filter=pictel --filter=@pictel/effects --filter=@pictel/ml
           git diff --exit-code packages/pictel/README.md packages/effects/README.md packages/ml/README.md
+
+  integration:
+    # Browser (playwright chromium) + puppeteer integration sets: pictel (8
+    # fixtures), effects (23 fixtures + gradient-map tolerance), cli (1 puppeteer
+    # render via its own bundled chromium). ml has no integration set. Runs on
+    # push/PR/dispatch. The effects set serves ~28 MB of fixture assets fetched
+    # from S3 (cached by manifest hash) same-origin.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Cache fixture assets
+        uses: actions/cache@v4
+        with:
+          path: packages/effects/integration-fixtures/assets
+          key: assets-${{ hashFiles('packages/effects/integration-fixtures/assets.manifest.json') }}
+
+      - name: Fetch fixture assets
+        run: npm run fixtures:assets -w @pictel/effects
+
+      - name: Integration (topo-ordered)
+        run: npx turbo run integration --filter=pictel --filter=@pictel/effects --filter=@pictel/cli
+
+  heavy:
+    # Manual-dispatch debug button + fingerprint-portability probe (the automatic
+    # pre-publish heavy gate lives in publish-pictel-effects.yml). Runs effects'
+    # heavy set only. ml's heavy set needs a hardware WebGPU adapter, which
+    # GitHub runners lack, so it is a local-only pre-publish gate and never runs
+    # here. update_baselines regenerates the effects baselines and uploads them
+    # instead of asserting.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Cache fixture assets
+        uses: actions/cache@v4
+        with:
+          path: packages/effects/integration-fixtures/assets
+          key: assets-${{ hashFiles('packages/effects/integration-fixtures/assets.manifest.json') }}
+
+      - name: Fetch fixture assets
+        run: npm run fixtures:assets -w @pictel/effects
+
+      - name: Build effects (topo-ordered)
+        run: npx turbo build --filter=@pictel/effects
+
+      # Direct package script, not `turbo run integration:heavy --filter=@pictel/effects`:
+      # @pictel/ml is a devDependency of @pictel/effects, so turbo's
+      # `^integration:heavy` topo would pull @pictel/ml#integration:heavy (a real
+      # GPU/model task) into the plan and fail on a GPU-less runner. Running the
+      # effects script directly scopes it to effects' heavy set alone.
+      - name: Heavy integration (effects only)
+        if: ${{ !inputs.update_baselines }}
+        run: npm run integration:heavy -w @pictel/effects
+
+      - name: Regenerate effects baselines
+        if: ${{ inputs.update_baselines }}
+        run: npm run update:baselines -w @pictel/effects
+
+      # Both are baselines: test-baselines.json holds the exact-hash slugs and
+      # gradient-map.png is the tolerance-compared golden reference. The golden
+      # PNG is platform-sensitive too, so upload both for the platform-keying
+      # decision.
+      - name: Upload regenerated baselines
+        if: ${{ inputs.update_baselines }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: effects-baselines
+          path: |
+            packages/effects/integration-fixtures/test-baselines.json
+            packages/effects/integration-fixtures/references/gradient-map.png

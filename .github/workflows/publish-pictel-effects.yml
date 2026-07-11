@@ -52,6 +52,34 @@ jobs:
         if: steps.check.outputs.skip == 'false'
         run: npx turbo build --filter=@pictel/effects
 
+      - name: Install Playwright Chromium
+        if: steps.check.outputs.skip == 'false'
+        run: npx playwright install chromium --with-deps
+
+      - name: Cache fixture assets
+        if: steps.check.outputs.skip == 'false'
+        uses: actions/cache@v4
+        with:
+          path: packages/effects/integration-fixtures/assets
+          key: assets-${{ hashFiles('packages/effects/integration-fixtures/assets.manifest.json') }}
+
+      - name: Fetch fixture assets
+        if: steps.check.outputs.skip == 'false'
+        run: npm run fixtures:assets -w @pictel/effects
+
+      - name: Run integration tests
+        if: steps.check.outputs.skip == 'false'
+        run: npx turbo run integration --filter=@pictel/effects
+
+      # Direct package script, not `turbo run integration:heavy --filter=@pictel/effects`:
+      # @pictel/ml is a devDependency of @pictel/effects, so turbo's
+      # `^integration:heavy` topo would pull @pictel/ml#integration:heavy (a real
+      # GPU/model task) into the plan and fail on a GPU-less runner. Running the
+      # effects script directly scopes it to effects' heavy set alone.
+      - name: Run heavy integration tests (effects only)
+        if: steps.check.outputs.skip == 'false'
+        run: npm run integration:heavy -w @pictel/effects
+
       - name: Publish to npm
         if: steps.check.outputs.skip == 'false'
         run: npm publish --workspace=packages/effects --access public

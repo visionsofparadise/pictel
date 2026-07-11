@@ -52,6 +52,29 @@ jobs:
         if: steps.check.outputs.skip == 'false'
         run: npx turbo build --filter=@pictel/cli
 
+      # The cli render drives puppeteer's own bundled chromium (installed by
+      # puppeteer's postinstall on `npm ci`), but turbo's `^integration` topo
+      # pulls pictel + effects integration first, which need playwright chromium
+      # and the effects fixture assets.
+      - name: Install Playwright Chromium
+        if: steps.check.outputs.skip == 'false'
+        run: npx playwright install chromium --with-deps
+
+      - name: Cache fixture assets
+        if: steps.check.outputs.skip == 'false'
+        uses: actions/cache@v4
+        with:
+          path: packages/effects/integration-fixtures/assets
+          key: assets-${{ hashFiles('packages/effects/integration-fixtures/assets.manifest.json') }}
+
+      - name: Fetch fixture assets
+        if: steps.check.outputs.skip == 'false'
+        run: npm run fixtures:assets -w @pictel/effects
+
+      - name: Run integration tests
+        if: steps.check.outputs.skip == 'false'
+        run: npx turbo run integration --filter=@pictel/cli
+
       - name: Publish to npm
         if: steps.check.outputs.skip == 'false'
         run: npm publish --workspace=packages/cli --access public

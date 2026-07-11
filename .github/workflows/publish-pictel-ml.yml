@@ -52,6 +52,23 @@ jobs:
         if: steps.check.outputs.skip == 'false'
         run: npx turbo build --filter=@pictel/ml
 
+      - name: Install Playwright Chromium
+        if: steps.check.outputs.skip == 'false'
+        run: npx playwright install chromium --with-deps
+
+      # @pictel/ml has no integration set and turbo's `^integration` does not
+      # materialize a task for a package that lacks the script, so
+      # `--filter=@pictel/ml` would plan zero integration tasks. Gate on ml's
+      # runtime dependency instead (pictel's browser integration set).
+      #
+      # ml's heavy set (real models + hardware WebGPU) cannot run on GitHub
+      # runners (no GPU), so it is a LOCAL pre-publish gate Matt runs before
+      # bumping the version: `npm run integration:heavy -w @pictel/ml`
+      # (per design-publishing 2026-07-10).
+      - name: Run integration tests (pictel — ml's runtime dependency)
+        if: steps.check.outputs.skip == 'false'
+        run: npx turbo run integration --filter=pictel
+
       - name: Publish to npm
         if: steps.check.outputs.skip == 'false'
         run: npm publish --workspace=packages/ml --access public

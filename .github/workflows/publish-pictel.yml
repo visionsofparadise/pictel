@@ -52,6 +52,14 @@ jobs:
         if: steps.check.outputs.skip == 'false'
         run: npx turbo build --filter=pictel
 
+      - name: Install Playwright Chromium
+        if: steps.check.outputs.skip == 'false'
+        run: npx playwright install chromium --with-deps
+
+      - name: Run integration tests
+        if: steps.check.outputs.skip == 'false'
+        run: npx turbo run integration --filter=pictel
+
       - name: Publish to npm
         if: steps.check.outputs.skip == 'false'
         run: npm publish --workspace=packages/pictel --access public

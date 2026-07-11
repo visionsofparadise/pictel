@@ -1,7 +1,7 @@
 import { MotionBlur } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const CITY_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/city-overview.jpg";
+const CITY_URL = "/city-overview.jpg";
 
 const canvasW = 512;
 const canvasH = 512;

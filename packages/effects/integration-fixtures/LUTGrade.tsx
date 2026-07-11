@@ -1,8 +1,8 @@
 import { CubeLUT } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const GOLDEN_HOUR_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/golden-hour-portrait.jpg";
-const LUT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/orange-and-blue-lut.cube";
+const GOLDEN_HOUR_URL = "/golden-hour-portrait.jpg";
+const LUT_URL = "/orange-and-blue-lut.cube";
 
 const canvasW = 683;
 const canvasH = 1024;

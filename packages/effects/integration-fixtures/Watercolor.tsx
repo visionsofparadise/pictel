@@ -1,7 +1,7 @@
 import { Bilateral, Blur, Direction, DisplacementMap, EdgeDetect, Invert, Multiply } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const PORTRAIT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/golden-hour-portrait.jpg";
+const PORTRAIT_URL = "/golden-hour-portrait.jpg";
 
 const canvasW = 512;
 const canvasH = 512;

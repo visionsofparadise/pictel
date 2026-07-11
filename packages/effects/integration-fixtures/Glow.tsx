@@ -1,7 +1,7 @@
 import { Bloom } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const LANDSCAPE_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/evening-landscape.jpg";
+const LANDSCAPE_URL = "/evening-landscape.jpg";
 
 const canvasW = 640;
 const canvasH = 960;

@@ -1,7 +1,7 @@
 import { Contrast, Halftone, Multiply, Outline, Saturate, Threshold } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const PHOTO_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/golden-hour-portrait.jpg";
+const PHOTO_URL = "/golden-hour-portrait.jpg";
 
 export default function PopArt() {
 	return (

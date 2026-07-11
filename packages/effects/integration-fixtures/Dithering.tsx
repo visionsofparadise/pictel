@@ -1,7 +1,7 @@
 import { Quantize } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const HEADSHOT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg";
+const HEADSHOT_URL = "/headshot.jpg";
 
 const MAC_BW = [[0, 0, 0], [255, 255, 255]] as const;
 const GAMEBOY = [[15, 56, 15], [48, 98, 48], [139, 172, 15], [155, 188, 15]] as const;

@@ -1,7 +1,7 @@
 import { Blur, Contrast, Grayscale, ShockFilter } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const PHOTO_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/portrait-with-background-1.jpg";
+const PHOTO_URL = "/portrait-with-background-1.jpg";
 
 const canvasW = 640;
 const canvasH = 960;

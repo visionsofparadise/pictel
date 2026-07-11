@@ -1,9 +1,9 @@
 import { Lighten, Screen } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const LANDSCAPE_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/evening-landscape.jpg";
-const DEGRADED_FILM_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/degraded-film.jpg";
-const LIGHT_LEAK_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/light-leak.jpg";
+const LANDSCAPE_URL = "/evening-landscape.jpg";
+const DEGRADED_FILM_URL = "/degraded-film.jpg";
+const LIGHT_LEAK_URL = "/light-leak.jpg";
 
 const canvasW = 681;
 const canvasH = 1024;

@@ -1,10 +1,11 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const packageDir = resolve(here, "..");
 const baselinesPath = resolve(packageDir, "integration-fixtures", "test-baselines.json");
+const referencesDir = resolve(packageDir, "integration-fixtures", "references");
 const fallbackLogPath = resolve(packageDir, ".last-baseline-run.log");
 
 function readStdin(): string {
@@ -60,6 +61,18 @@ function parseBaselines(log: string): Record<string, Array<string>> {
 	return harvested;
 }
 
+function parseReferenceImages(log: string): Record<string, string> {
+	const harvested: Record<string, string> = {};
+	const lineRegex = /PICTEL_BASELINE_IMAGE (\S+) (\S+)\s*$/gm;
+	let match: RegExpExecArray | null;
+
+	while ((match = lineRegex.exec(log)) !== null) {
+		harvested[match[1]!] = match[2]!.trim();
+	}
+
+	return harvested;
+}
+
 function loadExistingBaselines(): Record<string, Array<string>> {
 	if (!existsSync(baselinesPath)) return {};
 
@@ -73,11 +86,13 @@ function loadExistingBaselines(): Record<string, Array<string>> {
 function main(): void {
 	const log = loadLog();
 	const harvested = parseBaselines(log);
+	const images = parseReferenceImages(log);
 	const harvestedCount = Object.keys(harvested).length;
+	const imageCount = Object.keys(images).length;
 
-	if (harvestedCount === 0) {
+	if (harvestedCount === 0 && imageCount === 0) {
 		console.error(
-			"collect-baselines: no PICTEL_BASELINE lines found in the run log. " +
+			"collect-baselines: no PICTEL_BASELINE or PICTEL_BASELINE_IMAGE lines found in the run log. " +
 				"Was PICTEL_UPDATE_BASELINES=1 set?",
 		);
 		process.exit(1);
@@ -85,14 +100,28 @@ function main(): void {
 
 	const existing = loadExistingBaselines();
 	const merged = { ...existing, ...harvested };
-	const sortedKeys = Object.keys(merged).sort();
+	const imageSlugs = new Set(Object.keys(images));
+	const sortedKeys = Object.keys(merged)
+		.filter((key) => !imageSlugs.has(key))
+		.sort();
 	const sortedMerged: Record<string, Array<string>> = {};
 
 	for (const key of sortedKeys) sortedMerged[key] = merged[key]!;
 
 	writeFileSync(baselinesPath, JSON.stringify(sortedMerged, null, 2) + "\n", "utf8");
+
+	if (imageCount > 0) {
+		mkdirSync(referencesDir, { recursive: true });
+
+		for (const [slug, base64] of Object.entries(images)) {
+			writeFileSync(resolve(referencesDir, `${slug}.png`), Buffer.from(base64, "base64"));
+		}
+	}
+
 	// eslint-disable-next-line no-console -- CLI success summary
-	console.log(`collect-baselines: wrote ${String(harvestedCount)} baseline(s) to ${baselinesPath}`);
+	console.log(
+		`collect-baselines: wrote ${String(harvestedCount)} hash baseline(s) and ${String(imageCount)} reference image(s) to ${baselinesPath} / ${referencesDir}`,
+	);
 }
 
 main();

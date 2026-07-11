@@ -24,6 +24,7 @@
   },
   "scripts": {
     "check": "concurrently \"eslint . --fix --cache --format ../../agent-eslint.js\" \"tsc --noEmit --pretty false 2>&1 | node ../../agent-tsc.js\"",
+    "fixtures:assets": "tsx scripts/fetch-assets.ts",
     "unit": "vitest run --project unit",
     "integration": "vitest run --project integration",
     "integration:heavy": "vitest run --project heavy",

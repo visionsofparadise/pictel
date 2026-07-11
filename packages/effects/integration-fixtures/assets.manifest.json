@@ -1,0 +1,71 @@
+{
+  "baseUrl": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/",
+  "assets": [
+    {
+      "filename": "headshot.jpg",
+      "url": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg",
+      "sha256": "085f775268d23587a9b990c964190213ba3a829d26f94fc415c9f7358fda1191",
+      "bytes": 1230049
+    },
+    {
+      "filename": "evening-landscape.jpg",
+      "url": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/evening-landscape.jpg",
+      "sha256": "10a42ce404ad042569c4cdca742e2828295157fdefe3a769c76ca81723011cd2",
+      "bytes": 2749568
+    },
+    {
+      "filename": "degraded-film.jpg",
+      "url": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/degraded-film.jpg",
+      "sha256": "2ce96587af7465e46df19cdb45f0f22be5f93b7512a993a904d261ebacdb5f65",
+      "bytes": 7854708
+    },
+    {
+      "filename": "light-leak.jpg",
+      "url": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/light-leak.jpg",
+      "sha256": "48307d23d2c4226a427bccb50c9991d7297fd801c6a19a738cf86eb734f9e4ab",
+      "bytes": 2449834
+    },
+    {
+      "filename": "city-overview.jpg",
+      "url": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/city-overview.jpg",
+      "sha256": "d12ca1133ac8628482375be8554ca46b64e72195c1f2edba214de17020aaa009",
+      "bytes": 2360089
+    },
+    {
+      "filename": "golden-hour-portrait.jpg",
+      "url": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/golden-hour-portrait.jpg",
+      "sha256": "5cb22a3757586a7ec085e6a8998e8d5d3e1c057730b797cec1b47f77b8912547",
+      "bytes": 556985
+    },
+    {
+      "filename": "portrait-with-background-1.jpg",
+      "url": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/portrait-with-background-1.jpg",
+      "sha256": "bad2c4e88a1580f8bda22bb4556497021a4707c665a55bcfe3172baaf8e208c7",
+      "bytes": 3181477
+    },
+    {
+      "filename": "pencil-texture.jpg",
+      "url": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/pencil-texture.jpg",
+      "sha256": "2cfe7bedbd8026d7d0534b761ac7d1cee8cb6dbdeadd419511043bb219b7dfb6",
+      "bytes": 2172150
+    },
+    {
+      "filename": "wall.jpg",
+      "url": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/wall.jpg",
+      "sha256": "4031495bf27320415dd3091a4049455cdd07de8827bbc74a1819fb0aec8596cb",
+      "bytes": 1829571
+    },
+    {
+      "filename": "mark.svg",
+      "url": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/mark.svg",
+      "sha256": "cd51a7bca669ff51a65480a01c6962be8300c7375727f6060e916acb3e7a369c",
+      "bytes": 332
+    },
+    {
+      "filename": "orange-and-blue-lut.cube",
+      "url": "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/orange-and-blue-lut.cube",
+      "sha256": "c38741d5113216ad7ef11c5dee95e2c1ec07ce21d06837248a60932f211f3503",
+      "bytes": 1022857
+    }
+  ]
+}

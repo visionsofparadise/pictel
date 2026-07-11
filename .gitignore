@@ -6,3 +6,4 @@ dist/
 .claude
 apps/demos/.cache/
 .last-baseline-run.log
+packages/effects/integration-fixtures/assets/

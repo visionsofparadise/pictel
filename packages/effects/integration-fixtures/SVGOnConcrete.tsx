@@ -1,8 +1,8 @@
 import { DisplacementMap, Overlay } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const WALL_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/wall.jpg";
-const MARK_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/mark.svg";
+const WALL_URL = "/wall.jpg";
+const MARK_URL = "/mark.svg";
 
 const canvasW = 1024;
 const canvasH = 576;

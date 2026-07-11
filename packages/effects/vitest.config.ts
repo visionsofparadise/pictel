@@ -25,12 +25,12 @@ export default defineConfig({
                 define: {
                     "import.meta.env.PICTEL_UPDATE_BASELINES": JSON.stringify(process.env.PICTEL_UPDATE_BASELINES ?? ""),
                 },
+                publicDir: "integration-fixtures/assets",
                 test: {
                     name: "integration",
                     globals: true,
                     include: ["integration-fixtures/*.integration.test.tsx"],
                     testTimeout: 90000,
-                    fileParallelism: false,
                     browser: {
                         enabled: true,
                         provider: playwright(),
@@ -51,6 +51,7 @@ export default defineConfig({
                 define: {
                     "import.meta.env.PICTEL_UPDATE_BASELINES": JSON.stringify(process.env.PICTEL_UPDATE_BASELINES ?? ""),
                 },
+                publicDir: "integration-fixtures/assets",
                 test: {
                     name: "heavy",
                     globals: true,

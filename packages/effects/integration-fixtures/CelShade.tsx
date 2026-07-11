@@ -1,7 +1,7 @@
 import { Bilateral, LuminanceBands, Multiply, Outline, Saturate, Threshold } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const HEADSHOT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg";
+const HEADSHOT_URL = "/headshot.jpg";
 
 const canvasW = 512;
 const canvasH = 512;

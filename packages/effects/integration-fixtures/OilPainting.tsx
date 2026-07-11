@@ -1,7 +1,7 @@
 import { Direction, Duotone, Hatch } from "@pictel/effects";
 import { Canvas, Image } from "pictel";
 
-const HEADSHOT_URL = "https://pictel-demos.s3.us-east-1.amazonaws.com/sources/headshot.jpg";
+const HEADSHOT_URL = "/headshot.jpg";
 
 const INK: [number, number, number] = [38, 30, 54];
 const PAPER: [number, number, number] = [240, 234, 220];

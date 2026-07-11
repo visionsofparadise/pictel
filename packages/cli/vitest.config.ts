@@ -12,6 +12,15 @@ export default defineConfig({
           include: ["src/**/*.unit.test.ts"],
         },
       },
+      {
+        test: {
+          name: "integration",
+          globals: true,
+          environment: "node",
+          include: ["src/**/*.integration.test.ts"],
+          testTimeout: 180_000,
+        },
+      },
     ],
   },
 });
